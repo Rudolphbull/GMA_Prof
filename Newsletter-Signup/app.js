@@ -4,6 +4,8 @@ const express = require("express");
 const path = require("path");
 const https = require("node:https");
 
+const PORT = process.env.PORT || 5000;
+
 const app = express();
 
 app.use(express.urlencoded({extended: true}));
@@ -72,6 +74,6 @@ app.post("/failure", function(req, res) {
 });
 
 
-app.listen(5000, function() {
+app.listen(PORT, function() {
     console.log("Newsletter-Signup App started and running on port 5000");
 });
