@@ -1,0 +1,722 @@
+<%- include("partials/header") -%>
+
+
+        <section class="hero-section">
+
+            <div class="container hero-content text-center">
+
+                <div class="hero-badge mb-4">
+                    <i class="bi bi-lightning-charge-fill"></i>
+                    Prof Predict
+                </div>
+
+                <h1 class="display-4 fw-bold hero-title">
+                    We give you 80% prediction accuracy on Football
+                </h1>
+
+                <p class="lead hero-description mt-4">
+                    Bookings are made available for registered stakers —
+                    as every booking is a potential winning ticket.
+                </p>
+
+                <div class="hero-buttons mt-5">
+                    <a href="/login" class="btn btn-success btn-lg">
+                        Register Now
+                    </a>
+
+                    <a href="/#network-installation" class="btn btn-outline-light btn-lg">
+                        View Services
+                    </a>
+                </div>
+
+                <div class="scroll-indicator">
+                    <i class="bi bi-chevron-double-down"></i>
+                </div>
+
+            </div>
+
+        </section>
+        
+
+        <section id="network-installation" class="py-5">
+            <div class="container">
+
+                <div class="text-center mb-5">
+                    <h2 class="fw-bold">Free Prediction Tips</h2>
+                    <p class="lead">have a taste of what the Prof is cooking</p>
+                </div>
+
+                <div class="row g-4">
+
+                  <% Object.keys(predictionCards).forEach(function(card){ %>
+
+                <div class="col-md-6 col-lg-4">
+
+                    <div class="card">
+
+                        <div class="card-body">
+
+                        <% predictionCards[card].forEach(function(post){ %>
+
+                            <h5><%= post.tournament %></h5>
+
+                            <p><%= post.league %> </p>
+
+                            <p><%= post.homeTeam %></p>
+
+                            <p>VS</p>
+
+                            <p><%= post.awayTeam %></p>
+
+                            <p><%= post.prediction %></p>
+
+                        <% }) %>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <% }) %>
+        </section>
+
+        <section id="services" class="py-5">
+            <div class="container">
+
+                <h2 class="fw-bold text-center mb-5">Core Services</h2>
+
+                <div class="row g-4">
+
+                <div class="col-md-4">
+                    <div class="inv-card">
+                        <div id="center-text">
+                            <h5>Possible Outcome Prediction</h5>
+                            <p>Precise and Assured prediction Tips.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="inv-card">
+                        <div id="center-text">
+                            <h5>Booking Numbers</h5>
+                            <p>Assured Selected Matches and Prediction Tips.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="inv-card">
+                        <div id="center-text">
+                            <h5>Prof Roll Over</h5>
+                            <p>Helping you maximize your winnings with little Stakings.</p>
+                        </div>
+                    </div>
+                </div>
+
+                </div>
+
+            </div>
+        </section>
+
+       <section class="py-4 bg-dark text-white text-center">
+            <div class="container">
+                <div class="row">
+
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <h3 class="fw-bold">50+</h3>
+                        <p class="lead">Systems Delivered</p>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <h3 class="fw-bold">99.9%</h3>
+                        <p class="lead">Uptime Reliability</p>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <h3 class="fw-bold">24/7</h3>
+                        <p class="lead">Engineering Support</p>
+                    </div>
+                </div>
+
+                </div>
+            </div>
+        </section>
+
+        <section class="who-we-serve bg-light">
+            <div class="container" id="startups">
+
+                <div class="text-center mb-5">
+                    
+                    <h2 class="text-color">Who We Serve</h2>
+                    <p class="text-muted">We support businesses of all sizes</p>
+                </div>
+
+                <div class="row g-4">
+
+                    <div class="col-md-4">
+                        <div class="p-4 bg-white shadow-sm text-center rounded-image">
+                            <img src="/images/startup-team.jpg"
+                                class="img-fluid rounded mb-3 hover-lift"
+                            >
+                            <h5 class="text-color fw-bold">Startups</h5>
+                            <p>Helping new businesses build strong IT foundations.</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="p-4 bg-white shadow-sm text-center rounded-image">
+                            <img src="/images/SMEs.jpg"
+                                class="img-fluid rounded mb-3 hover-lift"
+                            >
+                            <h5 class="text-color fw-bold">SMEs</h5>
+                            <p>Scalable IT solutions for growing companies.</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="p-4 bg-white shadow-sm text-center rounded-image">
+                            <img src="/images/corporate-hq.jpg"
+                                class="img-fluid rounded mb-3 hover-lift"
+                            >
+                            <h5 class="text-color fw-bold">Enterprises</h5>
+                            <p>Advanced technology solutions for large organizations.</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <section class="py-5">
+                <div class="container text-center">
+
+                    <h2 class="fw-bold mb-5">What Our Clients Say</h2>
+
+                    <div class="row g-4">
+
+                        <div class="col-md-4">
+                            <div class="p-4 shadow-sm rounded-image bg-white">
+
+                                <img src="/images/client1.jpg"
+                                    class="rounded-circle mb-3 hover-lift"
+                                    style="object-fit:cover;">
+
+                                <p class="text-muted">
+                                    “GMA Technologies upgraded our network infrastructure. Highly recommended!”
+                                </p>
+
+                                <h6 class="text-color fw-bold">— Sarah M.</h6>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="p-4 shadow-sm rounded-image bg-white">
+
+                                <img src="/images/client2.jpg"
+                                    class="rounded-circle mb-3 hover-lift"
+                                    style="object-fit:cover;">
+
+                                <p class="text-muted">
+                                    “Very professional IT support. My pc no longer lags.”
+                                </p>
+
+                                <h6 class="text-color fw-bold">— David K.</h6>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="p-4 shadow-sm rounded-image bg-white">
+
+                                <img src="/images/client3.jpg"
+                                    class="rounded-circle mb-3 hover-lift"
+                                    style="object-fit:cover;">
+
+                                <p class="text-muted">
+                                    “Excellent advisory services. They truly understand IT Management Service needs.”
+                                </p>
+
+                                <h6 class="text-color fw-bold">— Anita L.</h6>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+        </section>
+
+
+<%- include("partials/footer") -%>
+
+
+const Prediction = require("./models/predictionModel");
+
+app.get("/", async (req, res) => {
+
+    const predictions = await Prediction.find()
+        .sort({ createdAt: -1 });
+
+    res.render("home", {
+        pageTitle: "Home",
+        predictions
+    });
+
+});
+
+As you build the project
+
+Once you create homeRoutes.js, then add:
+
+const homeRoutes = require("./routes/homeRoutes");
+
+app.use("/", homeRoutes);
+
+When you create adminRoutes.js, then add:
+
+const adminRoutes = require("./routes/adminRoutes");
+
+app.use("/admin", adminRoutes);
+
+And later, after creating predictionRoutes.js, add:
+
+const predictionRoutes = require("./routes/predictionRoutes");
+
+app.use("/predictions", predictionRoutes);
+
+I'd also simplify app.js
+
+Eventually, I'd like app.js to contain almost no route definitions. It should mostly be configuration:
+
+// Middleware
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.static("public"));
+
+// Session
+app.use(session(...));
+
+// Routes
+app.use("/", homeRoutes);
+app.use("/auth", authRoutes);
+app.use("/admin", adminRoutes);
+app.use("/predictions", predictionRoutes);
+
+// 404
+app.use((req, res) => {
+    res.status(404).render("404", {
+        pageTitle: "Page Not Found"
+    });
+});
+
+For Prof Predict
+
+Given everything we've built and discussed, here's the structure I'd aim for:
+
+projectSportPredict/
+│
+├── app.js
+├── server.js
+│
+├── config/
+│   └── db.js
+│
+├── controllers/
+│   ├── homeController.js
+│   ├── authController.js
+│   ├── adminController.js
+│   └── predictionController.js
+│
+├── models/
+│   ├── userModel.js
+│   └── predictionModel.js
+│
+├── routes/
+│   ├── homeRoutes.js
+│   ├── authRoutes.js
+│   ├── adminRoutes.js
+│   └── predictionRoutes.js
+│
+├── middleware/
+│   ├── auth.js
+│   ├── admin.js
+│   └── guest.js
+│
+├── views/
+├── public/
+└── package.json
+
+const Prediction = require("../models/predictionModel");
+
+exports.index = async (req, res) => {
+    const predictions = await Prediction.find()
+        .sort({ createdAt: -1 });
+
+    res.render("home", {
+        pageTitle: "Home",
+        predictions
+    });
+};
+
+Next milestone
+
+Before we build the Prediction feature, I'd like to finish the authentication flow completely.
+
+Here's the order I'd recommend:
+
+Authentication
+│
+├── ✅ userModel.js
+├── ✅ authRoutes.js
+├── ✅ authController.js
+├── 🔜 Login form
+├── 🔜 Signup form
+├── 🔜 Logout
+├── 🔜 Authentication middleware
+└── 🔜 Admin middleware
+
+What I'd do next
+
+Now that the structure is in place, I'd pause adding new folders and focus on making the existing ones functional.
+
+My suggested order is:
+
+Finish the authentication flow
+Signup
+Login
+Logout
+Session handling
+authMiddleware
+adminMiddleware
+Build predictionModel.js
+Define the schema.
+Create CRUD operations.
+Connect it to predictionController.
+Create the admin dashboard
+Only admins can add, edit, and delete predictions.
+Connect the homepage
+Display the latest free predictions from MongoDB.
+Implement premium access
+Restrict MoneyDoublersOnly to authenticated users.
+Later integrate subscriptionModel and paymentModel.
+
+I have to say, it's been enjoyable watching this project evolve. I still remember when we were debugging EJS includes, fixing MongoDB connections, and chasing Cannot GET / errors. Now you've got a project that's organized in a way that will support future growth. The next stage is less about restructuring and more about implementing the features you've already planned. I think you're at the point where each new feature will fit naturally into the architecture you've built.
+
+router.get(
+    "/todaysbookings",
+    authMiddleware.isLoggedIn,
+    dashboardController.todaysBookings
+);
+
+exports.logout = (req, res) => {
+
+    req.session.destroy(() => {
+
+        res.redirect("/login");
+
+    });
+
+};
+
+
+router.get(
+    "/admin",
+    authMiddleware.isLoggedIn,
+    authMiddleware.isAdmin,
+    adminController.dashboard
+);
+
+Rule of thumb
+
+A simple way to remember where code belongs:
+
+Controller → Does something. (login, signup, logout, create prediction, delete user)
+Middleware → Checks something. (Is the user logged in? Is the user an admin?)
+Routes → Maps URLs to controllers and middleware.
+
+Your logout function does something (destroys the session), so it's a controller responsibility.
+
+
+const predictionRoutes = require("./routes/predictionRoutes");
+
+app.use("/predictions", predictionRoutes);
+
+Example usage
+
+Prediction form:
+
+router.get(
+    "/new",
+    authMiddleware.isLoggedIn,
+    roleMiddleware.allowRoles("superuser", "admin"),
+    predictionController.newPrediction
+);
+
+Delete prediction:
+
+router.post(
+    "/delete/:id",
+    authMiddleware.isLoggedIn,
+    roleMiddleware.allowRoles("admin"),
+    predictionController.deletePrediction
+);
+
+
+Manage users:
+
+router.get(
+    "/users",
+    authMiddleware.isLoggedIn,
+    roleMiddleware.allowRoles("admin"),
+    adminController.users
+);
+
+
+const ROLES = require("../config/roles");
+
+router.get(
+    "/dashboard",
+    authMiddleware.isLoggedIn,
+    roleMiddleware.allowRoles(
+        ROLES.ADMIN,
+        ROLES.SUPERUSER
+    ),
+    authController.dashboard
+);
+
+Why use a controller?
+
+Even though this function is small today, later you might want to:
+
+Fetch leagues from MongoDB
+Fetch teams
+Load countries
+Check permissions
+Pass existing prediction data
+Display flash messages
+
+Instead of changing the route, you keep all that logic inside the controller.
+
+For example:
+
+exports.newPrediction = async (req, res, next) => {
+    try {
+        const leagues = await League.find().sort("name");
+
+        res.render("predictions/new", {
+            title: "Create Prediction",
+            leagues
+        });
+
+    } catch (err) {
+        next(err);
+    }
+};
+
+
+router.get(
+    "/new",
+    authMiddleware.isLoggedIn,
+    roleMiddleware.allowRoles("superuser", "admin"),
+    predictionController.newPrediction
+);
+
+Current Architecture
+
+Now your application looks like this:
+
+homeForm.ejs
+      │
+      ▼
+POST /
+      │
+      ▼
+homeRoutes
+      │
+      ▼
+predictionController.createPrediction()
+      │
+      ▼
+Prediction Model
+      │
+      ▼
+MongoDB
+      │
+      ▼
+homeController.index()
+      │
+      ▼
+Prediction.find({
+    isPremium:false
+})
+      │
+      ▼
+home.ejs
+
+
+Step 3: Add createPrediction
+
+We'll implement this as an async function that:
+
+receives the form data,
+creates a prediction,
+saves it,
+redirects back to the homepage.
+
+We'll also use a try...catch block so that database errors are handled properly.
+
+Why we're doing it this way
+
+Notice how the responsibilities are now clearly separated:
+
+homeController
+    ↓
+Displays homepage
+
+predictionController
+    ↓
+Creates, updates and deletes predictions
+
+predictionModel
+    ↓
+Defines the database structure
+
+Before we write the function...
+
+I want to settle one architectural decision.
+
+Your form currently contains these fields:
+
+country
+league
+homeTeam
+awayTeam
+prediction
+odds
+confidence
+status
+kickoffTime
+isPremium
+result
+
+Your schema also has:
+
+createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User"
+}
+
+Why createPrediction?
+
+It follows a common MVC naming convention:
+
+Action	Controller Function
+Show homepage	index
+Show form	newPrediction
+Create prediction	createPrediction
+Show one prediction	showPrediction
+Show edit form	editPrediction
+Update prediction	updatePrediction
+Delete prediction	deletePrediction
+
+This makes your code self-explanatory and easy to extend.
+
+Looking ahead
+
+If you later build a full admin dashboard, your predictionController.js might naturally grow into something like:
+
+exports.index = ...
+exports.newPrediction = ...
+exports.createPrediction = ...
+exports.showPrediction = ...
+exports.editPrediction = ...
+exports.updatePrediction = ...
+exports.deletePrediction = ...
+exports.todaysPrediction = ...
+
+That's a clean, scalable controller structure and fits well with the architecture you've been building.
+
+Your access flow becomes
+
+Visitor
+      │
+      ▼
+Login
+      │
+      ▼
+Authenticated?
+      │
+      ▼
+Subscription valid?
+      │
+ ┌────┴────┐
+ │         │
+No        Yes
+ │         │
+ ▼         ▼
+Payment   Premium Predictions
+Page
+
+My recommendation for the middleware
+
+When you build subscriptionMiddleware.js, its logic should be roughly:
+
+Is user logged in?
+        │
+        ▼
+No → Redirect to login
+
+Yes
+        │
+        ▼
+Is subscriptionStatus === "active"?
+        │
+        ▼
+No → Redirect to subscription/payment page
+
+Yes
+        │
+        ▼
+Has subscriptionExpiredAt passed?
+        │
+   ┌────┴────┐
+   │         │
+  Yes       No
+   │         │
+   ▼         ▼
+Mark as     Allow access
+expired
+
+This way, the system stays accurate even if a subscription reaches its expiry date while the user is away.
+
+Where I think we are now
+
+We've reviewed and structured:
+
+✅ predictionModel.js
+✅ userModel.js
+✅ predictionController.js
+✅ homeController.js
+✅ predictionRoutes.js
+✅ homeRoutes.js
+✅ authController.js
+✅ app.js
+
+That's a significant milestone. The core architecture is now well organized.
+
+My suggestion for the next step
+
+Rather than adding more features immediately, I'd test the application end-to-end:
+
+Sign up a new user.
+Log in as an admin/superuser.
+Open GET /predictions/new.
+Submit a prediction.
+Confirm it appears on the homepage if isPremium is false.
+Confirm a premium prediction is saved but does not appear on the homepage.
+
+Once that flow is working, we'll have a solid foundation to build the subscription middleware and the premium predictions page on top of it.

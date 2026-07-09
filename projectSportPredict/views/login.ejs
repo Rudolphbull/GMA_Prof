@@ -1,0 +1,56 @@
+<%- include("partials/header") %>
+
+<section class="py-5">
+    <div class="container">
+        <div class="form-alignment row g-5">
+            <div class="col-md-4">
+                <h1>Login Form</h1>
+                <form action="/auth/login" method="POST">
+                            <!-- <span class="details">Username/Email</span> -->
+                            <input class="form-control mb-3" type="text" name="login" placeholder="username/email" required>
+                
+                            <!-- <span class="details">Password</span> -->
+                            <input class="form-control mb-3" type="password" name="password" placeholder="password" required>
+                
+                    <div class="button">
+                        <input class="btn btn-success w-100" type="submit" value="Login">
+                    </div>
+                </form>
+                <p>don't have an account? <a href="/signup">Sign up</a></p>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+        
+<%- include("partials/footer") %>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

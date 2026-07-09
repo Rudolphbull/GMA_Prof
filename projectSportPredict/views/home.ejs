@@ -1,0 +1,261 @@
+<%- include("partials/header") -%>
+
+
+        <section class="hero-section">
+
+            <div class="container hero-content text-center">
+
+                <div class="hero-badge mb-4">
+                    <i class="bi bi-lightning-charge-fill"></i>
+                    Prof Predict
+                </div>
+
+                <h1 class="display-4 fw-bold hero-title">
+                    We give you 80% prediction accuracy on Football
+                </h1>
+
+                <p class="lead hero-description mt-4">
+                    Bookings are made available for subscribed stakers —
+                    as every booking is a potential winning ticket.
+                </p>
+
+                <div class="hero-buttons mt-5">
+                    <a href="/login" class="btn btn-success btn-lg">
+                        Register Now
+                    </a>
+
+                    <a href="/#network-installation" class="btn btn-outline-light btn-lg">
+                        View Services
+                    </a>
+                </div>
+
+                <div class="scroll-indicator">
+                    <i class="bi bi-chevron-double-down"></i>
+                </div>
+
+            </div>
+
+        </section>
+        
+
+        <section id="network-installation" class="py-5">
+            <div class="container">
+
+                <div class="text-center mb-5">
+                    <h2 class="fw-bold">Free Prediction Tips</h2>
+                    <p class="lead">have a taste of what the Prof is cooking</p>
+                </div>
+                <div class="row g-4">
+
+                    <% if (predictions && predictions.length > 0) { %>
+
+                        <% predictions.forEach(function(post){ %>
+                            
+                            <div class="col-md-6 col-lg-4">
+                                <div class="card h-100">
+                                    <div class="card-body text-center">
+
+                                        <h5 class="fw-bold mb-3">
+                                            Tournament: <%= post.tournament %>
+                                        </h5>
+
+                                        <p>League: <%= post.league %></p>
+
+                                        <p><%= post.homeTeam %></p>
+
+                                        <p class="fw-bold">VS</p>
+
+                                        <p><%= post.awayTeam %></p>
+
+                                        <p>
+                                            <strong>Prediction:</strong>
+                                            <%= post.prediction %>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                                <% }) %>
+
+                            <% } else { %>
+
+                                <div class="text-center py-5">
+                                    <h4>No predictions available yet.</h4>
+                                </div>
+
+                            <% } %>
+                </div>
+            </div>          
+        </section>
+
+        <section id="services" class="py-5">
+            <div class="container">
+
+                <h2 class="fw-bold text-center mb-5">Core Services</h2>
+
+                <div class="row g-4">
+
+                <div class="col-md-4">
+                    <div class="inv-card">
+                        <div id="center-text">
+                            <h5>Possible Outcome Prediction</h5>
+                            <p>Precise and Assured prediction Tips.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="inv-card">
+                        <div id="center-text">
+                            <h5>Booking Numbers</h5>
+                            <p>Assured Selected Matches and Prediction Tips.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="inv-card">
+                        <div id="center-text">
+                            <h5>Prof Roll Over</h5>
+                            <p>Helping you maximize your winnings with little Stakings.</p>
+                        </div>
+                    </div>
+                </div>
+
+                </div>
+
+            </div>
+        </section>
+
+       <section class="py-4 bg-dark text-white text-center">
+            <div class="container">
+                <div class="row">
+
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <h3 class="fw-bold">50+</h3>
+                        <p class="lead">Systems Delivered</p>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <h3 class="fw-bold">99.9%</h3>
+                        <p class="lead">Uptime Reliability</p>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <h3 class="fw-bold">24/7</h3>
+                        <p class="lead">Engineering Support</p>
+                    </div>
+                </div>
+
+                </div>
+            </div>
+        </section>
+
+        <section class="who-we-serve bg-light">
+            <div class="container" id="startups">
+
+                <div class="text-center mb-5">
+                    
+                    <h2 class="text-color">Who We Serve</h2>
+                    <p class="text-muted">We support businesses of all sizes</p>
+                </div>
+
+                <div class="row g-4">
+
+                    <div class="col-md-4">
+                        <div class="p-4 bg-white shadow-sm text-center rounded-image">
+                            <img src="/images/startup-team.jpg"
+                                class="img-fluid rounded mb-3 hover-lift"
+                            >
+                            <h5 class="text-color fw-bold">Startups</h5>
+                            <p>Helping new businesses build strong IT foundations.</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="p-4 bg-white shadow-sm text-center rounded-image">
+                            <img src="/images/SMEs.jpg"
+                                class="img-fluid rounded mb-3 hover-lift"
+                            >
+                            <h5 class="text-color fw-bold">SMEs</h5>
+                            <p>Scalable IT solutions for growing companies.</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="p-4 bg-white shadow-sm text-center rounded-image">
+                            <img src="/images/corporate-hq.jpg"
+                                class="img-fluid rounded mb-3 hover-lift"
+                            >
+                            <h5 class="text-color fw-bold">Enterprises</h5>
+                            <p>Advanced technology solutions for large organizations.</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <section class="py-5">
+                <div class="container text-center">
+
+                    <h2 class="fw-bold mb-5">What Our Clients Say</h2>
+
+                    <div class="row g-4">
+
+                        <div class="col-md-4">
+                            <div class="p-4 shadow-sm rounded-image bg-white">
+
+                                <img src="/images/client1.jpg"
+                                    class="rounded-circle mb-3 hover-lift"
+                                    style="object-fit:cover;">
+
+                                <p class="text-muted">
+                                    “GMA Technologies upgraded our network infrastructure. Highly recommended!”
+                                </p>
+
+                                <h6 class="text-color fw-bold">— Sarah M.</h6>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="p-4 shadow-sm rounded-image bg-white">
+
+                                <img src="/images/client2.jpg"
+                                    class="rounded-circle mb-3 hover-lift"
+                                    style="object-fit:cover;">
+
+                                <p class="text-muted">
+                                    “Very professional IT support. My pc no longer lags.”
+                                </p>
+
+                                <h6 class="text-color fw-bold">— David K.</h6>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="p-4 shadow-sm rounded-image bg-white">
+
+                                <img src="/images/client3.jpg"
+                                    class="rounded-circle mb-3 hover-lift"
+                                    style="object-fit:cover;">
+
+                                <p class="text-muted">
+                                    “Excellent advisory services. They truly understand IT Management Service needs.”
+                                </p>
+
+                                <h6 class="text-color fw-bold">— Anita L.</h6>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+        </section>
+
+
+<%- include("partials/footer") -%>

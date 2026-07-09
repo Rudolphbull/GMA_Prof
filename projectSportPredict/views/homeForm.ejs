@@ -1,0 +1,54 @@
+<%- include("partials/header")  -%>
+
+
+<section class="py-5">
+  <div class="container">
+
+    <div class="form-alignment row g-5">
+
+      <!-- Card One Form -->
+      <div class="col-md-4">
+        <h1>Prediction Form</h1>    
+        <form action="/predictions" method="post">
+            <input class="form-control mb-3" type="text" name="country" placeholder="Country" required>  
+            <input class="form-control mb-3" type="text" name="league" placeholder="League" required>  
+            <input class="form-control mb-3" type="text" name="homeTeam" placeholder="Home" required>
+            <input class="form-control mb-3" type="text" name="awayTeam" placeholder="Away" required> 
+            <input class="form-control mb-3" type="text" name="prediction" placeholder="Prediction" required>
+            <input type="number" step="0.01" name="odds" required>
+            <input type="number" min="1" max="100" name="confidence" required>
+
+            <!-- <select class="form-control mb-3" name="status">
+                <option value="Pending">Pending</option>
+                <option value="Won">Won</option>
+                <option value="Lost">Lost</option>
+                <option value="Void">Void</option>
+            </select> -->
+
+            <input type="datetime-local" name="kickoffTime">
+
+            <select class="form-control mb-3" name="cardNumber">
+              <option value="cardOne" >cardOne</option>
+              <option value="cardTwo">cardTwo</option>
+              <option value="cardThree">cardThree</option>
+              <option value="cardFour">cardFour</option>
+              <option value="cardFive">cardFive</option>
+              <option value="cardSix">cardSix</option>
+            </select>
+
+            <select class="form-control mb-3" name="isPremium">
+                <option value="false">Free Prediction</option>
+                <option value="true">Premium Prediction</option>
+            </select>
+        
+
+            <button class="btn btn-success w-100" type="submit">Add Prediction</button>
+        </form>
+      </div>
+
+      
+
+    </div>
+
+
+<%- include("partials/footer") -%>
