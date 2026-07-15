@@ -4,7 +4,9 @@ exports.index = async (req, res, next) => {
     try {
         const predictions = await Prediction.find({
             isPremium: false
-        }).sort({
+        })
+        .populate("createdBy", "username")
+        .sort({
             kickoffTime: 1
         })
         .lean();

@@ -3,6 +3,8 @@ require("dotenv").config();
 const express = require("express");
 const session = require("express-session");
 
+const path = require("path");
+
 const { MongoStore } = require("connect-mongo");
 
 const homeRoutes = require("./routes/homeRoutes");
@@ -13,7 +15,11 @@ const adminRoutes = require("./routes/adminRoutes");
 
 
 const predictionRoutes = require("./routes/predictionRoutes");
+const premiumRoutes = require("./routes/premiumRoutes");
 
+
+// creating a local module to send email
+const sendTheEmail = require(path.join(__dirname, "/email.js")); 
 
 const app = express();
 
@@ -21,7 +27,7 @@ app.set("view engine", "ejs");
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(express.static("public"));
+app.use(express.static(path.join(__dirname, "public")));
 
 
 
@@ -37,7 +43,10 @@ app.use(
             mongoUrl: process.env.MONGODB_URI
         }),
         cookie: {
-            maxAge: 1000 * 60 * 60 * 24
+            maxAge: 1000 * 60 * 60 * 24,
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax"
         }
     })
 );
@@ -54,54 +63,28 @@ app.use("/auth", authRoutes);
 
 app.use("/", homeRoutes);
 
-app.use("/admin", adminRoutes);
+// app.use("/admin", adminRoutes);
 
 app.use("/predictions", predictionRoutes);
+app.use("/premium", premiumRoutes);
 
-app.get("/moneyDoublersOnly", (req, res)=>{
-    res.render("login", {pageTitle: "MoneyDoublersOnly"});
+//404 middleware
+app.use((req, res) => {
+    res.status(404).render("404", {
+        pageTitle: "Page Not Found"
+    });
 });
 
-app.get("/yesterdaysresults", (req, res)=>{
-    res.render("yesterday", {pageTitle: "Yesterdays Result"});
+//Global Error Handler
+app.use((err, req, res, next) => {
+    console.log("Global error handler");
+    console.error(err);
+
+    res.status(500).render("failure", {
+        pageTitle: "Error",
+        message: err.message
+    });
 });
-
-
-app.get("/login", (req, res)=>{
-    res.render("login", {pageTitle: "Login"});
-});
-
-app.get("/signup", (req, res)=>{
-    res.render("signup", {pageTitle: "Signup"});
-});
-
-app.get("/career", (req, res)=>{
-    res.render("career", {pageTitle: "Career"});
-});
-
-app.get("/about", (req, res) => {
-    res.render("about", {pageTitle: "About"});
-});
-
-app.get("/contact", (req, res) => {
-    res.render("contact", {pageTitle: "Contact"});
-});
-
-app.get("/success", (req, res) => {
-    res.render("success", {pageTitle: "Success"});
-});
-
-app.get("/failure", (req, res) => {
-    res.render("failure", {pageTitle: "Failure"});
-});
-
-app.get("/failureLogin", (req, res) => {
-    res.render("failureLogin", {pageTitle: "Login Failure"});
-});
-
-app.get("/homeForm", (req, res) => {
-    res.render("homeForm", {pageTitle: "Prediction Form"});
-})
 
 
 

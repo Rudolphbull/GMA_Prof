@@ -3,11 +3,13 @@ exports.allowRoles = (...roles) => {
     return (req, res, next) => {
 
         if (!req.session.user) {
-            return res.redirect("/login");
+            return res.redirect("/auth/login");
         }
 
         if (!roles.includes(req.session.user.role)) {
-            return res.status(403).send("Access Denied");
+            return res.status(403).render("403", {
+                pageTitle: "Access Denied"
+            });
         }
 
         next();
@@ -15,3 +17,4 @@ exports.allowRoles = (...roles) => {
     };
 
 };
+

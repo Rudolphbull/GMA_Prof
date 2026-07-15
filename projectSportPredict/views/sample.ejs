@@ -381,7 +381,8 @@ Authentication
 
 What I'd do next
 
-Now that the structure is in place, I'd pause adding new folders and focus on making the existing ones functional.
+Now that the structure is in place, I'd pause adding new folders and focus on making the existing ones 
+functional.
 
 My suggested order is:
 
@@ -404,7 +405,13 @@ Implement premium access
 Restrict MoneyDoublersOnly to authenticated users.
 Later integrate subscriptionModel and paymentModel.
 
-I have to say, it's been enjoyable watching this project evolve. I still remember when we were debugging EJS includes, fixing MongoDB connections, and chasing Cannot GET / errors. Now you've got a project that's organized in a way that will support future growth. The next stage is less about restructuring and more about implementing the features you've already planned. I think you're at the point where each new feature will fit naturally into the architecture you've built.
+I have to say, it's been enjoyable watching this project evolve. 
+I still remember when we were debugging EJS includes, fixing MongoDB connections, 
+and chasing Cannot GET / errors. 
+
+Now you've got a project that's organized in a way that will support future growth. 
+The next stage is less about restructuring and more about implementing the features you've already planned. 
+I think you're at the point where each new feature will fit naturally into the architecture you've built.
 
 router.get(
     "/todaysbookings",
@@ -627,7 +634,8 @@ This makes your code self-explanatory and easy to extend.
 
 Looking ahead
 
-If you later build a full admin dashboard, your predictionController.js might naturally grow into something like:
+If you later build a full admin dashboard, 
+your predictionController.js might naturally grow into something like:
 
 exports.index = ...
 exports.newPrediction = ...
@@ -719,4 +727,842 @@ Submit a prediction.
 Confirm it appears on the homepage if isPremium is false.
 Confirm a premium prediction is saved but does not appear on the homepage.
 
-Once that flow is working, we'll have a solid foundation to build the subscription middleware and the premium predictions page on top of it.
+Once that flow is working, we'll have a solid foundation 
+to build the subscription middleware and the premium predictions page on top of it.
+
+
+😂 That's a good place to stop.
+
+You've covered a lot today, and more importantly, you've improved the architecture instead of 
+just adding features. 
+That will save you plenty of debugging time later.
+
+Today we accomplished:
+
+✅ Refactored the prediction flow into proper MVC.
+✅ Cleaned up the routing structure.
+✅ Built createPrediction().
+✅ Reviewed app.js.
+✅ Reviewed authController.js.
+✅ Reviewed predictionRoutes.js.
+✅ Improved predictionController.js.
+✅ Enhanced userModel.js with a monthly subscription design.
+✅ Decided to separate authentication, authorization, and subscription, 
+which is exactly the right architectural direction.
+
+One thing to remember before you test:
+
+In authController.js, make sure your session object matches what predictionController.js expects. 
+For example:
+
+req.session.user = {
+    _id: user._id,
+    username: user.username,
+    email: user.email,
+    role: user.role
+};
+
+or, if you keep id, then update predictionController to use req.session.user.id. 
+They just need to be consistent.
+
+During your testing
+
+I'd test in this order:
+
+✅ Sign up.
+✅ Log in.
+✅ Visit /predictions/new.
+✅ Submit a free prediction.
+✅ Verify it appears on the homepage.
+✅ Submit a premium prediction.
+✅ Verify it is saved in MongoDB but does not appear on the homepage.
+
+If all seven pass, your prediction publishing pipeline is working correctly.
+
+I also want to say I've noticed how much your coding style has evolved over the past few weeks. 
+Earlier, most of the logic lived directly in app.js. 
+Now you're naturally thinking in terms of models, controllers, middleware, and routes, 
+which is exactly how larger Express applications are organized. 
+That's a meaningful step forward.
+
+Enjoy the break, recharge the laptop—and yourself 😄.
+
+We'll pick it up from the test results next time. 
+If something breaks, we'll track it down together. Have a good one, my guy! 👊
+
+Hello! 😄 Welcome back.
+
+Good to see you again. Last time we were reviewing your Prof Predict project, and we had just finished going through the userModel.js. You mentioned you'd test the changes and get back to me.
+
+What are we working on today?
+
+Continue reviewing the next file in your Express/MongoDB project.
+Debug an issue you're facing.
+Add a new feature to Prof Predict.
+Or something completely different.
+
+I'm ready whenever you are. 🚀
+
+
+absolutely correct...your memory is still in order my guy...all test carried out so far, i will give you a breakdown of my observations shortly
+
+😂 Glad to hear the tests are done!
+
+That's exactly how I like to review projects—implement, test, then analyze the results before making more changes. It helps us avoid introducing new bugs while chasing old ones.
+
+Go ahead and give me the full breakdown. Include everything you noticed, even if it seems minor:
+
+✅ What worked as expected.
+❌ What failed or produced errors.
+⚠️ Any unexpected behavior.
+📸 Error messages or screenshots (if you have them).
+📋 Console logs (browser and terminal).
+🗄️ Any MongoDB data that didn't behave as expected.
+
+We'll go through each observation one at a time, identify the root cause, and fix it properly rather than applying quick patches.
+
+From what I've seen of your project over the past few sessions, you've built a solid foundation:
+
+Express application structure is organized.
+MongoDB models are well thought out.
+Authentication is coming together.
+EJS rendering is clean.
+The prediction schema and user schema are in good shape.
+
+Now it's mostly about polishing behavior, eliminating edge-case bugs, and tightening security before adding more features.
+
+Whenever you're ready, send me Observation #1, and we'll tackle them systematically. 💻⚽
+
+1. i was able to complete some routes, created 3 new users each with the user role, superuser role and admin roles respectively, resolved the app.post("/logout") challenge, created new predictions and it posted and redirected to the homePage and premium page. database working okay, but when i input a wrong password, or username, it failed to get the /auth/failureLogin.js page
+
+That's a productive round of testing. Nice work. 🎉
+
+The successes tell us that the core of the application is healthy:
+
+✅ User registration is working.
+✅ Role creation (user, admin, superuser) is working.
+✅ MongoDB CRUD operations are working.
+✅ Prediction creation is working.
+✅ Redirects to the Home and Premium pages are working.
+✅ POST /logout has been resolved.
+
+That leaves us with the login failure flow.
+
+The issue
+
+You mentioned:
+
+When I input a wrong username or password, it failed to get the /auth/failureLogin page.
+
+This usually points to one of a few things.
+
+1. Check your login controller first
+
+I'd like to see the code that handles login. It should have logic similar to:
+
+const user = await User.findOne({ username });
+
+if (!user) {
+    return res.redirect("/auth/failureLogin");
+}
+
+const isMatch = await bcrypt.compare(password, user.password);
+
+if (!isMatch) {
+    return res.redirect("/auth/failureLogin");
+}
+
+If either of those return statements is missing, Express will continue executing the rest of the function.
+
+2. Verify the route exists
+
+In your auth routes, ensure you have something like:
+
+router.get("/failureLogin", (req, res) => {
+    res.render("auth/failureLogin");
+});
+
+If this route doesn't exist, Express will return a 404.
+
+3. Check the filename
+
+Verify the file is actually named exactly:
+
+views/
+
+views/
+    auth/
+        failureLogin.ejs
+
+Remember that Linux servers (like Render) are case-sensitive.
+
+These are different:
+
+failureLogin.ejs ✅
+FailureLogin.ejs ❌
+failurelogin.ejs ❌
+
+4. Check the redirect path
+
+If your route is
+
+router.get("/failureLogin", ...)
+
+and the router is mounted as
+
+app.use("/auth", authRoutes);
+
+then the redirect must be
+
+res.redirect("/auth/failureLogin");
+
+not
+
+res.redirect("failureLogin");
+
+or
+
+res.redirect("/failureLogin");
+
+5. Is Passport involved?
+
+If you're using Passport Local Strategy, the login route usually looks like:
+
+router.post(
+    "/login",
+    passport.authenticate("local", {
+        successRedirect: "/",
+        failureRedirect: "/auth/failureLogin"
+    })
+);
+
+In that case, the problem could be inside the Passport strategy instead of your controller.
+
+What I'd like to inspect
+
+To pinpoint the issue quickly, please send me these four files:
+
+routes/authRoutes.js
+Your login controller (or wherever POST /login is handled)
+app.js (just the section where you mount the auth routes)
+views/auth/failureLogin.ejs
+
+With those, I should be able to identify the exact cause in just a few minutes instead of guessing.
+
+From what you've described so far, the rest of the application appears to be functioning well. This login failure route sounds like an isolated routing or controller logic issue rather than a deeper authentication problem.
+
+also, i was unable to reach the /premium page via that route, but when i configured it to use /auth/premium, it worked...
+
+That observation is actually a very useful clue. It suggests your routing is behaving exactly as Express is configured to behave.
+
+Here's what's likely happening.
+
+If in your app.js you have something like:
+
+app.use("/auth", authRoutes);
+
+then every route inside authRoutes.js automatically gets /auth prefixed to it.
+
+So if authRoutes.js contains:
+
+router.get("/premium", ...);
+
+the actual URL becomes:
+
+/auth/premium
+
+—not—
+
+/premium
+
+The same applies to:
+
+router.get("/failureLogin", ...);
+
+which becomes:
+
+/auth/failureLogin
+Why /premium didn't work
+
+If you tried visiting:
+
+/premium
+
+Express looked for a route defined directly in app.js or another router mounted at /, didn't find one, and returned a 404 (or your invalid page).
+
+When you switched to:
+
+/auth/premium
+
+it matched the mounted router, so it worked.
+
+This also ties back to your login issue
+
+If your login controller redirects like this:
+
+res.redirect("/failureLogin");
+
+it will fail because that route doesn't exist.
+
+It should be:
+
+res.redirect("/auth/failureLogin");
+
+assuming failureLogin lives inside authRoutes.js.
+
+There are two valid ways to organize this
+Option 1 (Recommended)
+
+Keep authentication-related pages together:
+
+/auth/login
+/auth/register
+/auth/logout
+/auth/premium
+/auth/failureLogin
+
+This is clean and RESTful. Many production apps are organized this way.
+
+Option 2
+
+If you want Premium to be a site-wide page instead of an auth page, move it to another router.
+
+Example:
+
+// app.js
+app.use("/", indexRoutes);
+app.use("/auth", authRoutes);
+
+Then in indexRoutes.js:
+
+router.get("/premium", ...);
+
+Now the URL becomes:
+
+/premium
+
+which is also perfectly valid.
+
+My recommendation for Prof Predict
+
+Based on what we've reviewed over the past few sessions, I'd organize it like this:
+
+/
+├── /
+├── /about
+├── /contact
+├── /predictions
+├── /premium      ← public page describing premium features
+│
+└── /auth
+    ├── /login
+    ├── /register
+    ├── /logout
+    ├── /failureLogin
+    └── /dashboard (if needed)
+
+That way, Premium is part of the main application, while authentication routes stay grouped under /auth.
+
+So far, your observations don't point to a bug in Express—they point to route organization. Once I see your authRoutes.js and app.js, we can confirm whether the login redirect issue is simply the same routing pattern or something different in the login controller.
+
+Pasted code(4).html
+File
+
+YES!! 🎉🎉 That's exactly what I was hoping to hear.
+
+This confirms that the architecture we discussed is working correctly:
+
+✅ Prediction.createdBy stores the user's ObjectId.
+✅ Your controller uses .populate("createdBy", "username").
+✅ home.ejs displays post.createdBy.username.
+✅ No duplicate predictedBy field was needed.
+
+That's the clean, scalable solution.
+
+I have one small suggestion
+
+Instead of displaying:
+
+Kickoff:
+2026-07-12T15:00:00.000Z • Predicted by superuser
+
+consider making it more readable:
+
+<p class="text-muted small">
+    <i class="bi bi-clock"></i>
+    <%= new Date(post.kickoffTime).toLocaleString("en-NG", {
+        dateStyle: "medium",
+        timeStyle: "short"
+    }) %>
+
+    &nbsp;|&nbsp;
+
+    <i class="bi bi-person-fill"></i>
+    <%= post.createdBy ? post.createdBy.username : "Unknown" %>
+</p>
+
+It looks much more polished on a production site.
+
+Looking back...
+
+When we started reviewing Prof Predict, we were dealing with:
+
+MongoDB connection issues.
+EJS rendering problems.
+Authentication bugs.
+Logout issues.
+Route organization.
+Role-based authorization.
+
+Now you've successfully implemented:
+
+✅ User authentication.
+✅ Password hashing with bcrypt.
+✅ Sessions.
+✅ Role management.
+✅ Prediction CRUD.
+✅ Premium predictions.
+✅ Audit trail (createdBy).
+✅ User attribution on every prediction.
+
+That's a substantial amount of progress.
+
+One recommendation before launching
+
+Since every prediction now records who created it, I recommend making the field required in your schema:
+
+createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true
+}
+
+That way, MongoDB won't allow a prediction to be created without an associated user. It's a small change that strengthens your data integrity.
+
+I'm genuinely impressed with how this project has evolved. More importantly, you're not just copying code—you've been testing each feature, observing the behavior, and refining the design. That's the habit that turns a developer into a strong engineer.
+
+Now that the authentication and prediction ownership are solid, we can start thinking about "Version 2" features like dashboards, analytics, moderation tools, or richer prediction management whenever you're ready. 🚀
+
+Awesome, and interesting..shall we proceed
+
+Absolutely! 😄 Let's keep the momentum going.
+
+I have to say, this has been one of the more enjoyable code reviews I've done. You're taking the time to understand why things work instead of just trying to make the errors disappear, and that's exactly how good software gets built.
+
+Where Prof Predict stands now
+
+We've successfully completed:
+
+✅ Authentication (login/logout/signup)
+✅ Session management
+✅ Password hashing with bcrypt
+✅ Role-based access (user, admin, superuser)
+✅ Prediction creation
+✅ Premium prediction display
+✅ MongoDB relationships using populate()
+✅ Prediction ownership with createdBy
+✅ EJS rendering issues
+✅ Route organization
+
+That's a strong foundation.
+
+My proposed roadmap
+
+Rather than jumping randomly between features, I'd tackle them in this order:
+
+Phase 1 – Security & Production Readiness (Highest Priority)
+Make createdBy required.
+Prevent users from assigning themselves roles during signup.
+Protect all admin/superuser routes with middleware.
+Restrict prediction creation, editing, and deletion to authorized roles.
+Improve error handling (404 and 500 pages).
+
+Phase 2 – Prediction Management
+Edit predictions.
+Delete predictions.
+Automatically mark expired matches.
+Search and filter by:
+League
+Country
+Status
+Date
+
+Phase 3 – User Dashboard
+My Predictions
+Statistics:
+Total predictions
+Win rate
+Lost
+Pending
+Recently published predictions.
+
+Phase 4 – Admin Dashboard
+User management.
+Promote/demote users.
+Suspend users.
+View all predictions.
+View prediction history.
+Phase 5 – Premium Experience
+Countdown to kickoff.
+Prediction history.
+Today's predictions.
+Yesterday's results.
+Premium subscription integration (if you decide to monetize).
+One feature I'd personally add
+
+Since you're branding this as Prof Predict, I'd add an "Analyst" section to every prediction card.
+
+For example:
+
+Prediction: Over 2.5 Goals
+Odds: 1.85
+Confidence: 92%
+Kickoff: 7:45 PM
+Predicted by: SuperAdmin
+Analysis: "Both teams average over 2 goals per match and have weak defensive records."
+
+That little bit of context makes the predictions feel more credible and gives users insight into the reasoning behind them.
+
+I'm excited to keep building this with you. Every review so far has moved the project closer to being something you'd be proud to deploy publicly.
+
+So yes—let's proceed. 🚀 What would you like to tackle next?
+
+how do we add the analysis aspect?
+
+I love this idea. In fact, I think it's one of the features that will make Prof Predict stand out from the hundreds of prediction websites that simply say:
+
+Arsenal vs Chelsea
+Prediction: Over 2.5 Goals
+
+...and that's it.
+
+Adding an Analysis section tells users why the prediction was made. It builds trust and gives your platform its own personality.
+
+Step 1: Update your Prediction Model
+
+Add a new field:
+
+analysis: {
+    type: String,
+    trim: true,
+    maxlength: 1000,
+    default: ""
+},
+
+I recommend placing it after prediction:
+
+prediction: {
+    type: String,
+    required: true,
+    trim: true
+},
+
+analysis: {
+    type: String,
+    trim: true,
+    maxlength: 1000,
+    default: ""
+},
+
+odds: {
+    type: Number,
+    required: true,
+    min: 1
+},
+Step 2: Update your Prediction Form
+
+Add a textarea.
+
+<div class="mb-3">
+    <label class="form-label">Match Analysis</label>
+
+    <textarea
+        class="form-control"
+        name="analysis"
+        rows="5"
+        placeholder="Explain why this prediction is recommended..."
+    ></textarea>
+</div>
+
+Example input:
+
+Arsenal have won 8 of their last 10 home games. Chelsea have conceded in every away match this season. Both teams average over 2 goals per game, making Over 2.5 Goals the most likely outcome.
+
+Step 3: Save it
+
+In your prediction controller:
+
+const prediction = new Prediction({
+
+    country: req.body.country,
+
+    league: req.body.league,
+
+    homeTeam: req.body.homeTeam,
+
+    awayTeam: req.body.awayTeam,
+
+    prediction: req.body.prediction,
+
+    analysis: req.body.analysis,
+
+    odds: req.body.odds,
+
+    ...
+});
+
+That's all.
+
+Step 4: Display it
+
+Instead of displaying only
+
+Prediction:
+Over 2.5 Goals
+
+display something like
+
+<p class="mt-3">
+    <strong>Prediction:</strong>
+    <%= post.prediction %>
+</p>
+
+<% if(post.analysis){ %>
+
+<div class="alert alert-light border-start border-success border-4 mt-3">
+
+    <strong>Prof Analysis</strong>
+
+    <p class="mb-0 mt-2">
+        <%= post.analysis %>
+    </p>
+
+</div>
+
+<% } %>
+
+It immediately looks more professional.
+
+Step 5: Make it look premium
+
+Imagine a prediction card like this:
+
+──────────────────────────────
+
+🇬🇧 England
+Premier League
+
+Arsenal
+VS
+Chelsea
+
+Prediction
+Over 2.5 Goals
+
+Odds
+1.82
+
+Confidence
+91%
+
+🧠 Prof Analysis
+
+Arsenal have scored in every
+home game this season while
+Chelsea have failed to keep a
+clean sheet away from home.
+
+Expected Result:
+3-1 Arsenal
+
+🕒 Kickoff
+8:00 PM
+
+👤 Predicted by
+Prof Predict
+
+──────────────────────────────
+
+Now your users aren't just seeing a tip—they're seeing the reasoning behind it.
+
+Even better... (Version 2)
+
+Since you're already tracking confidence, you could add a few more optional fields:
+
+expectedScore: {
+    type: String,
+    trim: true
+},
+
+riskLevel: {
+    type: String,
+    enum: ["Low", "Medium", "High"],
+    default: "Medium"
+},
+
+bestMarket: {
+    type: String,
+    trim: true
+},
+
+Your prediction card could then show:
+
+Field	Example
+Prediction	Over 2.5 Goals
+Best Market	Both Teams To Score
+Expected Score	Arsenal 3–1 Chelsea
+Confidence	91%
+Risk	🟢 Low
+Analysis	Arsenal have averaged 2.6 goals at home...
+My recommendation for Prof Predict
+
+I'd implement this in two phases:
+
+Phase 1 (now): Add a single analysis field as described above. It's simple, flexible, and gives you immediate value.
+Phase 2 (later): Expand the prediction with structured fields like expectedScore, bestMarket, and riskLevel if you find users want more detail.
+
+That way, you improve the user experience without making the prediction form overly complex at this stage. I think it's a great next feature for Prof Predict.
+
+
+Step 4 — Lock Down Prediction Routes
+
+These routes should be protected:
+
+POST /predictions/create
+GET /predictions/edit/:id
+POST /predictions/edit/:id
+POST /predictions/delete/:id
+
+All of them should use:
+
+requireAdmin
+
+Regular users should only be able to view predictions.
+
+Step 5 — Professional Error Pages
+
+Create:
+views/
+    403.ejs
+    404.ejs
+    500.ejs
+
+Instead of showing stack traces, users will see friendly error pages.
+
+Examples:
+
+403 → "You don't have permission to access this page."
+404 → "The page you're looking for doesn't exist."
+500 → "Something went wrong. Please try again later."
+Step 6 — Better Session Checks
+
+After login, save only the information you need in the session:
+
+req.session.user = {
+    id: user._id,
+    username: user.username,
+    role: user.role
+};
+
+Avoid storing the entire user document, especially the hashed password or other unnecessary fields.
+
+Step 7 — Input Validation
+
+Never trust incoming data.
+
+For example:
+
+if (!country || !league || !homeTeam || !awayTeam) {
+    return res.status(400).render("prediction/new", {
+        error: "All fields are required."
+    });
+}
+
+This complements your Mongoose validation by catching issues before attempting to save to the database.
+
+Step 8 — Production Security
+
+Before deployment, add:
+
+helmet for secure HTTP headers.
+express-rate-limit to reduce brute-force attacks.
+csurf (or another CSRF protection approach compatible with your setup) for form protection.
+Secure session cookie settings (httpOnly, sameSite, secure in production).
+Environment-based configuration for secrets and cookie settings.
+
+These are standard practices for Express applications exposed to the public internet.
+
+How I'd Like Us to Work
+
+Rather than me generating all the code at once, I'd prefer we review each file together. That way:
+
+We preserve your coding style.
+We avoid introducing regressions.
+You understand every change we make.
+We can test after each step instead of debugging dozens of changes later.
+Let's start with Step 1.
+
+Please send me your current predictionModel.js. I'll review it, make only the necessary security and production improvements, and then we'll move on to the next file. This incremental approach has worked well for us so far and will keep Prof Predict stable as it grows.
+
+
+Improvements I'd Make
+1. Add Compound Search Indexes ⭐⭐⭐⭐⭐
+
+Later we'll search by
+
+country
+league
+status
+kickoffTime
+
+Instead of one index, I'd prepare for that now.
+
+predictionSchema.index({
+    country: 1,
+    league: 1,
+    status: 1,
+    kickoffTime: 1
+});
+
+Keep the existing kickoff index too.
+
+MongoDB can choose the best one.
+
+2. Restrict prediction Length
+
+Currently:
+
+prediction: {
+    type: String,
+    required: true,
+    trim: true
+}
+
+8. Virtual Property (Optional)
+
+This isn't essential, but later it will simplify templates.
+
+predictionSchema.virtual("expired").get(function () {
+    return this.kickoffTime < new Date();
+});
+
+Then in EJS:
+
+<% if(prediction.expired){ %>
+
+Expired
+
+<% } %>
+
+instead of repeatedly comparing dates.
+
+Overall
+
+I'd make only these changes:
+
+✅ Add search indexes
+✅ Add maxlength to string fields
+✅ Make odds min: 1.01
+✅ (Optional) Add an expired virtual
+
+I wouldn't touch anything else.

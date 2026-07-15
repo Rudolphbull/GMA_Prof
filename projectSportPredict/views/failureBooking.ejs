@@ -1,0 +1,46 @@
+
+<%- include("partials/header") -%>
+
+<section class="py-5 min-vh-100 d-flex align-items-center">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-7">
+
+                <div class="card border-0 shadow-lg text-center p-5">
+
+                    <div class="mb-4">
+                        <i class="bi bi-x-circle-fill text-danger" style="font-size: 5rem;"></i>
+                    </div>
+
+                    <h1 class="fw-bold text-danger">
+                        Submission Failed
+                    </h1>
+
+                    <p class="lead text-muted mt-3">
+                        We could not process your request.
+                    </p>
+
+                    <p class="text-secondary">
+                        An unexpected error occurred while submitting your consultation request.
+                        Please try again in a few moments.
+                    </p>
+
+                    <div class="mt-4">
+                        <a href="/auth/contact" class="btn btn-danger btn-lg px-4">
+                            Try Again
+                        </a>
+
+                        <a href="/" class="btn btn-outline-secondary btn-lg px-4 ms-2">
+                            <i class="bi bi-house-door-fill"></i>
+                            Return Home
+                        </a>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+<%- include("partials/footer") -%>

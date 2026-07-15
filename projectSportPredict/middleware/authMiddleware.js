@@ -1,10 +1,11 @@
-exports.isLoggedIn = (req, res, next) => {
-
+const isLoggedIn = (req, res, next) => {
     if (!req.session.user) {
-        return res.redirect("/login");
+        return res.redirect("/auth/login");
     }
 
     next();
-
 };
 
+module.exports = {
+    isLoggedIn
+};

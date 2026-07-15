@@ -5,14 +5,12 @@ const connectDB = require("./config/db");
 
 const PORT = 4000;
 
-console.log("process.env.PORT =", process.env.PORT);
-
 const startServer = async () => {
     try {
         await connectDB();
 
         app.listen(process.env.PORT || 4000, () => {
-            console.log("🚀 Application Server started on port",PORT);
+            console.log("🚀 Application Server started on port:", PORT);
         });
 
     } catch (err) {

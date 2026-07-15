@@ -1,0 +1,3910 @@
+
+
+
+
+Today 5:51 PM
+hello chatGPT, am back, network challenges
+
+Welcome back! 😄
+
+No worries at all—network issues happen.
+
+I remember we were working on your Prof Predict project (Node.js, Express, MongoDB, and EJS). From the recent messages, we had already:
+
+✅ Reviewed your userModel.js
+
+✅ Reviewed your predictionModel.js
+
+✅ Fixed the prediction is not defined issue in home.ejs
+
+✅ Started debugging why the homepage wasn't displaying predictions from MongoDB
+
+✅ Noticed that your home.ejs was indicating a POST-related issue
+
+Let's continue from there.
+
+Just tell me:
+
+What is the current error? (Copy the full error message if there is one.)
+
+Or, if there is no error, describe what you're seeing. For example:
+
+The page loads but no predictions appear.
+
+The database has data but the page is empty.
+
+Clicking "Post Prediction" doesn't save.
+
+Something else.
+
+If you've made changes since we last talked, feel free to paste the relevant files (or the updated sections), such as:
+
+app.js or your route file
+
+home.ejs
+
+predictionModel.js
+
+Any controller handling predictions
+
+We'll pick up from exactly where we left off and get Prof Predict working properly. 💪
+
+
+we are done reviewing predictionModel.js, but still in phase 1 of the roadmap
+
+Excellent! Welcome back.
+
+Yes, that matches where we were in the project.
+
+Phase 1 Roadmap Status
+So far we've completed:
+
+✅ MongoDB connection review
+
+✅ Express application structure review
+
+✅ app.js review
+
+✅ userModel.js review
+
+✅ predictionModel.js review
+
+We're still in Phase 1, which is focused on ensuring the foundation of the application is solid 
+before adding new features or redesigning the UI.
+
+What's Next
+The next logical step is to review your authentication flow, starting with:
+
+authRoutes.js
+
+authController.js (if you're using controllers)
+
+Registration logic
+
+Login logic
+
+Password hashing with bcrypt
+
+Session management
+
+Authentication middleware
+
+We'll verify that:
+
+Users can register correctly.
+
+Passwords are hashed before being stored.
+
+Login validates credentials properly.
+
+Sessions are created and destroyed correctly.
+
+Protected pages are actually protected.
+
+There are no security gaps before moving to the next phase.
+
+After authentication is fully reviewed, we'll move on to:
+
+Prediction CRUD operations
+
+Route organization
+
+Controllers
+
+Middleware
+
+Error handling
+
+Database optimization
+
+Security hardening
+
+UI polish and deployment readiness
+
+This approach ensures we don't build new features on top of an unstable foundation.
+
+Whenever you're ready, paste your authRoutes.js file, and we'll continue the review from there.
+
+
+Absolutely. Yes, we can proceed. ✅
+
+Based on everything we've reviewed and the changes you've made, I'm comfortable saying the core backend foundation is in good shape.
+
+🟢 Phase 2 Status: Complete
+Here's what we've completed together:
+
+Project Foundation
+✅ Project structure
+
+✅ Database connection
+
+✅ Express configuration
+
+✅ Session management
+
+Models
+✅ userModel.js
+
+✅ predictionModel.js
+
+Authentication & Authorization
+✅ authRoutes.js
+
+✅ authController.js
+
+✅ authMiddleware.js
+
+✅ roleMiddleware.js
+
+Prediction Management
+✅ predictionRoutes.js
+
+✅ predictionController.js
+
+Security Improvements
+✅ Password hashing with bcrypt
+
+✅ Protected routes
+
+✅ Role-based access control
+
+✅ Prevented role escalation during signup
+
+✅ Ownership tracking (createdBy)
+
+✅ Proper session usage
+
+At this point, I no longer have any blocking issues with the backend architecture.
+
+🚀 Phase 3 – Application Hardening & Production Readiness
+This phase is where we make Prof Predict feel like a professional application rather than
+ just a working one.
+
+Module 1: Validation (Highest Priority)
+Instead of validating inside controllers, we'll introduce middleware 
+(such as Express Validator or a similar approach).
+
+Example goals:
+
+Validate emails
+
+Validate passwords
+
+Validate prediction forms
+
+Display friendly validation errors
+
+This keeps controllers focused on business logic.
+
+Module 2: Global Error Handling
+Instead of scattered error responses, we'll create:
+
+404.ejs
+
+403.ejs
+
+500.ejs
+
+And a centralized Express error handler.
+
+Module 3: User Feedback
+Replace plain redirects with consistent feedback:
+
+Success messages
+
+Error messages
+
+Better form validation feedback
+
+Later, we can introduce flash messages if you decide they're appropriate.
+
+Module 4: Security Hardening
+We'll add:
+
+helmet
+
+Rate limiting
+
+Input sanitization
+
+CSRF protection (if appropriate for your session-based forms)
+
+Secure session cookie settings
+
+These are the kinds of measures you'd expect before deploying publicly.
+
+Module 5: Logging
+Instead of relying on console.log, we'll add structured logging for:
+
+Server startup
+
+Login attempts
+
+Prediction creation
+
+Unexpected errors
+
+Module 6: Database Optimization
+We'll review:
+
+Indexes
+
+Query efficiency
+
+Pagination
+
+Sorting
+
+Search functionality
+
+One thing I'd like to do first
+Before adding new features, I'd like us to review your global error handling.
+
+Specifically:
+
+app.js (the current version)
+
+Any 404 handling
+
+Any error-handling middleware
+
+The reason is simple: every future feature will benefit from having a solid error pipeline in place.
+
+My Assessment of the Project
+When we started, we were fixing issues that could break functionality.
+
+Now, the conversation has shifted to architecture, maintainability, and production readiness.
+
+That's a good sign. It means the project has matured.
+
+If I had to summarize Prof Predict today:
+
+Architecture: ⭐⭐⭐⭐⭐
+
+Code Organization: ⭐⭐⭐⭐⭐
+
+Security: ⭐⭐⭐⭐☆ (strong, with room for production hardening)
+
+Maintainability: ⭐⭐⭐⭐⭐
+
+Production Readiness: ⭐⭐⭐⭐☆
+
+That's a solid place to be before focusing on polishing the application for users.
+
+So yes—let's begin Phase 3.
+
+
+require("dotenv").config();
+
+const express = require("express");
+const session = require("express-session");
+
+const path = require("path");
+
+const { MongoStore } = require("connect-mongo");
+
+const homeRoutes = require("./routes/homeRoutes");
+
+const authRoutes = require("./routes/authRoutes");
+
+const adminRoutes = require("./routes/adminRoutes");
+
+
+const predictionRoutes = require("./routes/predictionRoutes");
+const premiumRoutes = require("./routes/premiumRoutes");
+
+const nodemailer = require("nodemailer");
+
+// creating a local module to send email
+const sendTheEmail = require(path.join(__dirname, "/email.js")); 
+
+const app = express();
+
+app.set("view engine", "ejs");
+
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.static(path.join(__dirname, "public")));
+
+
+
+app.locals.siteName = "Prof Predict";
+app.locals.tagline = "Stakers Krooner";
+
+app.use(
+    session({
+        secret: process.env.SESSION_SECRET,
+        resave: false,
+        saveUninitialized: false,
+        store: MongoStore.create({
+            mongoUrl: process.env.MONGODB_URI
+        }),
+        cookie: {
+            maxAge: 1000 * 60 * 60 * 24
+        }
+    })
+);
+
+app.use((req, res, next) => {
+
+    res.locals.user = req.session.user || null;
+
+    next();
+
+});
+
+app.use("/auth", authRoutes);
+
+app.use("/", homeRoutes);
+
+// app.use("/admin", adminRoutes);
+
+app.use("/predictions", predictionRoutes);
+app.use("/premium", premiumRoutes);
+
+
+app.post("/send", async function(req, res) {
+
+    const { name, email, message } = req.body;
+
+    if (!name || !email || !message) {
+        return res.render("invalid", {pageTitle: "Invalid"});
+    }
+
+    try {
+
+        await sendTheEmail({
+            name,
+            email,
+            subject: New message from ${name} via website,
+            html: 
+                <h2>New Contact Message</h2>
+
+                <p><strong>Name:</strong> ${name}</p>
+                <p><strong>Email:</strong> ${email}</p>
+
+                <h3>Message</h3>
+                <p>${message}</p>
+            
+        });
+
+        res.render("success", {pageTitle: "success"});
+
+    } catch(error) {
+
+        console.log(error);
+
+        res.render("failure", {pageTitle: "failure"});
+    }
+});
+
+app.post("/booking", async function(req, res) {
+
+    const { companyName, email, phone, enquiry, details } = req.body;
+
+    if (!companyName || !email || !phone || !enquiry || !details) {
+        return res.render("invalid", {pageTitle: "Invalid"});
+    }
+
+    try {
+
+        await sendTheEmail({
+            name: companyName,
+            email,
+            subject: New consultation request from ${companyName},
+            html: 
+                <h2>New Consultation Request</h2>
+
+                <p><strong>Company:</strong> ${companyName}</p>
+                <p><strong>Email:</strong> ${email}</p>
+                <p><strong>Phone:</strong> ${phone}</p>
+                <p><strong>Enquiry:</strong> ${enquiry}</p>
+
+                <h3>Details</h3>
+                <p>${details}</p>
+            
+        });
+
+        res.render("successBooking", {pageTitle: "successBooking"});
+
+    } catch(error) {
+
+        console.log(error);
+
+        res.render("failureBooking", {pageTitle: "failureBooking"});
+    }
+});
+
+
+
+
+module.exports = app;
+
+Excellent. This is one of the most important files in any Express application. After reviewing all the other files, I now have a complete picture of your architecture.
+
+Overall Score: 9.4/10 ⭐⭐⭐⭐⭐⭐⭐⭐⭐☆
+Your app.js is well organized. There are no critical architectural problems. Most of my recommendations are about production hardening and keeping the file maintainable as the project grows.
+
+✅ What You Did Well
+1. Configuration Order
+require("dotenv").config();
+Correct.
+
+Environment variables should always be loaded before anything that depends on them.
+
+2. Middleware Order
+I like the sequence:
+
+app.use(express.urlencoded(...));
+app.use(express.json());
+app.use(express.static(...));
+Then session.
+
+Then res.locals.
+
+Then routes.
+
+This is the correct order.
+
+3. Session Storage
+store: MongoStore.create({
+    mongoUrl: process.env.MONGODB_URI
+})
+Excellent.
+
+Using MongoDB for sessions is much better than the default in-memory session store.
+
+4. res.locals.user
+res.locals.user = req.session.user || null;
+Excellent.
+
+Now every EJS page automatically knows who the logged-in user is.
+
+That keeps your templates clean.
+
+5. Route Organization
+/auth
+/
+/predictions
+/premium
+Very clean.
+
+6. Local Email Module
+I like this.
+
+const sendTheEmail = require("./email");
+Much better than putting Nodemailer logic directly inside app.js.
+
+Things I'd Improve
+1. Remove Unused Imports
+I noticed:
+
+const nodemailer = require("nodemailer");
+But you aren't using it in app.js.
+
+The email logic has already been moved into email.js.
+
+So remove:
+
+const nodemailer = require("nodemailer");
+This is a small cleanup, but it's good practice.
+
+2. Session Cookie
+Currently:
+
+cookie: {
+    maxAge: 1000 * 60 * 60 * 24
+}
+For development, that's fine.
+
+For production, I'd expand it:
+
+cookie: {
+    maxAge: 1000 * 60 * 60 * 24,
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax"
+}
+This makes cookies more secure.
+
+3. Add a Global 404 Handler
+Right now, if someone visits:
+
+/thispagedoesnotexist
+Express will return its default response.
+
+Instead, after all your routes, add:
+
+app.use((req, res) => {
+    res.status(404).render("404", {
+        pageTitle: "Page Not Found"
+    });
+});
+This gives users a consistent experience.
+
+4. Add a Global Error Handler
+Since your controllers already call:
+
+next(err);
+you should have one centralized error handler at the end:
+
+app.use((err, req, res, next) => {
+    console.error(err);
+
+    res.status(500).render("500", {
+        pageTitle: "Server Error"
+    });
+});
+This completes your error pipeline.
+
+5. Logging
+Instead of:
+
+console.log(error);
+I'd use:
+
+console.error(error);
+Errors belong on the error stream.
+
+Later, we can introduce a logging library if you need structured logs.
+
+6. Separate Contact Routes
+Eventually, I would move:
+
+app.post("/send")
+and
+
+app.post("/booking")
+into a dedicated routes/controller pair.
+
+For example:
+
+routes/contactRoutes.js
+controllers/contactController.js
+That keeps app.js focused on configuration rather than request handling.
+
+This isn't urgent, but it's a good next step as the project grows.
+
+Security Review
+The one thing I noticed is that the email HTML is built directly from user input:
+
+<p>${message}</p>
+If that content is ever displayed elsewhere, consider escaping or sanitizing it. Since it's currently being sent as an email to you, the risk is much lower, but it's something to keep in mind if you reuse the same data in the application.
+
+Performance
+No concerns.
+
+Static files are served correctly.
+
+Session configuration is appropriate.
+
+Routes are organized.
+
+Architecture
+At this point, your application has a nice layered structure:
+
+app.js
+    │
+    ▼
+Routes
+    │
+    ▼
+Middleware
+    │
+    ▼
+Controllers
+    │
+    ▼
+Models
+    │
+    ▼
+MongoDB
+That's exactly the kind of architecture we aim for in an Express application.
+
+My Recommended Next Changes
+Before adding more features, I'd make these four improvements:
+
+Remove the unused nodemailer import from app.js.
+
+Add a global 404 handler after all routes.
+
+Add a centralized error-handling middleware (app.use((err, req, res, next) => { ... })) at the very end.
+
+Harden the session cookie with httpOnly, sameSite, and secure (conditionally for production).
+
+Once those are in place, your application's infrastructure will be much more resilient.
+
+Overall Assessment
+When we first started reviewing the project, there were a few structural and security issues. As we've worked through each file, those have largely been resolved. Now, the remaining work is about polish and production readiness rather than fixing the foundation.
+
+I'd estimate the project is around 85–90% of the way to a solid production-ready Express application. The remaining work consists of:
+
+Centralized validation
+
+Global error pages
+
+Security hardening (helmet, rate limiting, CSRF where appropriate)
+
+Logging
+
+UX improvements (flash messages, consistent feedback)
+
+That's a very good place to be at this stage.
+
+
+so, how do we proceed?
+
+This is actually a good point to pause and decide strategically.
+
+From everything we've reviewed, I don't think the best use of our time is to keep hopping from file to file anymore. The core architecture has been reviewed and strengthened. Instead, we should move into feature-complete production engineering.
+
+Here's how I recommend we proceed
+✅ Phase 3 – Production Hardening (Current Phase)
+We'll tackle these in order because each builds on the previous one.
+
+Step 1 — Error Handling (Highest Priority)
+Let's make your application resilient.
+
+We'll implement:
+
+✅ 404.ejs
+
+✅ 403.ejs
+
+✅ 500.ejs
+
+✅ Global 404 middleware
+
+✅ Global Express error handler
+
+After this, every error in Prof Predict will be handled consistently.
+
+Step 2 — Validation
+We'll remove validation logic from controllers and introduce proper validation middleware.
+
+We'll validate:
+
+Login
+
+Signup
+
+Prediction creation
+
+Contact form
+
+Booking form
+
+This keeps controllers focused only on business logic.
+
+Step 3 — Security
+We'll add production-grade security:
+
+Helmet
+
+Rate limiting
+
+Secure session cookies
+
+Input sanitization
+
+CSRF protection (where appropriate for your session-based forms)
+
+Step 4 — Logging
+Instead of scattered console.log statements, we'll create consistent logging for:
+
+Server startup
+
+Login attempts
+
+Prediction creation
+
+Application errors
+
+Step 5 — User Experience
+We'll improve:
+
+Success pages
+
+Failure pages
+
+Access denied page
+
+Empty state pages
+
+Better redirects
+
+Consistent messaging
+
+Step 6 — Performance
+We'll review:
+
+Database indexes
+
+Pagination
+
+Search
+
+Sorting
+
+Query optimization
+
+After Phase 3
+Then we'll move into what I call Phase 4 – Product Features.
+
+That's where Prof Predict becomes more than a CRUD application.
+
+Examples include:
+
+📊 Admin Dashboard
+
+📈 Prediction statistics
+
+👤 User profile page
+
+⭐ Favorite predictions
+
+💳 Premium subscription integration
+
+📱 Mobile-first improvements
+
+🔔 Notifications
+
+📤 Export predictions
+
+📅 Prediction calendar
+
+📉 Accuracy analytics
+
+🤖 AI-assisted prediction insights (if you choose to add them later)
+
+My Recommendation
+I would not jump into adding new features just yet.
+
+Instead, I'd spend one more phase making the application bulletproof.
+
+Think of it like building a house:
+
+Phase 1: Lay the foundation. ✅
+
+Phase 2: Build the structure. ✅
+
+Phase 3: Install the plumbing, wiring, doors, and safety systems. 🚧
+
+Phase 4: Decorate and expand the house. 🏡
+
+If we skip Phase 3, every new feature we add will sit on a weaker base.
+
+Where we start tomorrow (or next session)
+I recommend we begin with global error handling because it's relatively self-contained and immediately improves the whole application.
+
+Our first tasks would be:
+
+Create 404.ejs
+
+Create 403.ejs
+
+Create 500.ejs
+
+Add the 404 middleware to app.js
+
+Add the global error-handling middleware to app.js
+
+Once those are in place, the application will have a consistent way to handle both expected and unexpected errors, and every controller that already calls next(err) will automatically benefit from it.
+
+I think that's the strongest next step for Prof Predict. It strengthens the entire application without requiring changes across dozens of files, and it sets us up nicely for validation and security hardening afterward.
+
+
+
+
+
+
+Today 9:41 PM
+Hello! Welcome back. 😄
+
+Good to see you again. Last time we were working on Prof Predict, and we had reached the point where you were going to test the application after fixing the routing, session handling, and prediction display issues.
+
+How did the testing go?
+
+Are predictions now displaying correctly on the home page?
+
+Were you able to create new predictions from the form?
+
+Did you encounter any new errors in the terminal or browser?
+
+If something isn't working, paste the error message (or the relevant code), and we'll debug it together until it's resolved.
+
+
+all i see is bugsssssssss
+
+😂😂😂 I felt that "bugsssssssss."
+
+That's software development in a nutshell:
+
+You fix one bug, and three of its cousins show up.
+
+The good news is that from our previous sessions, your project has actually come a long way. You've already:
+
+✅ Split the app into controllers, routes, and models.
+
+✅ Connected MongoDB.
+
+✅ Implemented authentication and sessions.
+
+✅ Added role-based authorization.
+
+✅ Built prediction creation.
+
+✅ Started displaying predictions.
+
+You're no longer fighting beginner problems—you're dealing with integration bugs, which are common as projects grow.
+
+Here's how we'll tackle it
+Instead of trying to fix everything at once, we'll debug one bug at a time.
+
+For each bug, I need:
+
+The exact error message from the terminal or browser.
+
+The file it's pointing to.
+
+The relevant code (about 20–50 lines around the error).
+
+We'll fix it, test, and move on to the next one.
+
+Don't change multiple files at once
+One thing that often creates "bugs everywhere" is making several changes before testing. A good cycle is:
+
+Make one change.
+
+Save.
+
+Restart the server if needed.
+
+Test.
+
+If it passes, move to the next change.
+
+That makes it much easier to identify what caused a problem.
+
+Let's start with the first bug
+Paste the first error exactly as it appears.
+
+For example:
+
+ReferenceError: prediction is not defined
+or
+
+TypeError: Cannot read properties of undefined
+or
+
+MongoServerError: ...
+or send a screenshot if that's easier.
+
+We'll solve Bug #1, then Bug #2, then Bug #3. Before long, you'll have a stable application instead of chasing a dozen issues at once.
+
+I'm ready—send me the first bug. 💻🐞
+
+
+$ nodemon server.js
+[nodemon] 3.1.14
+[nodemon] to restart at any time, enter rs  
+[nodemon] watching path(s): *.*
+[nodemon] watching extensions: js,mjs,cjs,json
+[nodemon] starting node server.js
+◇ injected env (4) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\controllers\predictionController.js:50
+        const prediction = new Prediction({
+              ^
+
+SyntaxError: Identifier 'prediction' has already been declared
+    at wrapSafe (node:internal/modules/cjs/loader:1787:18)
+    at Module._compile (node:internal/modules/cjs/loader:1828:20)
+    at Object..js (node:internal/modules/cjs/loader:1985:10)
+    at Module.load (node:internal/modules/cjs/loader:1577:32)
+    at Module._load (node:internal/modules/cjs/loader:1379:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.require (node:internal/modules/cjs/loader:1600:12)
+    at require (node:internal/modules/helpers:153:16)
+    at Object.<anonymous> (C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\routes\homeRoutes.js:5:30)
+    at Module._compile (node:internal/modules/cjs/loader:1854:14)
+
+Node.js v24.16.0
+[nodemon] app crashed - waiting for file changes before starting...
+
+
+
+
+
+
+
+Excellent. This is actually a good bug because Node tells us exactly where to look.
+
+Error
+SyntaxError: Identifier 'prediction' has already been declared
+Location:
+
+controllers/predictionController.js:50
+The offending line is probably something like:
+
+const prediction = new Prediction({
+This error does not mean there's a problem with new Prediction(). It means you've already declared a variable named prediction earlier in the same scope.
+
+For example:
+
+const prediction = await Prediction.findById(req.params.id);
+
+// ...
+
+const prediction = new Prediction({   // ❌ Cannot declare it again
+    ...
+});
+or
+
+const prediction = req.body;
+
+// ...
+
+const prediction = new Prediction({   // ❌
+I need to see the file
+Please paste your entire controllers/predictionController.js.
+
+Don't worry if it's long—I want the whole file because there may be a few issues we can clean up at once.
+
+You can paste it like this:
+
+const Prediction = require("../models/predictionModel");
+
+// ...
+
+exports.newPrediction = ...
+
+exports.createPrediction = ...
+
+exports.editPrediction = ...
+
+...
+My guess (90% confidence)
+You probably have something similar to:
+
+exports.createPrediction = async (req, res) => {
+
+    const prediction = req.body;
+
+    // validation...
+
+    const prediction = new Prediction({   // <-- second declaration
+        ...
+    });
+
+};
+The fix would be to either:
+
+const data = req.body;
+
+const prediction = new Prediction(data);
+or
+
+const prediction = new Prediction(req.body);
+—but I want to see the file first so we fix it correctly rather than guessing.
+
+Let's squash this bug first.
+📌 Paste your entire controllers/predictionController.js, and I'll point out the exact line causing the duplicate declaration and any other issues I spot.
+
+
+
+const Prediction = require("../models/predictionModel");
+
+exports.newPrediction = (req, res) => {
+    res.render("homeForm", {
+        pageTitle: "Prediction Form"
+    });
+};
+
+exports.createPrediction = async (req, res, next) => {
+    try {
+
+        const {
+            country,
+            league,
+            homeTeam,
+            awayTeam,
+            prediction,
+            analysis,
+            odds,
+            confidence,
+            isPremium,
+            status,
+            kickoffTime,
+            cardNumber,
+            result
+        } = req.body;
+
+        const requiredFields = [
+            country,
+            league,
+            homeTeam,
+            awayTeam,
+            prediction,
+            analysis,
+            odds,
+            confidence,
+            status,
+            kickoffTime,
+            cardNumber
+        ];
+
+        if (requiredFields.some(field => !field)) {
+            return res.render("homeForm", {
+                pageTitle: "Prediction Form",
+                message: "Please complete all required fields."
+            });
+        }
+
+        const prediction = new Prediction({
+            country,
+            league,
+            homeTeam,
+            awayTeam,
+            prediction,
+            analysis,
+            odds,
+            confidence,
+            isPremium: isPremium === "true",
+            status,
+            kickoffTime,
+            cardNumber,
+            result,
+            createdBy: req.session.user._id
+        });
+
+
+        await prediction.save();
+
+        res.redirect("/");
+
+    } catch (err) {
+        next(err);
+    }
+};
+
+I found the bug. 👍
+
+The problem is here:
+
+const {
+    country,
+    league,
+    homeTeam,
+    awayTeam,
+    prediction,
+    analysis,
+    odds,
+    confidence,
+    isPremium,
+    status,
+    kickoffTime,
+    cardNumber,
+    result
+} = req.body;
+You are creating a variable named prediction from req.body.
+
+A few lines later, you do this:
+
+const prediction = new Prediction({
+Now you're trying to declare another variable called prediction in the same scope.
+
+That's why Node says:
+
+SyntaxError: Identifier 'prediction' has already been declared
+Fix Option 1 (Recommended)
+Rename the value from the form.
+
+For example:
+
+const {
+    country,
+    league,
+    homeTeam,
+    awayTeam,
+    prediction: predictionTip,
+    analysis,
+    odds,
+    confidence,
+    isPremium,
+    status,
+    kickoffTime,
+    cardNumber,
+    result
+} = req.body;
+Then update the rest of the code:
+
+const requiredFields = [
+    country,
+    league,
+    homeTeam,
+    awayTeam,
+    predictionTip,
+    analysis,
+    odds,
+    confidence,
+    status,
+    kickoffTime,
+    cardNumber
+];
+And:
+
+const prediction = new Prediction({
+    country,
+    league,
+    homeTeam,
+    awayTeam,
+    prediction: predictionTip,
+    analysis,
+    odds,
+    confidence,
+    isPremium: isPremium === "true",
+    status,
+    kickoffTime,
+    cardNumber,
+    result,
+    createdBy: req.session.user.id
+});
+Notice I also changed:
+
+createdBy: req.session.user._id
+to
+
+createdBy: req.session.user.id
+Why?
+From our earlier work, your login session stores the user like this:
+
+req.session.user = {
+    id: user._id,
+    username: user.username,
+    email: user.email,
+    role: user.role
+};
+So there is no _id in the session object. Using _id would later cause:
+
+Cannot read properties of undefined
+or save createdBy as undefined.
+
+After making these changes
+Save the file and restart:
+
+rs
+or let nodemon restart automatically.
+
+Then tell me the next error.
+
+I have a feeling there are a few more bugs to squash, but this one is definitely the first blocker. 
+We'll keep working through them one by one until the app runs cleanly.
+
+
+Node.js v24.16.0
+[nodemon] app crashed - waiting for file changes before starting...
+rs
+[nodemon] starting node server.js
+◇ injected env (4) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\node_modules\express\lib\router\route.js:211
+        throw new Error(msg);
+        ^
+
+Error: Route.get() requires a callback function but got a [object Object]
+    at Route.<computed> [as get] (C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\node_modules\express\lib\router\route.js:211:15)
+    at proto.<computed> [as get] (C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\node_modules\express\lib\router\index.js:521:19)
+    at Object.<anonymous> (C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\routes\authRoutes.js:25:8)
+    at Module._compile (node:internal/modules/cjs/loader:1854:14)
+    at Object..js (node:internal/modules/cjs/loader:1985:10)
+    at Module.load (node:internal/modules/cjs/loader:1577:32)
+    at Module._load (node:internal/modules/cjs/loader:1379:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.require (node:internal/modules/cjs/loader:1600:12)
+    at require (node:internal/modules/helpers:153:16)
+
+Node.js v24.16.0
+[nodemon] app crashed - waiting for file changes before starting...
+
+Nice! 🎉 We fixed the first bug. Now Node has moved on to the next one, which is exactly what we want.
+
+This new error is different:
+
+Error: Route.get() requires a callback function but got a [object Object]
+And Node tells us exactly where it is:
+
+routes/authRoutes.js:25
+What this means
+When you write a route like this:
+
+router.get("/login", authController.login);
+Express expects authController.login to be a function.
+
+Instead, it's receiving an object.
+
+This usually happens for one of these reasons:
+
+Possibility 1 (Most common)
+You're importing the controller incorrectly.
+
+For example:
+
+const authController = require("../controllers/authController");
+is correct if authController.js exports functions like:
+
+exports.login = ...
+exports.signup = ...
+But if you accidentally did something like:
+
+module.exports = {
+    login: {...}   // ❌ object instead of function
+}
+or imported the wrong file, you'll get this error.
+
+Possibility 2
+You accidentally called the function instead of passing it:
+
+router.get("/login", authController.login());
+❌ Wrong.
+
+It should be:
+
+router.get("/login", authController.login);
+Possibility 3
+One of the route handlers doesn't exist.
+
+Example:
+
+router.get("/about", authController.about);
+but in your controller:
+
+exports.about = {
+    pageTitle: "About"
+};
+instead of
+
+exports.about = (req, res) => {
+    ...
+};
+I need to see one file
+Please paste your entire routes/authRoutes.js.
+
+The error is specifically on line 25, so I want to inspect the route definitions.
+
+After that, if needed, we'll look at authController.js, but I suspect the issue will be obvious from authRoutes.js.
+
+We're making progress—the syntax error is gone, and now we're into route configuration. That's a good sign.
+
+
+const express = require("express");
+const router = express.Router();
+
+const authController = require("../controllers/authController");
+const authMiddleware = require("../middleware/authMiddleware");
+const roleMiddleware = require("../middleware/roleMiddleware");
+const ROLES = require("../config/roles");
+
+// const adminController = require("../controllers/adminController");
+
+// Public
+router.get("/login", authController.newLogin);
+router.post("/login", authController.login);
+
+router.get("/signup", authController.newSignup);
+router.post("/signup", authController.signup);
+
+router.get("/about", authController.about);
+router.get("/contact", authController.contact);
+router.get("/career", authController.career);
+
+router.get("/success", authController.success);
+
+// Protected
+router.get("/homeForm", authMiddleware, authController.homeForm);
+
+router.get("/premium", authMiddleware, authController.premium);
+
+router.get(
+    "/yesterdaysresults",
+    authMiddleware,
+    authController.yesterdaysresults
+);
+
+router.get("/logout", authController.logout);
+
+// Admin
+// router.get(
+//     "/admin",
+//     authMiddleware,
+//     roleMiddleware(ROLES.ADMIN),
+//     adminController.dashboard
+// );
+
+module.exports = router;
+
+Thanks. The routes file actually looks fine.
+
+The important line is:
+
+router.get("/homeForm", authMiddleware, authController.homeForm);
+The error is:
+
+Route.get() requires a callback function but got a [object Object]
+That means one of the arguments is an object instead of a function.
+
+Looking at this route, there are only two possibilities:
+
+authMiddleware
+
+authController.homeForm
+
+I suspect it's authMiddleware
+Earlier in our project, your middleware looked like this:
+
+exports.isLoggedIn = (req, res, next) => {
+    ...
+};
+If that's still true, then this route is incorrect:
+
+router.get("/homeForm", authMiddleware, authController.homeForm);
+because authMiddleware is an object containing functions.
+
+It should be:
+
+router.get(
+    "/homeForm",
+    authMiddleware.isLoggedIn,
+    authController.homeForm
+);
+Likewise:
+
+router.get(
+    "/premium",
+    authMiddleware.isLoggedIn,
+    authController.premium
+);
+
+router.get(
+    "/yesterdaysresults",
+    authMiddleware.isLoggedIn,
+    authController.yesterdaysresults
+);
+I want to confirm before you change anything.
+Please paste middleware/authMiddleware.js.
+
+I expect it to look something like:
+
+exports.isLoggedIn = ...
+exports.isLoggedOut = ...
+If that's what I see, then we've found the bug immediately.
+
+Please paste only middleware/authMiddleware.js next.
+
+
+const isLoggedIn = (req, res, next) => {
+    if (!req.session.user) {
+        return res.redirect("/auth/login");
+    }
+
+    next();
+};
+
+module.exports = {
+    isLoggedIn
+};
+
+Perfect. 🎯 We found it.
+
+Your middleware exports an object:
+
+module.exports = {
+    isLoggedIn
+};
+So when you do:
+
+const authMiddleware = require("../middleware/authMiddleware");
+authMiddleware is:
+
+{
+    isLoggedIn: [Function]
+}
+Express cannot use the whole object as middleware, which is why it says:
+
+Route.get() requires a callback function but got a [object Object]
+Fix your authRoutes.js
+Replace these three routes:
+
+router.get("/homeForm", authMiddleware, authController.homeForm);
+
+router.get("/premium", authMiddleware, authController.premium);
+
+router.get(
+    "/yesterdaysresults",
+    authMiddleware,
+    authController.yesterdaysresults
+);
+with:
+
+router.get(
+    "/homeForm",
+    authMiddleware.isLoggedIn,
+    authController.homeForm
+);
+
+router.get(
+    "/premium",
+    authMiddleware.isLoggedIn,
+    authController.premium
+);
+
+router.get(
+    "/yesterdaysresults",
+    authMiddleware.isLoggedIn,
+    authController.yesterdaysresults
+);
+There is one more thing I want you to check
+Run:
+
+rs
+If you get another error saying something like:
+
+Route.get() requires a callback function but got undefined
+then the next thing we'll inspect is authController.js to make sure these functions exist:
+
+exports.homeForm = ...
+exports.premium = ...
+exports.yesterdaysresults = ...
+exports.newLogin = ...
+exports.login = ...
+exports.newSignup = ...
+exports.signup = ...
+exports.about = ...
+exports.contact = ...
+exports.career = ...
+exports.success = ...
+exports.logout = ...
+We're making good progress. So far we've eliminated:
+
+✅ Duplicate prediction variable declaration.
+
+✅ Incorrect middleware passed to Express routes.
+
+Restart the server after making this change, and if there's another error, paste the full stack trace. We'll keep working through them until the server starts cleanly.
+
+
+Node.js v24.16.0
+[nodemon] app crashed - waiting for file changes before starting...
+[nodemon] restarting due to changes...
+[nodemon] starting node server.js
+(node:23356) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 exit listeners added to [Bus]. MaxListeners is 10. Use emitter.setMaxListeners() to increase limit
+(Use node --trace-warnings ... to show where the warning was created)
+◇ injected env (4) from .env // tip: ⌘ suppress logs { quiet: true }
+◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+MongoDB Connected
+�🚀 Application Server started on port: 40
+
+🎉 YES!! That's a big improvement.
+
+The important part of your log is:
+
+MongoDB Connected
+🚀 Application Server started on port: 40
+That means:
+
+✅ No syntax errors
+
+✅ No route errors
+
+✅ Express started successfully
+
+✅ MongoDB connected
+
+✅ Your application is finally running
+
+There are still two things to fix
+1. Your port looks wrong
+Your log says:
+
+Application Server started on port: 40
+I expected something like:
+
+Application Server started on port: 4000
+or
+
+Application Server started on port: 3000
+Please show me your server.js because I suspect you have something like:
+
+console.log("Application Server started on port:", process.env.PORT);
+and your .env contains:
+
+PORT=40
+or you accidentally truncated the value.
+
+2. This warning
+MaxListenersExceededWarning
+is not what's crashing your app.
+
+Since the app has already started, this warning can wait. 
+We'll investigate it after the rest of the app is working.
+
+Next test
+Open your browser and visit:
+
+http://localhost:40
+or
+
+http://localhost:4000
+depending on the actual port.
+
+Then tell me:
+
+Does the home page load?
+
+Do you get a blank page?
+
+Do you get an EJS error?
+
+Do you get a 404?
+
+Do you get a browser error?
+
+I also want to see these two files next
+To avoid chasing one bug at a time, I'd like to review:
+
+server.js
+
+.env (hide passwords and secrets, but leave the variable names and the PORT value)
+
+I already spotted one suspicious thing (port: 40), 
+and I want to make sure there aren't other configuration issues.
+
+We're finally out of the "server won't start" phase. 
+Now we can focus on making the application behave correctly in the browser. 🚀
+
+
+homepage loads on port 4000,
+
+That's excellent news! 🎉
+
+This is actually a major milestone.
+
+Current status:
+
+✅ MongoDB connects.
+
+✅ Express starts successfully.
+
+✅ The server runs.
+
+✅ Home page loads on http://localhost:4000.
+
+✅ The syntax and route errors are gone.
+
+So we've moved from "the application won't start" to "the application runs, now we fix its behavior."
+
+About the log showing port 40
+Since your browser loads correctly on port 4000, your application is listening on 4000. The 40 in the console is likely just a logging/configuration issue rather than the actual port the server is using. We can clean that up later.
+
+Next step: Functional testing
+Let's test each feature one at a time:
+
+Home page
+
+Are the predictions from MongoDB displayed?
+
+Login
+
+Can you log in successfully?
+
+Signup
+
+Can you create a new user?
+
+Prediction Form
+
+Can an admin/superuser open the form?
+
+Can you save a prediction?
+
+Premium page
+
+Does it open correctly?
+
+Does it redirect to login when you're not authenticated?
+
+I want to find the next bug efficiently
+Tell me which of these is failing. For example:
+
+❌ Predictions are not showing.
+
+❌ Login doesn't work.
+
+❌ Signup throws an error.
+
+❌ Prediction form won't save.
+
+❌ Premium page gives an error.
+
+❌ Images/CSS aren't loading.
+
+Or, if you already know the next issue, paste the exact error message or a screenshot.
+
+We've crossed the hardest part—the application is alive. Now we'll polish each feature until Prof Predict behaves like a production-ready app.
+
+
+
+Node.js v24.16.0
+[nodemon] app crashed - waiting for file changes before starting...
+[nodemon] restarting due to changes...
+[nodemon] starting node server.js
+(node:23356) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 exit listeners added to [Bus]. MaxListeners is 10. Use emitter.setMaxListeners() to increase limit
+(Use node --trace-warnings ... to show where the warning was created)
+◇ injected env (4) from .env // tip: ⌘ suppress logs { quiet: true }
+◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+MongoDB Connected
+�🚀 Application Server started on port: 40
+ReferenceError: C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\views\home.ejs:104
+    102|
+    103|                                         <p>
+ >> 104|                                             <% if(prediction.expired){ %>
+    105|
+    106|                                                 Expired
+    107|
+
+prediction is not defined
+    at eval (eval at compile (C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\node_modules\ejs\lib\ejs.js:673:12), <anonymous>:53:8)
+    at Array.forEach (<anonymous>)
+    at eval (eval at compile (C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\node_modules\ejs\lib\ejs.js:673:12), <anonymous>:16:20)
+    at home (C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\node_modules\ejs\lib\ejs.js:703:17)
+    at tryHandleCache (C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\node_modules\ejs\lib\ejs.js:274:36)
+    at exports.renderFile [as engine] (C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\node_modules\ejs\lib\ejs.js:491:10)
+    at View.render (C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\node_modules\express\lib\view.js:135:8)
+    at tryRender (C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\node_modules\express\lib\application.js:657:10)
+    at app.render (C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\node_modules\express\lib\application.js:609:3)
+    at ServerResponse.render (C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\node_modules\express\lib\response.js:1039:7) {
+  path: 'C:\\Users\\GMA Technologies LTD\\Desktop\\projectSportPredict\\views\\home.ejs'
+}
+ReferenceError: C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\views\home.ejs:104
+    102|
+    103|                                         <p>
+ >> 104|                                             <% if(prediction.expired){ %>
+    105|
+    106|                                                 Expired
+    107|
+
+prediction is not defined
+    at eval (eval at compile (C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\node_modules\ejs\lib\ejs.js:673:12), <anonymous>:53:8)
+    at Array.forEach (<anonymous>)
+    at eval (eval at compile (C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\node_modules\ejs\lib\ejs.js:673:12), <anonymous>:16:20)
+    at home (C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\node_modules\ejs\lib\ejs.js:703:17)
+    at tryHandleCache (C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\node_modules\ejs\lib\ejs.js:274:36)
+    at exports.renderFile [as engine] (C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\node_modules\ejs\lib\ejs.js:491:10)
+    at View.render (C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\node_modules\express\lib\view.js:135:8)
+    at tryRender (C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\node_modules\express\lib\application.js:657:10)
+    at app.render (C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\node_modules\express\lib\application.js:609:3)
+    at ServerResponse.render (C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\node_modules\express\lib\response.js:1039:7) {
+  path: 'C:\\Users\\GMA Technologies LTD\\Desktop\\projectSportPredict\\views\\home.ejs'
+}
+ReferenceError: C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\views\home.ejs:104
+    102|
+    103|                                         <p>
+ >> 104|                                             <% if(prediction.expired){ %>
+    105|
+    106|                                                 Expired
+    107|
+
+prediction is not defined
+    at eval (eval at compile (C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\node_modules\ejs\lib\ejs.js:673:12), <anonymous>:53:8)
+    at Array.forEach (<anonymous>)
+    at eval (eval at compile (C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\node_modules\ejs\lib\ejs.js:673:12), <anonymous>:16:20)
+    at home (C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\node_modules\ejs\lib\ejs.js:703:17)
+    at tryHandleCache (C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\node_modules\ejs\lib\ejs.js:274:36)
+    at exports.renderFile [as engine] (C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\node_modules\ejs\lib\ejs.js:491:10)
+    at View.render (C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\node_modules\express\lib\view.js:135:8)
+    at tryRender (C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\node_modules\express\lib\application.js:657:10)
+    at app.render (C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\node_modules\express\lib\application.js:609:3)
+    at ServerResponse.render (C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\node_modules\express\lib\response.js:1039:7) {
+  path: 'C:\\Users\\GMA Technologies LTD\\Desktop\\projectSportPredict\\views\\home.ejs'
+}
+ReferenceError: C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\views\home.ejs:104
+    102|
+    103|                                         <p>
+ >> 104|                                             <% if(prediction.expired){ %>
+    105|
+    106|                                                 Expired
+    107|
+
+prediction is not defined
+    at eval (eval at compile (C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\node_modules\ejs\lib\ejs.js:673:12), <anonymous>:53:8)
+    at Array.forEach (<anonymous>)
+    at eval (eval at compile (C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\node_modules\ejs\lib\ejs.js:673:12), <anonymous>:16:20)
+    at home (C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\node_modules\ejs\lib\ejs.js:703:17)
+    at tryHandleCache (C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\node_modules\ejs\lib\ejs.js:274:36)
+    at exports.renderFile [as engine] (C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\node_modules\ejs\lib\ejs.js:491:10)
+    at View.render (C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\node_modules\express\lib\view.js:135:8)
+    at tryRender (C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\node_modules\express\lib\application.js:657:10)
+    at app.render (C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\node_modules\express\lib\application.js:609:3)
+    at ServerResponse.render (C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\node_modules\express\lib\response.js:1039:7) {
+  path: 'C:\\Users\\GMA Technologies LTD\\Desktop\\projectSportPredict\\views\\home.ejs'
+
+This is another good one. The server is not crashing anymore—it's rendering the page and EJS is throwing an error.
+
+The key part is:
+
+ReferenceError: views/home.ejs:104
+
+<% if(prediction.expired){ %>
+
+prediction is not defined
+Why this happens
+This almost always means you're looping over the predictions with a variable that isn't named prediction.
+
+For example, if your code looks like this:
+
+<% predictions.forEach(post => { %>
+
+    <%= post.homeTeam %>
+
+    <% if (prediction.expired) { %>   <!-- ❌ -->
+then prediction does not exist inside that loop. The loop variable is post.
+
+Or you might have:
+
+<% predictions.forEach(match => { %>
+
+    <% if (prediction.expired) { %>   <!-- ❌ -->
+Again, prediction is undefined.
+
+I need to see the surrounding code
+Please paste lines 90–120 of views/home.ejs, including the start of the forEach loop.
+
+Something like:
+
+<% predictions.forEach(???? => { %>
+
+...
+
+<% if(prediction.expired){ %>
+
+...
+
+<% }) %>
+Those 30 lines will tell us exactly what's wrong.
+
+My guess (95% confidence)
+Your code probably looks something like:
+
+<% predictions.forEach(post => { %>
+
+    ...
+
+    <% if (prediction.expired) { %>
+The fix would simply be:
+
+<% if (post.expired) { %>
+or, if your loop is:
+
+<% predictions.forEach(prediction => { %>
+then prediction.expired is correct.
+
+One more thing
+I also noticed this:
+
+prediction.expired
+Looking back at your Mongoose schema, I don't remember an expired field being defined. If you intended to determine whether a match has expired based on its kickoff time, you might instead need a check like:
+
+<% if (new Date(prediction.kickoffTime) < new Date()) { %>
+    Expired
+<% } else { %>
+    Active
+<% } %>
+But first, let's fix the variable name.
+
+📌 Paste lines 90–120 of views/home.ejs, and we'll get this sorted.
+
+
+<section id="network-installation" class="py-5">
+            <div class="container">
+
+                <div class="text-center mb-5">
+                    <h2 class="fw-bold">Free Prediction Tips</h2>
+                    <p class="lead">have a taste of what the Prof is cooking</p>
+                </div>
+                <div class="row g-4">
+
+                    <% if (predictions && predictions.length > 0) { %>
+
+                        <% predictions.forEach(function(post){ %>
+                            
+                            <div class="col-md-6 col-lg-4">
+                                <div class="card h-100">
+                                    <div class="card-body text-center">
+
+                                        <h5 class="fw-bold mb-3">
+                                            Country: <%= post.country %>
+                                        </h5>
+
+                                        <p>League: <%= post.league %></p>
+
+                                        <p><%= post.homeTeam %></p>
+
+                                        <p class="fw-bold">VS</p>
+
+                                        <p><%= post.awayTeam %></p>
+
+                                        <p class="mt-3">
+                                            <strong>Prediction:</strong>
+                                            <%= post.prediction %>
+                                        </p>
+
+                                        <% if(post.analysis){ %>
+
+                                        <div class="alert alert-light border-start border-success border-4 mt-3">
+
+                                            <strong>Prof Analysis</strong>
+
+                                            <p class="mb-0 mt-2">
+                                                <%= post.analysis %>
+                                            </p>
+
+                                        </div>
+
+                                        <% } %>
+
+                                        <p class="small">
+                                            <i class="bi bi-clock"></i>
+                                            <%= new Date(post.kickoffTime).toLocaleString("en-NG", {
+                                                dateStyle: "medium",
+                                                timeStyle: "short"
+                                            }) %>
+
+                                            &nbsp;|&nbsp;
+                                            <strong>predictedBy:</strong>
+                                            <i class="bi bi-person-fill"></i>
+                                            <%= post.createdBy ? post.createdBy.username : "Unknown" %>
+                                        </p>
+
+
+                                        <p>                             
+                                            <% if(prediction.expired){ %>
+
+                                                Expired
+
+                                            <% } %>
+                                        </p>
+                                                   
+
+                                        <!-- <p>
+                                            <strong>kickOffTime:</strong>
+                                            <%= post.kickoffTime %>
+                                             
+                                        </p>
+
+                                        <p>
+                                            <strong>predictionBy:</strong>
+                                            <%= post.createdBy ? post.createdBy.username : "Unknown" %>
+                                        </p> -->
+                                        
+
+                                        
+
+                                    </div>
+                                </div>
+                            </div>
+
+                                <% }) %>
+
+                            <% } else { %>
+
+                                <div class="text-center py-5">
+                                    <h4>No predictions available yet.</h4>
+                                </div>
+
+                            <% } %>
+                </div>
+            </div>          
+        </section>
+
+There it is! 👏 I can see the bug immediately.
+
+Inside your loop, you wrote:
+
+<% predictions.forEach(function(post){ %>
+That means the current prediction is stored in the variable post.
+
+But later you wrote:
+
+<% if(prediction.expired){ %>
+There is no variable named prediction in this scope. The only variable is post.
+
+That's why EJS throws:
+
+ReferenceError: prediction is not defined
+But there's a second issue
+Even if you change it to:
+
+<% if(post.expired){ %>
+it still won't work, because your Prediction schema does not have an expired field.
+
+Earlier, your schema included fields like:
+
+kickoffTime
+status
+prediction
+analysis
+...
+There was no:
+
+expired: Boolean
+The correct solution
+If your goal is to show Expired when the kickoff time has already passed, compare the dates instead:
+
+Replace this:
+
+<p>
+    <% if(prediction.expired){ %>
+
+        Expired
+
+    <% } %>
+</p>
+with:
+
+<p>
+    <% if (new Date(post.kickoffTime) < new Date()) { %>
+
+        <span class="badge bg-secondary">Expired</span>
+
+    <% } else { %>
+
+        <span class="badge bg-success">Upcoming</span>
+
+    <% } %>
+</p>
+Or, if you're using the status field
+Since your model already has:
+
+status: "Pending" | "Won" | "Lost" | "Void"
+you could display that instead:
+
+<p>
+    <strong>Status:</strong>
+
+    <span class="badge bg-info">
+        <%= post.status %>
+    </span>
+</p>
+That avoids introducing another concept (expired) if you don't need it.
+
+One more improvement
+I also noticed you're doing:
+
+<%= post.createdBy ? post.createdBy.username : "Unknown" %>
+This will only show the username if your query populates createdBy, for example:
+
+const predictions = await Prediction.find({ isPremium: false })
+    .populate("createdBy", "username");
+If you haven't added .populate(), you'll always see "Unknown" because createdBy will just be an ObjectId.
+
+Let's keep going
+Replace the prediction.expired block with the date comparison above.
+
+Refresh the page.
+
+Then tell me:
+
+✅ Does the home page now render?
+
+✅ Do the prediction cards display?
+
+❌ Or is there a new error?
+
+We're definitely making progress—these are now view-layer issues rather than application startup problems.
+
+
+using status, everything is rendering well?
+
+🎉 That's fantastic!
+
+If everything is rendering well after using status, then we've successfully eliminated another major bug.
+
+Here's what we've fixed in this session:
+
+✅ Fixed the duplicate prediction variable declaration in predictionController.js.
+
+✅ Fixed the incorrect middleware usage in authRoutes.js.
+
+✅ Got the Express server running again.
+
+✅ Connected MongoDB successfully.
+
+✅ Fixed the EJS prediction is not defined error.
+
+✅ The home page now renders correctly.
+
+✅ Prediction cards display properly.
+
+What's next?
+Now it's time to verify that the application behaves correctly. I recommend testing these in order:
+
+Home page
+
+Are all free predictions visible?
+
+Is the status badge (Pending/Won/Lost/Void) displayed correctly?
+
+Prediction Form
+
+Can an admin/superuser create a new prediction?
+
+Does it save to MongoDB?
+
+Does it appear on the home page?
+
+Authentication
+
+Login
+
+Logout
+
+Signup
+
+Protected Routes
+
+Does /premium redirect unauthenticated users to login?
+
+Can only authorized users access the prediction form?
+
+Database
+
+Confirm that createdBy is being saved correctly.
+
+If you want to show the creator's username on the home page, make sure you're populating the reference in your query:
+
+const predictions = await Prediction.find({ isPremium: false })
+    .populate("createdBy", "username");
+One thing I still want us to clean up
+Earlier, your console showed:
+
+MaxListenersExceededWarning
+The app works despite this, but it's worth investigating because it usually indicates 
+that event listeners are being attached repeatedly. 
+It may not cause immediate failures, but it's something we should fix before deployment.
+
+I have to say, we've made real progress today. At the beginning, the application wouldn't even start. 
+Now it's running and rendering data from MongoDB.
+
+What's the next issue you notice? Is it:
+
+Prediction creation?
+
+Login/logout?
+
+Premium access?
+
+Or something else?
+
+
+see your last recommendation: My Recommendation
+I would not jump into adding new features just yet.
+
+Instead, I'd spend one more phase making the application bulletproof.
+
+Think of it like building a house:
+
+Phase 1: Lay the foundation. ✅
+
+Phase 2: Build the structure. ✅
+
+Phase 3: Install the plumbing, wiring, doors, and safety systems. 🚧
+
+Phase 4: Decorate and expand the house. 🏡
+
+If we skip Phase 3, every new feature we add will sit on a weaker base.
+
+Where we start tomorrow (or next session)
+I recommend we begin with global error handling because it's relatively self-contained 
+and immediately improves the whole application.
+
+Our first tasks would be:
+
+Create 404.ejs
+
+Create 403.ejs
+
+Create 500.ejs
+
+Add the 404 middleware to app.js
+
+Add the global error-handling middleware to app.js
+
+Once those are in place, the application will have a consistent way to handle both expected and unexpected errors, and every controller that already calls next(err) will automatically benefit from it.
+
+I think that's the strongest next step for Prof Predict. It strengthens the entire application without requiring changes across dozens of files, and it sets us up nicely for validation and security hardening afterward.
+
+
+
+I stand by that recommendation. In fact, after today's debugging session, 
+I believe it's even more important.
+
+Today we fixed several bugs, but notice what happened:
+
+A duplicate variable crashed the application.
+
+A route middleware mistake crashed the application.
+
+An EJS variable typo crashed the page.
+
+Every error resulted in a long stack trace instead of a user-friendly page.
+
+That's exactly what a global error-handling layer is designed to address.
+
+I propose we stick to this roadmap
+Phase 3 — Production Hardening
+Step 1 — Error Pages
+Create:
+
+views/
+    403.ejs
+    404.ejs
+    500.ejs
+These will give users professional pages instead of ugly stack traces.
+
+Step 2 — 404 Middleware
+At the very bottom of app.js (after all routes):
+
+app.use((req, res) => {
+    res.status(404).render("404", {
+        pageTitle: "Page Not Found"
+    });
+});
+Step 3 — Global Error Handler
+Immediately after the 404 handler:
+
+app.use((err, req, res, next) => {
+    console.error(err);
+
+    res.status(err.status || 500).render("500", {
+        pageTitle: "Server Error",
+        error: process.env.NODE_ENV === "development" ? err : null
+    });
+});
+Notice how your controllers already do this:
+
+catch (err) {
+    next(err);
+}
+That means they're already prepared to use a global error handler.
+
+Step 4 — 403 Page
+Whenever authorization fails:
+
+return res.status(403).render("403", {
+    pageTitle: "Access Denied"
+});
+instead of sending plain text.
+
+Why this matters
+Imagine a paying customer visits Prof Predict and accidentally clicks a broken link.
+
+Today
+They might see:
+
+ReferenceError:
+prediction is not defined
+...
+That looks like a broken application.
+
+After hardening
+They'll see a polished page saying:
+
+Oops! Something went wrong.
+
+Our team has been notified.
+
+Return Home
+
+That inspires much more confidence.
+
+I also want to add one more thing
+After today's debugging, I'd extend the hardening phase slightly.
+
+Updated Phase 3 Checklist
+✅ Custom 404 page
+
+✅ Custom 403 page
+
+✅ Custom 500 page
+
+✅ Global error middleware
+
+✅ Request validation
+
+✅ Centralized async error handling
+
+✅ Logging
+
+✅ Environment-specific error messages
+
+✅ Security headers
+
+✅ Rate limiting
+
+After that, I'd consider the application production-ready enough to start adding new features like dashboards and subscription management.
+
+My recommendation
+Let's make Prof Predict stable before making it bigger.
+
+We've already experienced how small mistakes (a single variable name or middleware reference) can stop the application. A proper error-handling layer will make future debugging much easier and provide a much better experience for users.
+
+So, next session, let's begin with:
+
+Designing premium-looking 403.ejs, 404.ejs, and 500.ejs pages that match the Prof Predict branding.
+
+Adding the 404 and global error middleware to app.js.
+
+Testing them intentionally by visiting a nonexistent URL and by triggering a controlled server error.
+
+That gives us confidence that, even when something goes wrong, the application fails gracefully instead of exposing stack traces. From there, we can move on to validation, security, and the next set of features with a much stronger foundation.
+
+
+<%- include("partials/header") -%>
+
+<h2>403 Error Message: </h2>
+<p>You don't have permission to access this page.</p>
+
+
+
+<%- include("partials/footer") -%>
+
+That's a good starting placeholder, but since your goal is to make Prof Predict look like a premium product, I'd avoid shipping such a plain page.
+
+I'd recommend giving it the same look and feel as the rest of your website—Bootstrap, centered content, and a clear call-to-action.
+
+Here's a version I'd use:
+
+<%- include("partials/header") -%>
+
+<section class="container py-5"> <div class="row justify-content-center"> <div class="col-lg-7"> <div class="card shadow border-0 text-center"> <div class="card-body p-5">
+
+                <div class="display-1 text-warning mb-3">
+                    <i class="bi bi-shield-lock-fill"></i>
+                </div>
+
+                <h1 class="fw-bold mb-3">403 - Access Denied</h1>
+
+                <p class="lead text-muted">
+                    Sorry, you don't have permission to access this page.
+                </p>
+
+                <p class="text-muted mb-4">
+                    If you believe this is an error, please contact the administrator or log in with an account that has the required permissions.
+                </p>
+
+                <a href="/" class="btn btn-primary px-4">
+                    <i class="bi bi-house-door-fill"></i>
+                    Return Home
+                </a>
+
+            </div>
+        </div>
+    </div>
+</div>
+</section>
+
+<%- include("partials/footer") -%>
+
+This version has several advantages:
+
+✅ Matches the Bootstrap styling used throughout your site.
+
+✅ Clearly explains the problem without exposing technical details.
+
+✅ Gives the user an obvious next step ("Return Home").
+
+✅ Looks much more professional.
+
+After this, we can create matching 404.ejs and 500.ejs pages with the same layout so the entire application has a consistent, polished error experience.
+
+
+<%- include("partials/header") -%>
+
+<h2>404 Error Message: </h2>
+<p>The page you're looking for doesn't exist.</p>
+
+
+
+<%- include("partials/footer") -%>
+
+This is another good placeholder, but I'd make it consistent with the new 403 page so all of your error pages share the same design.
+
+Here's a polished version for 404.ejs:
+
+<%- include("partials/header") -%>
+
+<section class="container py-5"> <div class="row justify-content-center"> <div class="col-lg-7"> <div class="card shadow border-0 text-center"> <div class="card-body p-5">
+
+                <div class="display-1 text-primary mb-3">
+                    <i class="bi bi-search"></i>
+                </div>
+
+                <h1 class="fw-bold mb-3">404 - Page Not Found</h1>
+
+                <p class="lead text-muted">
+                    Oops! The page you're looking for doesn't exist or may have been moved.
+                </p>
+
+                <p class="text-muted mb-4">
+                    Please check the URL or return to the homepage to continue exploring Prof Predict.
+                </p>
+
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    <a href="/" class="btn btn-primary px-4">
+                        <i class="bi bi-house-door-fill"></i>
+                        Home
+                    </a>
+
+                    <a href="/auth/contact" class="btn btn-outline-secondary px-4">
+                        <i class="bi bi-envelope-fill"></i>
+                        Contact Us
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</section>
+
+<%- include("partials/footer") -%>
+
+Consistent design system
+By the time we're done, the three error pages should feel like they're part of the same application:
+
+Error	Icon	Color	Purpose
+403	bi-shield-lock-fill	Warning (yellow)	Access denied
+404	bi-search	Primary (blue)	Page not found
+500	bi-exclamation-triangle-fill	Danger (red)	Internal server error
+This gives Prof Predict a polished, production-ready feel. Once you've created the 500.ejs page in the same style, we'll wire all three pages into app.js with the 404 and global error-handling middleware so the application handles errors gracefully.
+
+
+<%- include("partials/header") -%>
+
+<h2>500 Error Message: </h2>
+<p>Something went wrong. Please try again later.</p>
+
+
+
+<%- include("partials/footer") -%>
+
+Perfect. This completes the trio. Let's make the 500 page match the same premium style as the 403 and 404 pages.
+
+<%- include("partials/header") -%>
+
+<section class="container py-5"> <div class="row justify-content-center"> <div class="col-lg-7"> <div class="card shadow border-0 text-center"> <div class="card-body p-5">
+
+                <div class="display-1 text-danger mb-3">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                </div>
+
+                <h1 class="fw-bold mb-3">500 - Internal Server Error</h1>
+
+                <p class="lead text-muted">
+                    Oops! Something went wrong while processing your request.
+                </p>
+
+                <p class="text-muted mb-4">
+                    Please try again in a few moments. If the problem persists, contact our support team.
+                </p>
+
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+
+                    <a href="/" class="btn btn-primary px-4">
+                        <i class="bi bi-house-door-fill"></i>
+                        Return Home
+                    </a>
+
+                    <a href="/auth/contact" class="btn btn-outline-secondary px-4">
+                        <i class="bi bi-envelope-fill"></i>
+                        Contact Support
+                    </a>
+
+                </div>
+
+                <% if (typeof error !== "undefined" && error) { %>
+                    <hr class="my-4">
+
+                    <div class="alert alert-danger text-start">
+                        <strong>Development Error Details</strong>
+                        <pre class="mb-0 mt-2"><%= error.stack %></pre>
+                    </div>
+                <% } %>
+
+            </div>
+        </div>
+    </div>
+</div>
+</section>
+
+<%- include("partials/footer") -%>
+
+Excellent progress
+At this point, you have all three custom error pages:
+
+✅ 403.ejs — Access Denied
+
+✅ 404.ejs — Page Not Found
+
+✅ 500.ejs — Internal Server Error
+
+They now have a consistent design and fit the rest of the Prof Predict application.
+
+The next step
+Now we need to wire them into Express. In your app.js, we'll:
+
+Add a 404 middleware after all your routes.
+
+Add a global error-handling middleware after the 404 middleware.
+
+Once that's in place:
+
+Visiting a nonexistent URL will show your custom 404.ejs.
+
+Calling next(err) from any controller will automatically render 500.ejs.
+
+Returning a 403 from authorization middleware can render 403.ejs.
+
+This is where the application starts feeling like a production-ready Express app 
+rather than a development project.
+
+
+require("dotenv").config();
+
+const express = require("express");
+const session = require("express-session");
+
+const path = require("path");
+
+const { MongoStore } = require("connect-mongo");
+
+const homeRoutes = require("./routes/homeRoutes");
+
+const authRoutes = require("./routes/authRoutes");
+
+const adminRoutes = require("./routes/adminRoutes");
+
+
+const predictionRoutes = require("./routes/predictionRoutes");
+const premiumRoutes = require("./routes/premiumRoutes");
+
+
+// creating a local module to send email
+const sendTheEmail = require(path.join(__dirname, "/email.js")); 
+
+const app = express();
+
+app.set("view engine", "ejs");
+
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.static(path.join(__dirname, "public")));
+
+
+
+app.locals.siteName = "Prof Predict";
+app.locals.tagline = "Stakers Krooner";
+
+app.use(
+    session({
+        secret: process.env.SESSION_SECRET,
+        resave: false,
+        saveUninitialized: false,
+        store: MongoStore.create({
+            mongoUrl: process.env.MONGODB_URI
+        }),
+        cookie: {
+            maxAge: 1000 * 60 * 60 * 24,
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax"
+        }
+    })
+);
+
+app.use((req, res, next) => {
+
+    res.locals.user = req.session.user || null;
+
+    next();
+
+});
+
+app.use("/auth", authRoutes);
+
+app.use("/", homeRoutes);
+
+// app.use("/admin", adminRoutes);
+
+app.use("/predictions", predictionRoutes);
+app.use("/premium", premiumRoutes);
+
+app.use((req, res) => {
+    res.status(404).render("404", {
+        pageTitle: "Page Not Found"
+    });
+});
+
+app.use((err, req, res, next) => {
+    console.error(err);
+
+    res.status(err.status || 500).render("500", {
+        pageTitle: "Server Error",
+        error: process.env.NODE_ENV === "development" ? err : null
+    });
+});
+
+
+app.post("/send", async function(req, res) {
+
+    const { name, email, message } = req.body;
+
+    if (!name || !email || !message) {
+        return res.render("invalid", {pageTitle: "Invalid"});
+    }
+
+    try {
+
+        await sendTheEmail({
+            name,
+            email,
+            subject: New message from ${name} via website,
+            html: 
+                <h2>New Contact Message</h2>
+
+                <p><strong>Name:</strong> ${name}</p>
+                <p><strong>Email:</strong> ${email}</p>
+
+                <h3>Message</h3>
+                <p>${message}</p>
+            
+        });
+
+        res.render("success", {pageTitle: "success"});
+
+    } catch(error) {
+
+        console.log(error);
+
+        res.render("failure", {pageTitle: "failure"});
+    }
+});
+
+app.post("/booking", async function(req, res) {
+
+    const { companyName, email, phone, enquiry, details } = req.body;
+
+    if (!companyName || !email || !phone || !enquiry || !details) {
+        return res.render("invalid", {pageTitle: "Invalid"});
+    }
+
+    try {
+
+        await sendTheEmail({
+            name: companyName,
+            email,
+            subject: New consultation request from ${companyName},
+            html: 
+                <h2>New Consultation Request</h2>
+
+                <p><strong>Company:</strong> ${companyName}</p>
+                <p><strong>Email:</strong> ${email}</p>
+                <p><strong>Phone:</strong> ${phone}</p>
+                <p><strong>Enquiry:</strong> ${enquiry}</p>
+
+                <h3>Details</h3>
+                <p>${details}</p>
+            
+        });
+
+        res.render("successBooking", {pageTitle: "successBooking"});
+
+    } catch(error) {
+
+        console.log(error);
+
+        res.render("failureBooking", {pageTitle: "failureBooking"});
+    }
+});
+
+
+
+
+module.exports = app;
+
+This is looking much better than it did a few days ago. 👏
+
+You've successfully added the 404 and global error middleware, 
+but there is one important issue with their placement.
+
+❌ Problem: Middleware order
+Right now, your code is:
+
+app.use("/auth", authRoutes);
+
+app.use("/", homeRoutes);
+
+app.use("/predictions", predictionRoutes);
+app.use("/premium", premiumRoutes);
+
+// 404
+app.use((req, res) => {
+    ...
+});
+
+// 500
+app.use((err, req, res, next) => {
+    ...
+});
+
+// POST routes
+app.post("/send", ...);
+
+app.post("/booking", ...);
+This means every request that isn't handled by the routes above will hit the 404 middleware first, 
+so Express will never reach:
+
+app.post("/send", ...)
+or
+
+app.post("/booking", ...)
+because the 404 handler ends the request.
+
+✅ Correct order
+Your application should follow this flow:
+
+Middleware
+        ↓
+Routes
+        ↓
+404 Handler
+        ↓
+500 Error Handler
+The 404 and 500 handlers should be the last middleware in the entire application.
+
+So move them to the bottom, after all your routes:
+
+app.use("/auth", authRoutes);
+app.use("/", homeRoutes);
+app.use("/predictions", predictionRoutes);
+app.use("/premium", premiumRoutes);
+
+app.post("/send", ...);
+
+app.post("/booking", ...);
+
+// 404 Handler
+app.use((req, res) => {
+    res.status(404).render("404", {
+        pageTitle: "Page Not Found"
+    });
+});
+
+// Global Error Handler
+app.use((err, req, res, next) => {
+    console.error(err);
+
+    res.status(err.status || 500).render("500", {
+        pageTitle: "Server Error",
+        error: process.env.NODE_ENV === "development" ? err : null
+    });
+});
+Another improvement
+Your global error handler is already good:
+
+console.error(err);
+I'd make it slightly more informative:
+
+app.use((err, req, res, next) => {
+
+    console.error("Global Error Handler");
+    console.error(err.stack);
+
+    res.status(err.status || 500).render("500", {
+        pageTitle: "Server Error",
+        error: process.env.NODE_ENV === "development" ? err : null
+    });
+
+});
+That makes debugging much easier.
+
+Phase 3 Progress
+Task	Status
+Custom 403 page	✅ Complete
+Custom 404 page	✅ Complete
+Custom 500 page	✅ Complete
+Global Error Handler	✅ Complete
+404 Middleware	✅ Complete
+Middleware Order	⚠️ Needs moving to the bottom
+What comes after this?
+Once you've moved the handlers to the end, I'd consider Phase 3 (Error Handling) complete.
+
+Then I'd move on to Validation & Security, including:
+
+Input validation for all forms.
+
+Password strength checks.
+
+Email validation.
+
+Duplicate username/email handling.
+
+Mongoose validation error handling.
+
+Security headers with helmet.
+
+Rate limiting on login routes.
+
+Flash messages for user feedback.
+
+At that point, Prof Predict will be much closer to production quality than a typical tutorial project.
+
+We're no longer just fixing bugs—we're strengthening the application's architecture 
+so new features can be added with confidence.
+
+
+where dis we add the 404 middleware, and what did we add?
+
+Great question. Understanding why we added it is just as important as knowing where.
+
+Where do we add the 404 middleware?
+It belongs in app.js, after every route and before the global error handler.
+
+The correct order is:
+
+Express Middleware
+        ↓
+Session Middleware
+        ↓
+Application Routes
+        ↓
+POST Routes (/send, /booking)
+        ↓
+404 Middleware
+        ↓
+Global Error Middleware
+So your app.js should end like this:
+
+app.use("/auth", authRoutes);
+
+app.use("/", homeRoutes);
+
+app.use("/predictions", predictionRoutes);
+
+app.use("/premium", premiumRoutes);
+
+app.post("/send", async (req, res) => {
+    ...
+});
+
+app.post("/booking", async (req, res) => {
+    ...
+});
+
+// 404 Middleware
+app.use((req, res) => {
+    res.status(404).render("404", {
+        pageTitle: "Page Not Found"
+    });
+});
+
+// Global Error Middleware
+app.use((err, req, res, next) => {
+    console.error(err);
+
+    res.status(err.status || 500).render("500", {
+        pageTitle: "Server Error",
+        error: process.env.NODE_ENV === "development" ? err : null
+    });
+});
+What is the 404 middleware?
+This is the code we added:
+
+app.use((req, res) => {
+    res.status(404).render("404", {
+        pageTitle: "Page Not Found"
+    });
+});
+Let's break it down.
+
+app.use(...)
+This middleware runs only if Express hasn't already sent a response.
+
+That means:
+
+No route matched the request.
+
+No earlier middleware handled it.
+
+For example, if someone visits:
+
+http://localhost:4000/football
+and you don't have:
+
+router.get("/football", ...)
+Express continues searching through your routes. When it reaches the 404 middleware, it knows nothing matched.
+
+res.status(404)
+This sets the HTTP status code to 404 Not Found.
+
+Without it, Express would return 200 OK, 
+which would incorrectly tell browsers and search engines that the page exists.
+
+.render("404")
+Instead of sending plain text like:
+
+Cannot GET /football
+Express renders your custom views/404.ejs page.
+
+That's why we created that file.
+
+What happens behind the scenes?
+Suppose a user visits:
+
+http://localhost:4000/abcxyz
+Express checks:
+
+/auth
+❌ No match.
+
+Then:
+
+/
+❌ No match.
+
+Then:
+
+/Predictions
+❌ No match.
+
+Then:
+
+/premium
+❌ No match.
+
+Then:
+
+/send
+❌ No match.
+
+Then:
+
+/booking
+❌ No match.
+
+Finally, Express reaches:
+
+app.use((req, res) => {
+    res.status(404).render("404");
+});
+and displays your custom "Page Not Found" page.
+
+Why did we add it?
+Before adding this middleware, if a route didn't exist, 
+Express would respond with its default message, such as:
+
+Cannot GET /abcxyz
+That works for development but looks unprofessional to users.
+
+After adding the middleware, visitors see your branded 404 page, which is a much better experience.
+
+A quick check
+Once you've moved the 404 middleware to the bottom of app.js, test it by opening:
+
+http://localhost:4000/thispagedoesnotexist
+If everything is wired correctly, your custom 404.ejs page should appear instead of Express's 
+default "Cannot GET ..." message.
+
+That's the simplest way to confirm the middleware is working exactly as intended.
+
+
+the 404 page appeares
+
+Excellent! 🎉
+
+That's exactly what we wanted to see.
+
+When you visited a non-existent URL and saw your custom 404 page, it confirmed that:
+
+✅ Your routes are being checked correctly.
+
+✅ The 404 middleware is in the correct place.
+
+✅ 404.ejs is rendering properly.
+
+✅ Express is no longer showing the default Cannot GET /... message.
+
+That means this part of your application is working as intended.
+
+Now let's verify the other two pages
+1. Test the 403 page
+You need to trigger an authorization failure.
+
+For example, if your role middleware does something like:
+
+return res.status(403).render("403", {
+    pageTitle: "Access Denied"
+});
+try accessing an admin-only route while logged in as a normal user (or while not logged in, depending on your route setup).
+
+You should see your custom 403 page.
+
+2. Test the 500 page
+The safest way during development is to create a temporary test route.
+
+For example:
+
+app.get("/test-500", (req, res, next) => {
+    next(new Error("Testing the global error handler"));
+});
+Then visit:
+
+http://localhost:4000/test-500
+You should see your custom 500 page.
+
+When you've confirmed it works, simply delete that test route.
+
+Phase 3 status
+At this point, you're very close to completing the error-handling phase:
+
+✅ Custom 403 page created
+
+✅ Custom 404 page created
+
+✅ Custom 500 page created
+
+✅ 404 middleware working
+
+⏳ Test 403 page
+
+⏳ Test 500 page
+
+Once those two tests pass, I'll consider your global error-handling setup complete, 
+and we can move on to the next hardening phase: improving validation and security.
+
+
+i am trying to login, but it is bouncing back
+
+Good observation. "Bouncing back" usually means one of a few things. 
+Let's diagnose it methodically instead of guessing.
+
+First, tell me exactly what happens
+When you submit the login form:
+
+Does it redirect back to /auth/login?
+
+Does it redirect to the home page (/)?
+
+Does it show an error message?
+
+Does the terminal print any error?
+
+The most likely causes
+1. Login credentials are failing
+In your authController.login, you probably have something like:
+
+if (!user) {
+    return res.render("failureLogin", ...);
+}
+or
+
+if (!isMatch) {
+    return res.redirect("/auth/login");
+}
+If the username/email or password is incorrect, you'll be sent back.
+
+2. Session isn't being saved
+If login appears successful but every protected page sends you back to login, then req.session.user isn't being stored.
+
+After this line in your login controller:
+
+req.session.user = {
+    id: user._id,
+    username: user.username,
+    email: user.email,
+    role: user.role
+};
+temporarily add:
+
+console.log("Session after login:", req.session.user);
+Then restart the server and try logging in.
+
+If you see something like:
+
+Session after login: {
+  id: ...,
+  username: ...,
+  email: ...,
+  role: ...
+}
+then the session is being created correctly.
+
+3. isLoggedIn middleware
+Your middleware currently looks like:
+
+const isLoggedIn = (req, res, next) => {
+    if (!req.session.user) {
+        return res.redirect("/auth/login");
+    }
+
+    next();
+};
+This is correct provided that the login controller stores req.session.user.
+
+I need to see one file
+Please paste your entire authController.js.
+
+I especially want to inspect the login function because that's where the session is created and where the redirect happens.
+
+With that file, we can determine whether the issue is:
+
+authentication,
+
+session creation,
+
+or redirect logic.
+
+We'll fix it from the source rather than guessing.
+
+
+◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+MongoDB Connected
+�🚀 Application Server started on port: 40
+rs
+[nodemon] starting node server.js
+◇ injected env (4) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+MongoDB Connected
+�🚀 Application Server started on port: 40
+Session after login: undefined
+
+Excellent. That one line tells us a lot:
+
+Session after login: undefined
+This means the login isn't successfully storing the session.
+
+There are two likely possibilities:
+
+Possibility 1 (Most likely)
+You logged:
+
+console.log("Session after login:", req.session.user);
+before assigning it.
+
+For example:
+
+console.log("Session after login:", req.session.user);
+
+req.session.user = {
+    id: user._id,
+    ...
+};
+That would naturally print undefined.
+
+Possibility 2
+The assignment never happens because your code exits earlier.
+
+For example:
+
+if (!user) {
+    return ...
+}
+
+if (!passwordMatch) {
+    return ...
+}
+
+// never reached
+req.session.user = ...
+I need to see the login function
+Please paste only your login function from authController.js.
+
+It should look something like:
+
+exports.login = async (req, res) => {
+    ...
+};
+I don't need the whole controller—just that function.
+
+Also answer one question
+When you try to log in:
+
+Are you using a user that already exists in MongoDB?
+
+Or a newly created account?
+
+One more thing
+Earlier, we changed createdBy from:
+
+req.session.user._id
+to
+
+req.session.user.id
+That tells me your session object should look like this after login:
+
+req.session.user = {
+    id: user._id,
+    username: user.username,
+    email: user.email,
+    role: user.role
+};
+If that assignment isn't happening, every protected route will think you're logged out and redirect you back to the login page.
+
+📌 Paste the login function, and we'll pinpoint exactly why req.session.user is ending up undefined.
+
+
+
+exports.login = async (req, res) => {
+
+    try {
+        
+        // Validate input first
+        if (!req.body.login.toLowerCase().trim || !req.body.password) {
+
+            return res.render("failureLogin", {
+                pageTitle: "Failure Login",
+
+                message: "Invalid username/email or password."
+            });
+
+        }
+
+        // Search for the user
+        const user = await User.findOne({
+            $or: [
+                { username: req.body.login.toLowerCase().trim() },
+                { email: req.body.login.toLowerCase().trim() }
+            ]
+        });
+
+        // Check if user exists
+        if (!user) {
+
+            return res.render("failureLogin", {
+                pageTitle: "Failure Login",
+
+                message: "Invalid username/email or password."
+            });
+
+        }
+
+        // Compare password
+        const passwordMatch = await bcrypt.compare(
+            req.body.password,
+            user.password
+        );
+
+        if (!passwordMatch) {
+
+            return res.render("failureLogin", {
+                pageTitle: "Failure Login",
+
+                message: "Invalid username/email or password.."
+            });
+
+        }
+
+        // Create a session
+        req.session.regenerate = {
+            _id: user._id,
+            username: user.username.toLowerCase().trim(),
+            email: user.email.toLowerCase().trim(),
+            role: user.role || "user"
+        };
+
+        console.log("Session after login:", req.session.user);
+
+        // Redirect to the dashboard
+        res.redirect("/auth/premium");
+
+    } catch (err) {
+
+        console.error(err);
+
+        res.render("failureLogin", {
+            pageTitle: "Failure Login",
+
+            message: "An unexpected error occurred."
+        });
+
+    }
+
+};
+
+
+🎯 Found it. This is why your login keeps bouncing back.
+
+The bug is here:
+
+// Create a session
+req.session.regenerate = {
+    _id: user._id,
+    username: user.username.toLowerCase().trim(),
+    email: user.email.toLowerCase().trim(),
+    role: user.role || "user"
+};
+
+console.log("Session after login:", req.session.user);
+❌ What's wrong?
+You assigned the user object to:
+
+req.session.regenerate
+But regenerate is not where session data belongs.
+
+In express-session, regenerate is actually a method (function) used to create a new session ID. 
+By assigning an object to it, you're overwriting that method instead of storing user data.
+
+That's why:
+
+console.log(req.session.user);
+prints:
+
+undefined
+because you never set req.session.user.
+
+✅ The fix
+Replace this:
+
+req.session.regenerate = {
+    _id: user._id,
+    username: user.username.toLowerCase().trim(),
+    email: user.email.toLowerCase().trim(),
+    role: user.role || "user"
+};
+with:
+
+req.session.user = {
+    id: user._id,
+    username: user.username.toLowerCase().trim(),
+    email: user.email.toLowerCase().trim(),
+    role: user.role || "user"
+};
+
+console.log("Session after login:", req.session.user);
+
+res.redirect("/auth/premium");
+Notice I used:
+
+id: user._id
+instead of:
+
+_id: user._id
+That matches the rest of your application, where we've already updated code to use:
+
+req.session.user.id
+🚀 An even better approach
+For security, it's good practice to regenerate the session properly before storing the user:
+
+req.session.regenerate((err) => {
+    if (err) {
+        return res.render("failureLogin", {
+            pageTitle: "Failure Login",
+            message: "Unable to create session."
+        });
+    }
+
+    req.session.user = {
+        id: user._id,
+        username: user.username.toLowerCase().trim(),
+        email: user.email.toLowerCase().trim(),
+        role: user.role || "user"
+    };
+
+    res.redirect("/auth/premium");
+});
+This protects against session fixation attacks.
+
+For now, though, fix the assignment first. We can improve it afterward.
+
+⚠️ I also spotted another bug
+At the top of your login function, you have:
+
+if (!req.body.login.toLowerCase().trim || !req.body.password)
+Notice:
+
+.trim
+You're checking the existence of the trim function, not calling it.
+
+A safer version is:
+
+if (!req.body.login || !req.body.login.trim() || !req.body.password)
+This also avoids an error if login is missing.
+
+Let's do this
+Replace req.session.regenerate = { ... } with req.session.user = { ... }.
+
+Restart the server.
+
+Log in again.
+
+Tell me:
+
+What does console.log("Session after login:", req.session.user); print now?
+
+Does it still redirect you back to the login page, or does it take you to the premium page?
+
+This is a classic session bug, and I expect this change to get your login flow working.
+
+
+successfully loggedIn, accesses the homeform, after posting predictions, i got access denied
+
+That's actually good news. It tells us authentication is now working.
+
+Here's the flow you've described:
+
+✅ Login works.
+
+✅ Session is being created.
+
+✅ You can access the prediction form (homeForm).
+
+✅ You submit the form.
+
+❌ After submitting, you get 403 Access Denied.
+
+This narrows the problem down considerably.
+
+Most likely cause
+The POST route for creating predictions is probably protected by role middleware, and your logged-in user doesn't have one of the required roles.
+
+Earlier, your route looked like this:
+
+router.post(
+    "/",
+    authMiddleware.isLoggedIn,
+    roleMiddleware.allowRoles(ROLES.SUPERUSER, ROLES.ADMIN),
+    predictionController.createPrediction
+);
+If your logged-in account has this role in MongoDB:
+
+user
+then the role middleware will correctly return 403 Access Denied.
+
+First thing to check
+After logging in, temporarily add this in your login function:
+
+console.log(req.session.user);
+You should see something like:
+
+{
+    id: "...",
+    username: "admin",
+    email: "...",
+    role: "admin"
+}
+or
+
+{
+    role: "user"
+}
+If it says "user", then the middleware is behaving correctly.
+
+I need to see two things
+Please paste:
+
+1. routes/predictionRoutes.js
+and
+
+2. middleware/roleMiddleware.js
+I want to verify that the route and the middleware are aligned.
+
+Also check your database
+Open MongoDB and inspect the logged-in user.
+
+Does the document look like this?
+
+{
+  "username": "yourname",
+  "role": "admin"
+}
+or
+
+{
+  "username": "yourname",
+  "role": "user"
+}
+If it's "user", then the 403 is expected because only admins/superusers are allowed to create predictions.
+
+My expectation
+I suspect the application is now doing exactly what we designed it to do:
+
+Ordinary users can view predictions.
+
+Admins and superusers can create predictions.
+
+If that's the case, we just need to ensure you're logging in with an account that has the 
+correct role—or promote your test account to admin or superuser in MongoDB.
+
+Paste the two files, and we'll confirm whether this is a permissions issue or something else.
+
+
+i was expecting to render 403.ejs
+
+Yes—and that's exactly the behavior I'd expect if your role middleware is written to render the 403 page.
+
+If you're seeing "Access Denied" as plain text instead of your 403.ejs, then your middleware is probably doing something like:
+
+return res.status(403).send("Access Denied");
+instead of:
+
+return res.status(403).render("403", {
+    pageTitle: "Access Denied"
+});
+Let's verify your role middleware
+Please paste your middleware/roleMiddleware.js.
+
+I'm expecting to see something similar to:
+
+const allowRoles = (...roles) => {
+    return (req, res, next) => {
+
+        if (!req.session.user) {
+            return res.redirect("/auth/login");
+        }
+
+        if (!roles.includes(req.session.user.role)) {
+            return res.status(403).render("403", {
+                pageTitle: "Access Denied"
+            });
+        }
+
+        next();
+    };
+};
+
+module.exports = {
+    allowRoles
+};
+When should each response happen?
+Your application should behave like this:
+
+Situation	Expected Response
+Not logged in	Redirect to /auth/login
+Logged in, but wrong role	Render 403.ejs
+Logged in with correct role	Continue to the controller
+That's the standard flow for an Express application.
+
+So yes, if you were logged in but lacked permission, 403.ejs should be rendered, not plain text.
+
+Paste roleMiddleware.js, and we'll make sure it's wired up correctly.
+
+
+exports.allowRoles = (...roles) => {
+
+    return (req, res, next) => {
+
+        if (!req.session.user) {
+            return res.redirect("/auth/login");
+        }
+
+        if (!roles.includes(req.session.user.role)) {
+            return res.status(403).send("Access Denied.");
+        }
+
+        next();
+
+    };
+
+};
+
+Exactly. You've found the reason. 👍
+
+Your middleware currently does this:
+
+if (!roles.includes(req.session.user.role)) {
+    return res.status(403).send("Access Denied.");
+}
+That sends plain text to the browser, so Express never renders your 403.ejs.
+
+Change it to render the view
+Replace it with:
+
+exports.allowRoles = (...roles) => {
+
+    return (req, res, next) => {
+
+        if (!req.session.user) {
+            return res.redirect("/auth/login");
+        }
+
+        if (!roles.includes(req.session.user.role)) {
+            return res.status(403).render("403", {
+                pageTitle: "Access Denied"
+            });
+        }
+
+        next();
+
+    };
+
+};
+Now, whenever a logged-in user doesn't have one of the required roles, they'll see your custom 403 page.
+
+There's another question we should answer
+You said:
+
+"Successfully logged in, accesses the homeForm, after posting predictions, I got access denied."
+
+That sequence is interesting.
+
+If you can access homeForm, then you already passed the role middleware on the GET request.
+
+If you then get a 403 after clicking Submit, it suggests one of these possibilities:
+
+The GET and POST routes are protected differently.
+
+Your session is changing between the GET and POST requests.
+
+The POST route requires different roles.
+
+For example:
+
+// GET
+router.get(
+    "/new",
+    authMiddleware.isLoggedIn,
+    roleMiddleware.allowRoles(ROLES.ADMIN),
+    predictionController.newPrediction
+);
+
+// POST
+router.post(
+    "/",
+    authMiddleware.isLoggedIn,
+    roleMiddleware.allowRoles(ROLES.SUPERUSER),
+    predictionController.createPrediction
+);
+In that case, an admin could open the form but not submit it.
+
+Next step
+Please paste your routes/predictionRoutes.js so we can verify that the GET and POST routes use 
+the same authorization rules.
+
+If they don't, we'll fix that next.
+
+
+resolved..lets proceed, i will continue testing later
+
+Excellent! 🎉
+
+That's a productive session. We didn't just fix individual bugs—we improved the architecture of the application.
+
+Here's what we accomplished today
+✅ Authentication
+Fixed the session creation bug (req.session.regenerate → req.session.user).
+
+Login now works correctly.
+
+Protected routes recognize authenticated users.
+
+✅ Authorization
+Fixed middleware usage in the routes.
+
+Fixed the role middleware to render 403.ejs instead of sending plain text.
+
+Confirmed role-based access control is working.
+
+✅ Predictions
+Fixed the duplicate prediction variable declaration.
+
+Fixed the prediction is not defined EJS error.
+
+Predictions now render correctly using post.
+
+Switched to displaying the status field.
+
+✅ Error Handling
+Created custom 403.ejs.
+
+Created custom 404.ejs.
+
+Created custom 500.ejs.
+
+Added 404 middleware.
+
+Added global error-handling middleware.
+
+Verified the 404 page works correctly.
+
+Where we are now
+I'd say Prof Predict is approximately 70–75% of the way to a production-ready MVP.
+
+The core architecture is now in place:
+
+✅ MVC structure
+
+✅ MongoDB
+
+✅ Authentication
+
+✅ Authorization
+
+✅ Sessions
+
+✅ Prediction publishing
+
+✅ Error handling
+
+That's a solid foundation.
+
+What I'd tackle next (in order)
+Phase 4 – Validation & Security
+This is the phase I'd recommend before adding major features.
+
+Input validation
+
+Validate all forms consistently.
+
+Sanitize user input.
+
+Return clear validation messages.
+
+Password policy
+
+Enforce minimum strength requirements.
+
+Duplicate checks
+
+Friendly messages for existing usernames and emails.
+
+Flash messages
+
+Replace plain success/failure pages with user-friendly notifications.
+
+Security hardening
+
+Add helmet.
+
+Add express-rate-limit (especially on login).
+
+Configure CORS if needed.
+
+Improve session cookie settings for production.
+
+Logging
+
+Introduce a proper logger (e.g., morgan or winston) instead of relying only on console.log.
+
+Then we move to features
+After hardening, we'll build:
+
+📊 Admin Dashboard
+
+👥 User Management
+
+✏️ Edit/Delete Predictions
+
+🔍 Search & Filter
+
+📅 Today's Predictions
+
+📈 Yesterday's Results
+
+💳 Premium Subscription Integration
+
+📱 Mobile-first UI improvements
+
+One thing I'd like us to do next session
+Before we write another feature, I'd like to perform a full code audit of the project. 
+We'll review:
+
+app.js
+
+Routes
+
+Controllers
+
+Models
+
+Middleware
+
+Views
+
+The goal will be to remove duplicated logic, tighten validation, and identify any hidden bugs 
+before they become harder to track down.
+
+That kind of review often prevents hours of debugging later.
+
+Take a break—you've earned it. 😄
+
+When you're ready to continue testing, we'll work through any remaining issues, 
+and then move on to making Prof Predict production-ready and ready for deployment.
+
+
+require("dotenv").config();
+
+const express = require("express");
+const session = require("express-session");
+
+const path = require("path");
+
+const { MongoStore } = require("connect-mongo");
+
+const homeRoutes = require("./routes/homeRoutes");
+
+const authRoutes = require("./routes/authRoutes");
+
+const adminRoutes = require("./routes/adminRoutes");
+
+
+const predictionRoutes = require("./routes/predictionRoutes");
+const premiumRoutes = require("./routes/premiumRoutes");
+
+
+// creating a local module to send email
+const sendTheEmail = require(path.join(__dirname, "/email.js")); 
+
+const app = express();
+
+app.set("view engine", "ejs");
+
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.static(path.join(__dirname, "public")));
+
+
+
+app.locals.siteName = "Prof Predict";
+app.locals.tagline = "Stakers Krooner";
+
+app.use(
+    session({
+        secret: process.env.SESSION_SECRET,
+        resave: false,
+        saveUninitialized: false,
+        store: MongoStore.create({
+            mongoUrl: process.env.MONGODB_URI
+        }),
+        cookie: {
+            maxAge: 1000 * 60 * 60 * 24,
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax"
+        }
+    })
+);
+
+app.use((req, res, next) => {
+
+    res.locals.user = req.session.user || null;
+
+    next();
+
+});
+
+app.use("/auth", authRoutes);
+
+app.use("/", homeRoutes);
+
+// app.use("/admin", adminRoutes);
+
+app.use("/predictions", predictionRoutes);
+app.use("/premium", premiumRoutes);
+
+//404 middleware
+app.use((req, res) => {
+    res.status(404).render("404", {
+        pageTitle: "Page Not Found"
+    });
+});
+
+//Global Error Handler
+app.use((err, req, res, next) => {
+    console.error("Global error handler");
+    console.err(err.stack);
+
+    res.status(err.status || 500).render("500", {
+        pageTitle: "Server Error",
+        error: process.env.NODE_ENV === "development" ? err : null
+    });
+});
+
+
+app.post("/send", async function(req, res) {
+
+    const { name, email, message } = req.body;
+
+    if (!name || !email || !message) {
+        return res.render("invalid", {pageTitle: "Invalid"});
+    }
+
+    try {
+
+        await sendTheEmail({
+            name,
+            email,
+            subject: New message from ${name} via website,
+            html: 
+                <h2>New Contact Message</h2>
+
+                <p><strong>Name:</strong> ${name}</p>
+                <p><strong>Email:</strong> ${email}</p>
+
+                <h3>Message</h3>
+                <p>${message}</p>
+            
+        });
+
+        res.render("success", {pageTitle: "success"});
+
+    } catch(error) {
+
+        console.log(error);
+
+        res.render("failure", {pageTitle: "failure"});
+    }
+});
+
+app.post("/booking", async function(req, res) {
+
+    const { companyName, email, phone, enquiry, details } = req.body;
+
+    if (!companyName || !email || !phone || !enquiry || !details) {
+        return res.render("invalid", {pageTitle: "Invalid"});
+    }
+
+    try {
+
+        await sendTheEmail({
+            name: companyName,
+            email,
+            subject: New consultation request from ${companyName},
+            html: 
+                <h2>New Consultation Request</h2>
+
+                <p><strong>Company:</strong> ${companyName}</p>
+                <p><strong>Email:</strong> ${email}</p>
+                <p><strong>Phone:</strong> ${phone}</p>
+                <p><strong>Enquiry:</strong> ${enquiry}</p>
+
+                <h3>Details</h3>
+                <p>${details}</p>
+            
+        });
+
+        res.render("successBooking", {pageTitle: "successBooking"});
+
+    } catch(error) {
+
+        console.log(error);
+
+        res.render("failureBooking", {pageTitle: "failureBooking"});
+    }
+});
+
+
+
+
+module.exports = app;
+
+

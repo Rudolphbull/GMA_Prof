@@ -5,37 +5,49 @@ const predictionSchema = new mongoose.Schema({
     country: {
         type: String,
         required: true,
-        trim: true
+        trim: true,
+        maxlength: 100
     },
 
     league: {
         type: String,
         required: true,
-        trim: true
+        trim: true,
+        maxlength: 100
     },
 
     homeTeam: {
         type: String,
         required: true,
-        trim: true
+        trim: true,
+        maxlength: 100
     },
 
     awayTeam: {
         type: String,
         required: true,
-        trim: true
+        trim: true,
+        maxlength: 100
+    },
+
+    analysis: {
+    type: String,
+    trim: true,
+    maxlength: 1000,
+    default: ""
     },
 
     prediction: {
         type: String,
         required: true,
-        trim: true
+        trim: true,
+        maxlength: 100
     },
 
     odds: {
         type: Number,
         required: true,
-        min: 1
+        min: 1.01
     },
 
     confidence: {
@@ -81,7 +93,8 @@ const predictionSchema = new mongoose.Schema({
 
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User"
+        ref: "User",
+        required: true
     }
 
 }, {
@@ -90,8 +103,18 @@ const predictionSchema = new mongoose.Schema({
 
 });
 
+
 predictionSchema.index({
+    country: 1,
+    league: 1,
+    status: 1,
     kickoffTime: 1
 });
+
+
+predictionSchema.virtual("expired").get(function () {
+    return this.kickoffTime < new Date();
+});
+
 
 module.exports = mongoose.model("Prediction", predictionSchema);

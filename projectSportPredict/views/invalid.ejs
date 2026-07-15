@@ -1,0 +1,38 @@
+<%- include("partials/header") -%>
+
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 70vh;">
+    
+    <div class="card shadow-lg border-0" style="max-width: 500px; width: 100%;">
+
+        <div class="contact-form card-body text-center p-4">
+
+            <div class="mb-3">
+                <h2 class="text-danger">⚠️ Submission Error</h2>
+            </div>
+
+            <p class="lead">
+                All fields are required. Please fill out the form completely before submitting.
+            </p>
+
+            <div class="mt-4">
+                <a href="/auth/contact" class="btn btn-warning btn-lg w-100">
+                    Try Again
+                </a>
+            </div>
+
+            <!-- 👇 ADD IT HERE -->
+            <p class="text-muted mt-3">
+                You will be redirected in 5 seconds...
+            </p>
+
+            <a href="/auth/contact" class="btn btn-outline-dark btn-sm mt-2">
+                Click here if nothing happens
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+<%- include("partials/footer") -%>
