@@ -15,7 +15,7 @@ const adminRoutes = require("./routes/adminRoutes");
 
 
 const predictionRoutes = require("./routes/predictionRoutes");
-const premiumRoutes = require("./routes/premiumRoutes");
+
 
 
 // creating a local module to send email
@@ -63,10 +63,11 @@ app.use("/auth", authRoutes);
 
 app.use("/", homeRoutes);
 
-// app.use("/admin", adminRoutes);
+app.use("/admin", adminRoutes);
 
 app.use("/predictions", predictionRoutes);
-app.use("/premium", premiumRoutes);
+
+
 
 //404 middleware
 app.use((req, res) => {
@@ -80,7 +81,7 @@ app.use((err, req, res, next) => {
     console.log("Global error handler");
     console.error(err);
 
-    res.status(500).render("failure", {
+    res.status(500).render("500", {
         pageTitle: "Error",
         message: err.message
     });

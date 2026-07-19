@@ -1,163 +1,114 @@
 <%- include("partials/header") -%>
 
+
 <section class="py-5 bg-light">
 
     <div class="container">
 
-        <div class="text-center mb-5">
+
+        <!-- Page Header -->
+
+        <div class="form-alignment text-center mb-5">
 
             <h1 class="display-5 fw-bold">
                 Yesterday's Results
             </h1>
 
-            <p class="lead text-muted">
+            <p class="lead text-dark">
                 Review yesterday's football predictions and see how Prof Predict performed.
             </p>
 
         </div>
 
+
+
+        <!-- Statistics Cards -->
+
         <%- include("partials/statsCards") -%>
 
-        <div class="row g-4">
 
-            <% if (predictions && predictions.length > 0) { %>
 
-                <% predictions.forEach(function(prediction){ %>
 
-                    <div class="col-md-6 col-lg-4">
+        <!-- Results Heading -->
 
-                        <div class="card shadow-sm border-0 h-100">
+        <div class="text-center my-5">
 
-                            <div class="card-body">
+            <h3 class="fw-bold">
+                Yesterday's Prediction Breakdown
+            </h3>
 
-                                <h5 class="fw-bold">
-                                    <%= prediction.country %>
-                                </h5>
-
-                                <p class="text-muted">
-                                    <%= prediction.league %>
-                                </p>
-
-                                <hr>
-
-                                <h6 class="text-center">
-                                    <%= prediction.homeTeam %>
-                                </h6>
-
-                                <p class="text-center fw-bold">
-                                    VS
-                                </p>
-
-                                <h6 class="text-center">
-                                    <%= prediction.awayTeam %>
-                                </h6>
-
-                                <hr>
-
-                                <p>
-
-                                    <strong>Prediction:</strong>
-
-                                    <%= prediction.prediction %>
-
-                                </p>
-
-                                <p>
-
-                                    <strong>Final Result:</strong>
-
-                                    <%= prediction.result || "Not Updated" %>
-
-                                </p>
-
-                                <% if(prediction.analysis){ %>
-
-                                <div class="alert alert-light border-start border-success border-4">
-
-                                    <strong>Prof Analysis</strong>
-
-                                    <p class="mb-0 mt-2">
-
-                                        <%= prediction.analysis %>
-
-                                    </p>
-
-                                </div>
-
-                                <% } %>
-
-                                <p>
-
-                                    <strong>Status:</strong>
-
-                                    <span class="badge
-
-                                    <% if(prediction.status==="Won"){ %>
-                                    bg-success
-                                    <% } else if(prediction.status==="Lost"){ %>
-                                    bg-danger
-                                    <% } else if(prediction.status==="Void"){ %>
-                                    bg-secondary
-                                    <% } else { %>
-                                    bg-warning text-dark
-                                    <% } %>
-
-                                    ">
-
-                                    <%= prediction.status %>
-
-                                    </span>
-
-                                </p>
-
-                                <p class="small text-muted">
-
-                                    <i class="bi bi-clock"></i>
-
-                                    <%= new Date(prediction.kickoffTime).toLocaleString("en-NG", {
-
-                                        dateStyle:"medium",
-
-                                        timeStyle:"short"
-
-                                    }) %>
-
-                                </p>
-
-                                <p class="small">
-
-                                    <i class="bi bi-person-fill"></i>
-
-                                    <%= prediction.createdBy ? prediction.createdBy.username : "Unknown" %>
-
-                                </p>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                <% }) %>
-
-            <% } else { %>
-
-                <div class="col-12 text-center">
-
-                    <div class="alert alert-info">
-
-                        No results available for yesterday.
-
-                    </div>
-
-                </div>
-
-            <% } %>
+            <p class="text-muted">
+                Complete history of Prof Predict recommendations and outcomes.
+            </p>
 
         </div>
 
+
+
+
+
+        <!-- Prediction Cards -->
+
+
+        <div class="row g-4">
+
+
+            <% if(predictions && predictions.length > 0){ %>
+
+
+
+                <% predictions.forEach(function(prediction){ %>
+
+
+                    <%- include("partials/predictionCard", {
+                        prediction,
+                        user,
+                        redirectTo: "/predictions/yesterdaysresults"
+                    }) %>
+
+
+
+
+                <% }) %>
+
+
+
+
+
+
+            <% } else { %>
+
+
+
+                <div class="col-12 text-center">
+
+
+                    <div class="alert alert-info">
+
+
+                        No results available for yesterday.
+
+
+                    </div>
+
+
+                </div>
+
+
+
+            <% } %>
+
+
+
+        </div>
+
+
+
     </div>
 
+
 </section>
+
+
 
 <%- include("partials/footer") -%>

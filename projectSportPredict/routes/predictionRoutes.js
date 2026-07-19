@@ -56,5 +56,26 @@ router.post(
 );
 
 
+
+router.get(
+    "/yesterdaysresults",
+    authMiddleware.isLoggedIn,
+    predictionController.yesterdaysresults
+);
+
+
+router.get("/premium", authMiddleware.isLoggedIn, predictionController.premium);
+
+router.post(
+    "/premium",
+    authMiddleware.isLoggedIn,
+    roleMiddleware.allowRoles(
+        ROLES.SUPERUSER,
+        ROLES.ADMIN
+    ),
+    predictionController.createPrediction
+);
+
+
 module.exports = router;
 

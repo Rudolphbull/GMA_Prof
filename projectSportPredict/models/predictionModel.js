@@ -63,9 +63,15 @@ const predictionSchema = new mongoose.Schema({
     },
 
     status: {
-        type: String,
-        enum: ["Pending", "Won", "Lost", "Void"],
-        default: "Pending"
+    type: String,
+    enum: [
+        "Pending",
+        "Expired",
+        "Won",
+        "Lost",
+        "Void"
+    ],
+    default: "Pending"
     },
 
     kickoffTime: {

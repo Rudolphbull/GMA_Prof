@@ -2,8 +2,10 @@
 const Prediction = require("../models/predictionModel");
 
 exports.newPrediction = (req, res) => {
-    res.render("homeForm", {
-        pageTitle: "Prediction Form"
+    res.render("predictions", {
+        pageTitle: "Prediction Form",
+        prediction: null,
+        redirectTo: "/"
     });
 };
 
@@ -39,8 +41,9 @@ exports.createPrediction = async (req, res, next) => {
             cardNumber
         ];
 
+
         if (requiredFields.some(field => !field)) {
-            return res.render("homeForm", {
+            return res.render("predictions", {
                 pageTitle: "Prediction Form",
                 message: "Please complete all required fields."
             });
@@ -65,7 +68,13 @@ exports.createPrediction = async (req, res, next) => {
 
         await newPrediction.save();
 
-        res.redirect("/");
+
+        if (newPrediction.isPremium) {
+            return res.redirect("/predictions/premium");
+        }
+
+        return res.redirect("/");
+
 
     } catch (err) {
         next(err);
@@ -80,15 +89,16 @@ exports.editPrediction = async (req, res, next) => {
         const prediction = await Prediction.findById(req.params.id);
 
         if (!prediction) {
-            return res.status(404).render("failure", {
+            return res.status(404).render("404", {
                 pageTitle: "Not Found",
                 message: "Prediction not found."
             });
         }
 
-        res.render("homeForm", {
+        res.render("predictions", {
             pageTitle: "Prediction Form",
-            prediction
+            prediction,
+            redirectTo: req.query.redirectTo || "/"
         });
 
     } catch (err) {
@@ -98,11 +108,14 @@ exports.editPrediction = async (req, res, next) => {
 
 
 exports.updatePrediction = async (req, res, next) => {
-    console.log(req.body);
+    const { redirectTo } = req.body;
+   
     try {
 
         await Prediction.findByIdAndUpdate(
+            
             req.params.id,
+            
             {
                 country: req.body.country,
                 league: req.body.league,
@@ -122,9 +135,12 @@ exports.updatePrediction = async (req, res, next) => {
                 new: true,
                 runValidators: true
             }
+
+            
         );
 
-        res.redirect("/");
+        
+        res.redirect(redirectTo || "/");
 
     } catch (err) {
         next(err);
@@ -133,11 +149,12 @@ exports.updatePrediction = async (req, res, next) => {
 
 
 exports.deletePrediction = async (req, res, next) => {
+    const { redirectTo } = req.body;
     try {
 
         await Prediction.findByIdAndDelete(req.params.id);
 
-        res.redirect("/");
+        res.redirect(redirectTo || "/");
 
     } catch (err) {
         next(err);
@@ -145,3 +162,79 @@ exports.deletePrediction = async (req, res, next) => {
 };
 
 
+
+exports.yesterdaysresults = async (req, res, next) => {
+    try {
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+
+        const predictions = await Prediction.find({
+            kickoffTime: {
+                $gte: yesterday,
+                $lt: today
+            },
+
+            status: {
+                $in: [
+                    "Won",
+                    "Lost",
+                    "Void",
+                    "Expired"
+                ]
+            }
+
+        })
+        .populate("createdBy", "username")
+        .sort({ kickoffTime: 1 })
+        .lean();
+
+        const stats = {
+            total: predictions.length,
+            won: predictions.filter(p => p.status === "Won").length,
+            lost: predictions.filter(p => p.status === "Lost").length,
+            void: predictions.filter(p => p.status === "Void").length,
+            pending: predictions.filter(p => p.status === "Pending").length
+        };
+
+        stats.accuracy =
+            (stats.won + stats.lost + stats.void) > 0
+                ? ((stats.won / (stats.won + stats.lost + stats.void)) * 100).toFixed(1)
+                : 0;
+
+        res.render("yesterday", {
+            pageTitle: "Yesterday's Results",
+            predictions,
+            stats
+        });
+
+    } catch (err) {
+        next(err);
+    }
+};
+
+
+exports.premium = async (req, res, next) => {
+    try {
+
+        const predictions = await Prediction.find({
+            isPremium: true
+        })
+        .populate("createdBy", "username")
+        .sort({
+            kickoffTime: 1
+        })
+        .lean();
+
+        res.render("premium", {
+            pageTitle: "Premium Predictions",
+            predictions
+        });
+
+    } catch (err) {
+        next(err);
+    }
+};

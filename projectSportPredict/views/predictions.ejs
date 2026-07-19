@@ -1,0 +1,206 @@
+<%- include("partials/header")  -%>
+
+
+<section class="py-5">
+  <div class="container">
+
+    <div class="form-alignment row g-5">
+
+      <!-- Card One Form -->
+      <div class="col-md-4">
+        <h1>
+            <%= prediction ? "Edit Prediction" : "Add Prediction" %>
+        </h1>    
+        <!-- <form action="/predictions" method="post"> -->
+          <form
+            action="<%= prediction ? '/predictions/' + prediction._id : '/predictions' %>"
+            method="POST">
+            <input
+            class="form-control mb-3"
+            type="text"
+            name="country"
+            placeholder="Country"
+            value="<%= prediction ? prediction.country : '' %>"
+            required>
+
+            <input 
+            class="form-control mb-3" 
+            type="text" name="league" 
+            placeholder="League"
+            value="<%= prediction ? prediction.league : '' %>"
+             required>
+
+            <input 
+            class="form-control mb-3" 
+            type="text" 
+            name="homeTeam" 
+            placeholder="Home"
+            value="<%= prediction ? prediction.homeTeam : '' %>" 
+            required>
+
+            <input 
+            class="form-control mb-3" 
+            type="text" 
+            name="awayTeam" 
+            placeholder="Away"
+            value="<%= prediction ? prediction.awayTeam : '' %>"
+             required>
+
+            <input 
+            class="form-control mb-3" 
+            type="text" 
+            name="prediction" 
+            placeholder="Prediction"
+            value="<%= prediction ? prediction.prediction : '' %>" 
+            required>
+
+            <div class="mb-3">
+                <label class="form-label">Match Analysis</label>
+
+                <textarea
+                    class="form-control"
+                    name="analysis"
+                    rows="5"
+                    placeholder="Explain why this prediction is recommended..."><%= prediction ? prediction.analysis : '' %></textarea>
+            </div>
+
+            <input 
+            class="form-control mb-3" 
+            type="number" 
+            placeholder="Odds" 
+            step="0.01" 
+            name="odds"
+            value="<%= prediction ? prediction.odds : '' %>" 
+            required>
+
+            <input
+                type="hidden"
+                name="redirectTo"
+                value="<%= redirectTo || '/' %>"
+            >
+
+            <input 
+            class="form-control mb-3" 
+            type="number" 
+            placeholder="Confidence" 
+            min="1" 
+            max="100" 
+            name="confidence"
+            value="<%= prediction ? prediction.confidence : '' %>" 
+            required>
+
+            <select class="form-control mb-3" name="status">
+
+                <option value="Pending"
+                    <%= prediction && prediction.status === "Pending" ? "selected" : "" %>>
+                    Pending
+                </option>
+
+                <option value="Won"
+                    <%= prediction && prediction.status === "Won" ? "selected" : "" %>>
+                    Won
+                </option>
+
+                <option value="Lost"
+                    <%= prediction && prediction.status === "Lost" ? "selected" : "" %>>
+                    Lost
+                </option>
+
+                <option value="Void"
+                    <%= prediction && prediction.status === "Void" ? "selected" : "" %>>
+                    Void
+                </option>
+
+                <option value="Expired"
+                    <%= prediction && prediction.status === "Expired" ? "selected" : "" %>>
+                    Expired
+                </option>
+
+            </select>
+
+            <input 
+            class="form-control mb-3" 
+            type="datetime-local" 
+            name="kickoffTime"
+            value="<%= prediction
+            ? new Date(new Date(prediction.kickoffTime).getTime() - new Date(prediction.kickoffTime).getTimezoneOffset() * 60000)
+                .toISOString()
+                .slice(0,16)
+            : '' %>"
+            >
+
+            <input
+            class="form-control mb-3"
+            type="text"
+            name="result"
+            placeholder="Result (e.g. England 2 - 1 Argentina)"
+            value="<%= prediction ? prediction.result : '' %>">
+
+            <select class="form-control mb-3" name="cardNumber">
+              <option value="cardOne"
+                <%= prediction && prediction.cardNumber === "cardOne" ? "selected" : "" %>>
+                cardOne
+              </option>
+              
+              <option value="cardTwo"
+                <%= prediction && prediction.cardNumber === "cardTwo" ? "selected" : "" %>>
+                cardTwo
+              </option>
+
+              <option value="cardThree"
+                  <%= prediction && prediction.cardNumber === "cardThree" ? "selected" : "" %>>
+                  cardThree
+              </option>
+
+              <option value="cardFour"
+                  <%= prediction && prediction.cardNumber === "cardFour" ? "selected" : "" %>>
+                  cardFour
+              </option>
+
+              <option value="cardFive"
+                  <%= prediction && prediction.cardNumber === "cardFive" ? "selected" : "" %>>
+                  cardFive
+              </option>
+
+              <option value="cardSix"
+                  <%= prediction && prediction.cardNumber === "cardSix" ? "selected" : "" %>>
+                  cardSix
+              </option>
+            </select>
+
+            <select class="form-control mb-3" name="isPremium">
+                <option value="false"
+                    <%= prediction && !prediction.isPremium ? "selected" : "" %>>
+                    Free Prediction
+                </option>
+                
+                <option value="true"
+                    <%= prediction && prediction.isPremium ? "selected" : "" %>>
+                    Premium Prediction
+                </option>
+            </select>
+
+            
+
+
+
+            <!-- <select class="form-control mb-3" name="status">
+                <option value="Pending">Pending</option>
+                <option value="Won">Won</option>
+                <option value="Lost">Lost</option>
+                <option value="Void">Void</option>
+            </select> -->
+        
+
+            <button class="btn btn-success w-100" type="submit">
+                <%= prediction ? "Update Prediction" : "Add Prediction" %>
+            </button>
+        </form>
+      </div>
+
+      
+
+    </div>
+
+
+<%- include("partials/footer") -%>

@@ -1,0 +1,104 @@
+<div class="col-md-6 col-lg-4">
+    <div class="card h-100">
+        <div class="card-body text-center">
+
+            <h5 class="fw-bold mb-3">
+                Country: <%= prediction.country %>
+            </h5>
+
+            <p>League: <%= prediction.league %></p>
+
+            <p><%= prediction.homeTeam %></p>
+
+            <p class="fw-bold">VS</p>
+
+            <p><%= prediction.awayTeam %></p>
+
+            <p>
+                <strong>Prediction:</strong>
+                <%= prediction.prediction %>
+            </p>
+
+            <p>
+                <strong>Odds:</strong>
+                <%= prediction.odds %>
+            </p>
+
+            <p>
+                <strong>Analysis:</strong>
+                <%= prediction.analysis %>
+            </p>
+
+            <p class="small">
+                <i class="bi bi-clock"></i>
+
+                <%= new Date(prediction.kickoffTime).toLocaleString("en-NG", {
+                    timeZone: "Africa/Lagos",
+                    dateStyle: "medium",
+                    timeStyle: "short"
+                }) %>
+
+                &nbsp;|&nbsp;
+
+                <strong>Predicted By:</strong>
+
+                <i class="bi bi-person-fill"></i>
+
+                <%= prediction.createdBy ? prediction.createdBy.username : "Unknown" %>
+
+            </p>
+
+            <p>
+
+                <strong>Status:</strong>
+
+                <%- include("statusBadge", { prediction }) %>
+
+            </p>
+
+            <p>
+
+                <strong>Result:</strong>
+
+                <%= prediction.result || "Pending" %>
+
+            </p>
+
+            <% if (user && (user.role === "admin" || user.role === "superuser")) { %>
+
+                <a
+                    href="/predictions/<%= prediction._id %>/edit?redirectTo=<%= redirectTo %>"
+                    class="btn btn-warning btn-sm me-2">
+
+                    Edit
+
+                </a>
+
+                <form
+                    action="/predictions/<%= prediction._id %>/delete"
+                    method="POST"
+                    style="display:inline;"
+                    onsubmit="return confirm('Delete this prediction permanently?');">
+
+                    <input
+                        type="hidden"
+                        name="redirectTo"
+                        value="<%= redirectTo %>">
+
+                    <button
+                        type="submit"
+                        class="btn btn-danger btn-sm">
+
+                        <i class="bi bi-trash"></i>
+
+                        Delete
+
+                    </button>
+
+                </form>
+
+            <% } %>
+
+        </div>
+    </div>
+</div>

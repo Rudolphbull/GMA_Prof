@@ -1,0 +1,28 @@
+
+<span class="badge
+
+    <% if(prediction.status === "Won"){ %>
+
+        bg-success
+
+    <% } else if(prediction.status === "Lost"){ %>
+
+        bg-danger
+
+    <% } else if(prediction.status === "Void"){ %>
+
+        bg-secondary
+
+    <% } else { %>
+
+        bg-warning text-dark
+
+    <% } %>
+
+    ">
+
+
+        <%= prediction.status %>
+
+
+</span>

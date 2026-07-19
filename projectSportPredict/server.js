@@ -3,13 +3,15 @@ require("dotenv").config();
 const app = require("./app");
 const connectDB = require("./config/db");
 
-const PORT = 4000;
+const PORT = process.env.PORT || 4000;
+
+// const predictionEnquiry = require("./jobs/predictionExpiry");
 
 const startServer = async () => {
     try {
         await connectDB();
 
-        app.listen(process.env.PORT || 4000, () => {
+        app.listen(PORT, () => {
             console.log("🚀 Application Server started on port:", PORT);
         });
 

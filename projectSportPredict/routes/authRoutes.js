@@ -25,17 +25,6 @@ router.get("/career", authController.career);
 
 router.get("/success", authController.success);
 
-// Protected
-router.get("/homeForm", authMiddleware.isLoggedIn, authController.homeForm);
-
-router.get("/premium", authMiddleware.isLoggedIn, authController.premium);
-
-router.get(
-    "/yesterdaysresults",
-    authMiddleware.isLoggedIn,
-    authController.yesterdaysresults
-);
-
 router.get("/logout", authController.logout);
 
 // Admin

@@ -22,74 +22,15 @@
 
                     <% if (predictions && predictions.length > 0) { %>
 
-                        <% predictions.forEach(function(post){ %>
-                            
-                            <div class="col-md-6 col-lg-4">
-                                <div class="card h-100">
-                                    <div class="card-body text-center">
+                        <% predictions.forEach(function(prediction){ %>
+                    
+                            <%- include("partials/predictionCard", {
+                                prediction,
+                                user,
+                                redirectTo: "/predictions/premium"
+                            }) %>
 
-                                        <h5 class="fw-bold mb-3">
-                                            Country: <%= post.country %>
-                                        </h5>
-
-                                        <p>League: <%= post.league %></p>
-
-                                        <p><%= post.homeTeam %></p>
-
-                                        <p class="fw-bold">VS</p>
-
-                                        <p><%= post.awayTeam %></p>
-
-                                        <p>
-                                            <strong>Prediction:</strong>
-                                            <%= post.prediction %>
-                                        </p>
-
-                                        <p class="small">
-                                            <i class="bi bi-clock"></i>
-                                            <%= new Date(post.kickoffTime).toLocaleString("en-NG", {
-                                                dateStyle: "medium",
-                                                timeStyle: "short"
-                                            }) %>
-
-                                            &nbsp;|&nbsp;
-                                            <strong>predictedBy:</strong>
-                                            <i class="bi bi-person-fill"></i>
-                                            <%= post.createdBy ? post.createdBy.username : "Unknown" %>
-                                        </p>
-
-                                        <p>
-                                            <strong>Status:</strong>
-
-                                            <span class="badge bg-info">
-                                                <%= post.status %>
-                                            </span>
-                                        </p>
-
-                                        
-                                        <p>
-                                            <strong>Result:</strong>
-                                            <%= prediction.result %>
-                                        </p>
-                                                   
-
-
-                                        <!-- <p>
-                                            <strong>kickOffTime:</strong>
-                                            <%= post.kickoffTime %> 
-                                        </p>
-
-                                        <p>
-                                            <strong>predictionBy:</strong>
-                                            <%= post.createdBy ? post.createdBy.username : "Unknown" %>
-                                        </p> -->
-                            
-
-                                    </div>
-                                </div>
-                            </div>
-
-                                <% }) %>
+                            <% }) %>
 
                             <% } else { %>
 

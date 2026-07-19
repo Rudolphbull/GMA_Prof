@@ -1,0 +1,742 @@
+<%- include("../partials/header") -%>
+
+<!-- Layout -->
+
+<section class="container py-5">
+
+    <div class="text-center mb-5">
+
+        <h1 class="fw-bold">
+            Prof Predict Administration
+        </h1>
+
+        <p class="lead">
+            Welcome back,
+            <strong><%= user.username %></strong>
+        </p>
+
+    </div>
+
+    <!-- Statistics Cards -->
+
+    <div class="row g-4">
+
+    <div class="col-md-4">
+        <div class="card shadow text-center">
+            <div class="card-body">
+                <h2><%= totalPredictions %></h2>
+                <p class="mb-0">Total Predictions</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow text-center">
+            <div class="card-body">
+                <h2><%= premiumPredictions %></h2>
+                <p class="mb-0">Premium Predictions</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow text-center">
+            <div class="card-body">
+                <h2><%= freePredictions %></h2>
+                <p class="mb-0">Free Predictions</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Prediction Status -->
+
+    <div class="row g-4 mt-3">
+
+        <div class="col-md-2">
+            <div class="card border-warning text-center">
+                <div class="card-body">
+                    <h3><%= pendingPredictions %></h3>
+                    <small>Pending</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-2">
+            <div class="card border-success text-center">
+                <div class="card-body">
+                    <h3><%= wonPredictions %></h3>
+                    <small>Won</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-2">
+            <div class="card border-danger text-center">
+                <div class="card-body">
+                    <h3><%= lostPredictions %></h3>
+                    <small>Lost</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-2">
+            <div class="card border-secondary text-center">
+                <div class="card-body">
+                    <h3><%= voidPredictions %></h3>
+                    <small>Void</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-2">
+            <div class="card border-dark text-center">
+                <div class="card-body">
+                    <h3><%= expiredPredictions %></h3>
+                    <small>Expired</small>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- User Statistics -->
+
+        <div class="row g-4 mt-4">
+
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-body text-center">
+
+                    <h2><%= totalUsers %></h2>
+
+                    <p>Total Registered Users</p>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-body text-center">
+
+                    <h2><%= premiumUsers %></h2>
+
+                    <p>Premium Subscribers</p>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- Latest Predictions -->
+
+    <div class="card shadow mt-5">
+
+        <div class="card-header bg-dark text-white">
+
+            <h4 class="mb-0">
+                <i class="bi bi-clock-history"></i>
+                Latest Predictions
+            </h4>
+
+        </div>
+
+        <div class="card-body">
+
+            <% if(latestPredictions.length > 0){ %>
+
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>Fixture</th>
+
+                                <th>Prediction</th>
+
+                                <th>Status</th>
+
+                                <th>Kickoff</th>
+
+                                <th>Author</th>
+
+                                <th>Action</th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            <% latestPredictions.forEach(function(prediction){ %>
+
+                                <tr>
+
+                                    <td>
+
+                                        <strong>
+
+                                            <%= prediction.homeTeam %>
+
+                                        </strong>
+
+                                        vs
+
+                                        <strong>
+
+                                            <%= prediction.awayTeam %>
+
+                                        </strong>
+
+                                    </td>
+
+                                    <td>
+
+                                        <%= prediction.prediction %>
+
+                                    </td>
+
+                                    <td>
+
+                                        <%- include("../partials/statusBadge", { prediction }) %>
+
+                                    </td>
+
+                                    <td>
+
+                                        <%= new Date(prediction.kickoffTime).toLocaleString("en-NG", {
+                                            timeZone: "Africa/Lagos",
+                                            dateStyle: "medium",
+                                            timeStyle: "short"
+                                        }) %>
+
+                                    </td>
+
+                                    <td>
+
+                                        <%= prediction.createdBy ? prediction.createdBy.username : "Unknown" %>
+
+                                    </td>
+
+                                    <td>
+
+                                        <a
+                                            href="/predictions/<%= prediction._id %>/edit?redirectTo=/admin/dashboard"
+                                            class="btn btn-warning btn-sm">
+
+                                            Edit
+
+                                        </a>
+
+                                    </td>
+
+                                </tr>
+
+                            <% }) %>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            <% } else { %>
+
+                <div class="alert alert-info">
+
+                    No predictions found.
+
+                </div>
+
+            <% } %>
+
+        </div>
+
+    </div>
+
+    
+
+    <!-- Quick Actions -->
+
+    <div class="card shadow mt-5">
+
+        <div class="card-header bg-primary text-white">
+
+            <h4 class="mb-0">
+
+                <i class="bi bi-lightning-charge-fill"></i>
+
+                Quick Actions
+
+            </h4>
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="row g-4">
+
+                <div class="col-md-3">
+
+                    <a href="/predictions/new" class="btn btn-success w-100 py-3">
+
+                        <i class="bi bi-plus-circle fs-4"></i>
+
+                        <br>
+
+                        Add Prediction
+
+                    </a>
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <a href="/predictions/premium" class="btn btn-warning w-100 py-3">
+
+                        <i class="bi bi-gem fs-4"></i>
+
+                        <br>
+
+                        Premium Tips
+
+                    </a>
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <a href="/predictions/yesterdaysresults" class="btn btn-secondary w-100 py-3">
+
+                        <i class="bi bi-calendar-check fs-4"></i>
+
+                        <br>
+
+                        Yesterday Results
+
+                    </a>
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <a href="/" class="btn btn-primary w-100 py-3">
+
+                        <i class="bi bi-house fs-4"></i>
+
+                        <br>
+
+                        Homepage
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Recent Users -->
+
+    <div class="card shadow mt-5">
+
+        <div class="card-header bg-success text-white">
+
+            <h4 class="mb-0">
+
+                <i class="bi bi-people-fill"></i>
+
+                Recent Users
+
+            </h4>
+
+        </div>
+
+        <div class="card-body">
+
+            <% if(recentUsers.length > 0){ %>
+
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>Username</th>
+
+                                <th>Email</th>
+
+                                <th>Role</th>
+
+                                <th>Subscription</th>
+
+                                <th>Joined</th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            <% recentUsers.forEach(function(user){ %>
+
+                                <tr>
+
+                                    <td>
+
+                                        <strong>
+
+                                            <%= user.username %>
+
+                                        </strong>
+
+                                    </td>
+
+                                    <td>
+
+                                        <%= user.email %>
+
+                                    </td>
+
+                                    <td>
+
+                                        <% if(user.role === "admin"){ %>
+
+                                        <span class="badge bg-danger">Admin</span>
+
+                                            <% } else if(user.role === "superuser"){ %>
+
+                                                <span class="badge bg-dark">Superuser</span>
+
+                                            <% } else { %>
+
+                                        <span class="badge bg-primary">User</span>
+
+                                        <% } %>
+
+                                    </td>
+
+                                    <td>
+
+                                        <% if(user.subscriptionStatus === "active"){ %>
+
+                                            <span class="badge bg-success">
+
+                                                Premium
+
+                                            </span>
+
+                                        <% } else { %>
+
+                                            <span class="badge bg-secondary">
+
+                                                Free
+
+                                            </span>
+
+                                        <% } %>
+
+                                    </td>
+
+                                    <td>
+
+                                        <%= new Date(user.createdAt).toLocaleDateString("en-NG", {
+                                            dateStyle: "medium"
+                                        }) %>
+
+                                    </td>
+
+                                </tr>
+
+                            <% }) %>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            <% } else { %>
+
+                <div class="alert alert-info">
+
+                    No registered users found.
+
+                </div>
+
+            <% } %>
+
+        </div>
+
+    </div>
+
+
+    <!-- Prediction Performance -->
+
+    <div class="card shadow mt-5">
+
+        <div class="card-header bg-info text-white">
+
+            <h4 class="mb-0">
+
+                <i class="bi bi-graph-up-arrow me-2"></i>
+
+                Prediction Performance
+
+            </h4>
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="row g-4">
+
+                <div class="col-md-3">
+
+                    <div class="card border-success text-center">
+
+                        <div class="card-body">
+
+                            <h2 class="text-success">
+
+                                <%= winRate %>%
+
+                            </h2>
+
+                            <p class="mb-0">
+
+                                Win Rate
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <div class="card border-danger text-center">
+
+                        <div class="card-body">
+
+                            <h2 class="text-danger">
+
+                                <%= lossRate %>%
+
+                            </h2>
+
+                            <p class="mb-0">
+
+                                Loss Rate
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <div class="card border-secondary text-center">
+
+                        <div class="card-body">
+
+                            <h2 class="text-secondary">
+
+                                <%= voidRate %>%
+
+                            </h2>
+
+                            <p class="mb-0">
+
+                                Void Rate
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <div class="card border-dark text-center">
+
+                        <div class="card-body">
+
+                            <h2>
+
+                                <%= expiredRate %>%
+
+                            </h2>
+
+                            <p class="mb-0">
+
+                                Expired Rate
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <hr>
+
+            <p class="text-muted mb-0">
+
+                Based on
+                <strong><%= completedPredictions %></strong>
+                completed predictions.
+
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- Prediction Status Chart -->
+
+    <div class="card shadow mt-5">
+
+        <div class="card-header bg-dark text-white">
+
+            <h4 class="mb-0">
+
+                <i class="bi bi-bar-chart-fill me-2"></i>
+
+                Prediction Status Overview
+
+            </h4>
+
+        </div>
+
+        <div class="card-body">
+
+            <canvas id="predictionStatusChart" height="110"></canvas>
+
+        </div>
+
+    </div>
+
+    <script>
+
+        window.dashboardData = {
+
+            won: <%= wonPredictions %>,
+            lost: <%= lostPredictions %>,
+            pending: <%= pendingPredictions %>,
+            void: <%= voidPredictions %>,
+            expired: <%= expiredPredictions %>,
+
+            free: <%= freePredictions %>,
+            premium: <%= premiumPredictions %>,
+
+            growthLabels: <%- JSON.stringify(growthLabels) %>,
+            growthData: <%- JSON.stringify(growthData) %>,
+
+            predictionGrowthLabels: <%- JSON.stringify(predictionGrowthLabels) %>,
+            predictionGrowthData: <%- JSON.stringify(predictionGrowthData) %>
+
+        };
+
+    </script>
+
+    <script src="/js/dashboard.js"></script>
+
+
+    <!-- Free vs Premium Predictions -->
+
+    <div class="card shadow mt-5">
+
+        <div class="card-header bg-warning">
+
+            <h4 class="mb-0">
+
+                <i class="bi bi-pie-chart-fill me-2"></i>
+
+                Free vs Premium Predictions
+
+            </h4>
+
+        </div>
+
+        <div class="card-body">
+
+            <canvas id="predictionTypeChart" height="110"></canvas>
+
+        </div>
+
+    </div>
+
+
+    <!-- User Growth -->
+
+    <div class="card shadow mt-5">
+
+        <div class="card-header bg-success text-white">
+
+            <h4 class="mb-0">
+
+                <i class="bi bi-graph-up me-2"></i>
+
+                User Growth
+
+            </h4>
+
+        </div>
+
+        <div class="card-body">
+
+            <canvas id="userGrowthChart" height="110"></canvas>
+
+        </div>
+
+    </div>
+
+
+    <!-- Prediction Trends -->
+
+    <div class="card shadow mt-5">
+
+        <div class="card-header bg-primary text-white">
+
+            <h4 class="mb-0">
+
+                <i class="bi bi-activity me-2"></i>
+
+                Prediction Trends
+
+            </h4>
+
+        </div>
+
+        <div class="card-body">
+
+            <canvas id="predictionTrendChart" height="110"></canvas>
+
+        </div>
+
+    </div>
+<%- include("../partials/footer") -%>
