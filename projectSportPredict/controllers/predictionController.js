@@ -1,5 +1,6 @@
 
 const Prediction = require("../models/predictionModel");
+const expirePredictions = require("../utils/expirePredictions");
 
 exports.newPrediction = (req, res) => {
     res.render("predictions", {
@@ -43,10 +44,13 @@ exports.createPrediction = async (req, res, next) => {
 
 
         if (requiredFields.some(field => !field)) {
-            return res.render("predictions", {
-                pageTitle: "Prediction Form",
-                message: "Please complete all required fields."
-            });
+
+            req.flash(
+                "error",
+                "Please complete all required fields."
+            );
+
+            return res.redirect("/predictions/new");
         }
 
         const newPrediction = new Prediction({
@@ -68,6 +72,10 @@ exports.createPrediction = async (req, res, next) => {
 
         await newPrediction.save();
 
+        req.flash(
+            "success", 
+            "Prediction created successfully."
+        );
 
         if (newPrediction.isPremium) {
             return res.redirect("/predictions/premium");
@@ -89,11 +97,17 @@ exports.editPrediction = async (req, res, next) => {
         const prediction = await Prediction.findById(req.params.id);
 
         if (!prediction) {
+
             return res.status(404).render("404", {
-                pageTitle: "Not Found",
-                message: "Prediction not found."
-            });
-        }
+
+                    pageTitle: "Prediction Not Found",
+
+                    message: "The requested prediction does not exist.",
+
+                    details: "It may have been deleted or the URL is incorrect."
+
+                });
+            }
 
         res.render("predictions", {
             pageTitle: "Prediction Form",
@@ -139,7 +153,11 @@ exports.updatePrediction = async (req, res, next) => {
             
         );
 
-        
+        req.flash(
+            "success", 
+            "Prediction updated successfully."
+        );
+
         res.redirect(redirectTo || "/");
 
     } catch (err) {
@@ -154,6 +172,8 @@ exports.deletePrediction = async (req, res, next) => {
 
         await Prediction.findByIdAndDelete(req.params.id);
 
+        req.flash("success", "Prediction deleted successfully.");
+
         res.redirect(redirectTo || "/");
 
     } catch (err) {
@@ -165,6 +185,8 @@ exports.deletePrediction = async (req, res, next) => {
 
 exports.yesterdaysresults = async (req, res, next) => {
     try {
+
+        await expirePredictions();
 
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -205,7 +227,7 @@ exports.yesterdaysresults = async (req, res, next) => {
                 ? ((stats.won / (stats.won + stats.lost + stats.void)) * 100).toFixed(1)
                 : 0;
 
-        res.render("yesterday", {
+        res.render("predictions/yesterday", {
             pageTitle: "Yesterday's Results",
             predictions,
             stats
@@ -220,6 +242,8 @@ exports.yesterdaysresults = async (req, res, next) => {
 exports.premium = async (req, res, next) => {
     try {
 
+        await expirePredictions();
+
         const predictions = await Prediction.find({
             isPremium: true
         })
@@ -229,7 +253,7 @@ exports.premium = async (req, res, next) => {
         })
         .lean();
 
-        res.render("premium", {
+        res.render("predictions/premium", {
             pageTitle: "Premium Predictions",
             predictions
         });

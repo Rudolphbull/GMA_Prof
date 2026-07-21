@@ -8,7 +8,8 @@ exports.allowRoles = (...roles) => {
 
         if (!roles.includes(req.session.user.role)) {
             return res.status(403).render("403", {
-                pageTitle: "Access Denied"
+                pageTitle: "Access Denied",
+                message: ""
             });
         }
 

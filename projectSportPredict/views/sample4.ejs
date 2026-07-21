@@ -4,7 +4,8 @@
 
 Claim offer
 
-I think I can already see the issue. The partial itself isn't necessarily the problem—it's how it's is being included.
+I think I can already see the issue. The partial itself isn't necessarily the problem—
+it's how it's is being included.
 
 Your statusBadge.ejs currently contains:
 
@@ -97,7 +98,8 @@ Please paste something like this from one of your pages:
 <% }) %>
 or whatever your actual code is.
 
-I suspect the error is on that page rather than in statusBadge.ejs. Once I see the include statement and a few lines around it, we should be able to pinpoint it quickly.
+I suspect the error is on that page rather than in statusBadge.ejs. 
+Once I see the include statement and a few lines around it, we should be able to pinpoint it quickly.
 
 
 
@@ -105,7 +107,9 @@ Pasted code(5).html
 File
 let's refactor properly remembering to include the partials/statusBadge not forgetting the expired option "
 
-Perfect. This is exactly the kind of refactoring we should do. Rather than having that badge logic duplicated in home.ejs, premium.ejs, and yesterday.ejs, we'll centralize it into a single partial.
+Perfect. This is exactly the kind of refactoring we should do. 
+Rather than having that badge logic duplicated in home.ejs, premium.ejs, and yesterday.ejs, 
+we'll centralize it into a single partial.
 
 Step 1: Create views/partials/statusBadge.ejs
 Replace its contents with this:
@@ -215,10 +219,12 @@ Wrong:
 or
 
 <%- include("../partials/statusBadge", { predictions }) %>
-Inside the partial, there is no variable called predictions. It only knows about the prediction object you pass in.
+Inside the partial, there is no variable called predictions. 
+It only knows about the prediction object you pass in.
 
 One more recommendation
-Since we're cleaning up the project, I'd take this one step further and create two more reusable partials:
+Since we're cleaning up the project, I'd take this one step further and create two more 
+reusable partials:
 
 views/
 │
@@ -229,9 +235,12 @@ views/
 │     ├── statusBadge.ejs
 │     ├── predictionCard.ejs   ⭐
 │     └── adminButtons.ejs     ⭐
-Then your home.ejs, premium.ejs, and yesterday.ejs can simply loop over predictions and include the same predictionCard.ejs. That would eliminate nearly all of the duplicated markup across those three pages, making future changes much easier.
+Then your home.ejs, premium.ejs, and yesterday.ejs can simply loop over predictions 
+and include the same predictionCard.ejs. That would eliminate nearly all of the 
+duplicated markup across those three pages, making future changes much easier.
 
-I think this is the direction we should head next because your application has reached the point where reusable view components will pay off significantly.
+I think this is the direction we should head next because your application has reached the point 
+where reusable view components will pay off significantly.
 
 
 Error: Failed to lookup view "505" in views directory "C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\views"
@@ -353,7 +362,8 @@ to
 render("505")
 Either way, Express is simply looking for a file that doesn't exist.
 
-Please paste the last 30 lines of your app.js (especially the 404 middleware and the global error handler). Since the stack trace points to line 84, we should be able to identify the exact issue in under a minute.
+Please paste the last 30 lines of your app.js (especially the 404 middleware and the global error handler). 
+Since the stack trace points to line 84, we should be able to identify the exact issue in under a minute.
 
 this has been corrected...new error loading "    at trim_prefix (C:\Users\GMA Technologies LTD\Desktop\projectSportPredict\node_modules\express\lib\router\index.js:326:13)
 [nodemon] restarting due to changes...
@@ -569,9 +579,11 @@ views/
     ├── premium.ejs
     ├── yesterday.ejs
     └── homeForm.ejs
-Or, if you're using VS Code, just expand the views folder in the Explorer and take a screenshot or copy the folder tree.
+Or, if you're using VS Code, just expand the views folder in the Explorer and 
+take a screenshot or copy the folder tree.
 
-That will let us confirm the correct include paths for all your templates in one go, instead of fixing them one by one.
+That will let us confirm the correct include paths for all your templates in one go, 
+instead of fixing them one by one.
 
 
 interesting, we are back and better now...all errors have disappeared...
@@ -580,7 +592,8 @@ interesting, we are back and better now...all errors have disappeared...
 
 "...we are back and better now."
 
-Excellent work. You tracked the errors down methodically instead of making random changes, and that's exactly how good debugging is done.
+Excellent work. You tracked the errors down methodically instead of making random changes, 
+and that's exactly how good debugging is done.
 
 Here's what we've accomplished recently:
 
@@ -605,7 +618,8 @@ Here's what we've accomplished recently:
 Your project is becoming much cleaner.
 
 Where I'd go next
-Now that the application is stable again, I'd continue with the improvements we listed earlier in this order:
+Now that the application is stable again, I'd continue with the improvements we listed earlier 
+in this order:
 
 1. Redirect back to the originating page after editing ⭐⭐⭐⭐⭐
 This is the biggest UX improvement right now.
@@ -618,10 +632,13 @@ Edit from Premium → return to Premium.
 
 Edit from Yesterday's Results → return to Yesterday's Results.
 
-This can be done elegantly by passing a hidden redirectTo value with the form rather than hard-coding redirects in the controller.
+This can be done elegantly by passing a hidden redirectTo value with the form rather 
+than hard-coding redirects in the controller.
 
 2. Refactor the prediction card ⭐⭐⭐⭐☆
-At the moment, home.ejs, premium.ejs, and yesterday.ejs likely contain very similar card markup. We can extract that into a single predictionCard.ejs partial, leaving each page with something as simple as:
+At the moment, home.ejs, premium.ejs, and yesterday.ejs likely contain very similar card markup. 
+We can extract that into a single predictionCard.ejs partial, leaving each page with something 
+as simple as:
 
 <% predictions.forEach(prediction => { %>
     <%- include("../partials/predictionCard", { prediction, user }) %>
@@ -643,14 +660,20 @@ empty-state message
 
 optional pagination if the list grows
 
-I'm genuinely impressed with how Prof Predict has evolved. When we first started, we were fixing routing issues, undefined variables, and session bugs. Now we're discussing reusable view components and improving user experience—exactly the kind of progress you'd expect as an application matures.
+I'm genuinely impressed with how Prof Predict has evolved. When we first started, 
+we were fixing routing issues, undefined variables, and session bugs. 
+Now we're discussing reusable view components and improving user experience—exactly the kind of 
+progress you'd expect as an application matures.
 
-I think the redirect enhancement should be our next task. Once that's in place, we can tackle the prediction card refactor, and your codebase will be significantly cleaner and easier to maintain.
+I think the redirect enhancement should be our next task. Once that's in place, 
+we can tackle the prediction card refactor, and your codebase will be significantly cleaner 
+and easier to maintain.
 
 
 exactly mind reader, let's deal with the redirect when updating prediction cards
 
-😂 I promise I'm not reading minds... we've just spent enough time building Prof Predict together that I can see where you're headed.
+😂 I promise I'm not reading minds... we've just spent enough time building Prof Predict 
+together that I can see where you're headed.
 
 And yes, this is the perfect next feature because it's a quality-of-life improvement for the admin.
 
@@ -698,7 +721,8 @@ In yesterday.ejs
 Change to
 
 <a href="/predictions/<%= prediction._id %>/edit?redirectTo=/predictions/yesterdaysresults">
-Step 3 — Update editPrediction
+
+    Step 3 — Update editPrediction
 Instead of just rendering the form:
 
 res.render("predictions/homeForm", {
@@ -751,6 +775,7 @@ Edit
 Save
  ↓
 Yesterday's Results ✅
+
 No if...else, no checking isPremium, no checking status.
 
 Why I prefer this
@@ -763,7 +788,10 @@ if (prediction.isPremium) {
 if (prediction.status === "Won") {
     ...
 }
-because the controller doesn't need to know why you're editing—it simply returns you to wherever you came from. That's cleaner, more flexible, and easier to extend. If you later add pages like /predictions/expired or /predictions/pending, the redirect logic still works without any controller changes.
+because the controller doesn't need to know why you're editing—it simply returns you to wherever 
+you came from. That's cleaner, more flexible, and easier to extend. 
+If you later add pages like /predictions/expired or /predictions/pending, 
+the redirect logic still works without any controller changes.
 
 Let's implement this together
 To make sure the changes fit your current code, please paste these two controller functions:

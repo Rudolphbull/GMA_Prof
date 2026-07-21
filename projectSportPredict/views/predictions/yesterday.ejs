@@ -1,0 +1,114 @@
+<%- include("../partials/header") -%>
+
+
+    <section class="py-5 bg-light">
+
+        <div class="container">
+
+
+            <!-- Page Header -->
+
+            <div class="form-alignment text-center mb-5">
+
+                <h1 class="display-5 fw-bold">
+                    Yesterday's Results
+                </h1>
+
+                <p class="lead text-dark">
+                    Review yesterday's football predictions and see how Prof Predict performed.
+                </p>
+
+            </div>
+
+
+
+            <!-- Statistics Cards -->
+
+            <%- include("../partials/statsCards") -%>
+
+
+
+
+            <!-- Results Heading -->
+
+            <div class="text-center my-5">
+
+                <h3 class="fw-bold">
+                    Yesterday's Prediction Breakdown
+                </h3>
+
+                <p class="text-muted">
+                    Complete history of Prof Predict recommendations and outcomes.
+                </p>
+
+            </div>
+
+
+
+
+
+            <!-- Prediction Cards -->
+
+
+            <div class="row g-4">
+
+
+                <% if(predictions && predictions.length > 0){ %>
+
+
+
+                    <% predictions.forEach(function(prediction){ %>
+
+
+                        <%- include("../partials/predictionCard", {
+                            prediction,
+                            user,
+                            redirectTo: "/predictions/yesterdaysresults"
+                        }) %>
+
+
+
+
+                    <% }) %>
+
+
+
+
+
+
+                <% } else { %>
+
+
+
+                    <div class="col-12 text-center">
+
+
+                        <div class="alert alert-info">
+
+
+                            No results available for yesterday.
+
+
+                        </div>
+
+
+                    </div>
+
+
+
+                <% } %>
+
+
+
+            </div>
+
+
+
+        </div>
+
+
+    </section>
+
+
+
+<%- include("../partials/footer") -%>

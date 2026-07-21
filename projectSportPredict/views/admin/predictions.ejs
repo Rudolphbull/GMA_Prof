@@ -1,0 +1,546 @@
+<%- include("../partials/header") -%>
+
+<section class="container py-5">
+
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div class="form-alignment">
+
+            <h1 class="mb-1">
+                Manage Predictions
+            </h1>
+
+            <p class="mb-0">
+
+                Showing
+
+                <strong>
+                    <%= predictions.length ? ((currentPage - 1) * limit) + 1 : 0 %>
+                </strong>
+
+                -
+
+                <strong>
+                    <%= ((currentPage - 1) * limit) + predictions.length %>
+                </strong>
+
+                of
+
+                <strong>
+                    <%= totalPredictions %>
+                </strong>
+
+                predictions
+
+            </p>
+
+        </div>
+
+        <a
+            href="/predictions/new"
+            class="btn btn-success"
+        >
+
+            <i class="bi bi-plus-circle"></i>
+
+            New Prediction
+
+        </a>
+
+    </div>
+
+
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-body">
+
+            <form
+                method="GET"
+                action="/admin/predictions"
+            >
+
+                <div class="row g-3">
+
+                    <div class="col-md-4">
+
+                        <input
+                            type="text"
+                            name="search"
+                            class="form-control"
+                            placeholder="Search home, away or league..."
+                            value="<%= search %>"
+                        >
+
+                    </div>
+
+
+                    <div class="col-md-2">
+
+                        <select
+                            name="country"
+                            class="form-select"
+                        >
+
+                            <option value="">All Countries</option>
+
+                            <% countries.forEach(item => { %>
+
+                                <option
+                                    value="<%= item %>"
+                                    <%= country === item ? "selected" : "" %>
+                                >
+
+                                    <%= item %>
+
+                                </option>
+
+                            <% }) %>
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="col-md-3">
+
+                        <select
+                            name="league"
+                            class="form-select"
+                        >
+
+                            <option value="">All Leagues</option>
+
+                            <% leagues.forEach(item => { %>
+
+                                <option
+                                    value="<%= item %>"
+                                    <%= league === item ? "selected" : "" %>
+                                >
+
+                                    <%= item %>
+
+                                </option>
+
+                            <% }) %>
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="col-md-2">
+
+                        <input
+                            type="number"
+                            step="0.01"
+                            name="minOdds"
+                            class="form-control"
+                            placeholder="Min Odds"
+                            value="<%= minOdds %>"
+                        >
+
+                    </div>
+
+                    <div class="col-md-2">
+
+                        <input
+                            type="number"
+                            step="0.01"
+                            name="maxOdds"
+                            class="form-control"
+                            placeholder="Max Odds"
+                            value="<%= maxOdds %>"
+                        >
+
+                    </div>
+
+
+                    <div class="col-md-2">
+
+                        <input
+                            type="date"
+                            name="dateFrom"
+                            class="form-control"
+                            value="<%= dateFrom %>"
+                        >
+
+                    </div>
+
+                    <div class="col-md-2">
+
+                        <input
+                            type="date"
+                            name="dateTo"
+                            class="form-control"
+                            value="<%= dateTo %>"
+                        >
+
+                    </div>
+
+
+                    <div class="col-md-3">
+
+                        <select
+                            name="status"
+                            class="form-select"
+                        >
+
+                            <option value="">All Status</option>
+
+                            <option value="Pending" <%= status === "Pending" ? "selected" : "" %>>
+                                Pending
+                            </option>
+
+                            <option value="Won" <%= status === "Won" ? "selected" : "" %>>
+                                Won
+                            </option>
+
+                            <option value="Lost" <%= status === "Lost" ? "selected" : "" %>>
+                                Lost
+                            </option>
+
+                            <option value="Void" <%= status === "Void" ? "selected" : "" %>>
+                                Void
+                            </option>
+
+                            <option value="Expired" <%= status === "Expired" ? "selected" : "" %>>
+                                Expired
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-3">
+
+                        <select
+                            name="premium"
+                            class="form-select"
+                        >
+
+                            <option value="">All Predictions</option>
+
+                            <option value="true" <%= premium === "true" ? "selected" : "" %>>
+                                Premium
+                            </option>
+
+                            <option value="false" <%= premium === "false" ? "selected" : "" %>>
+                                Free
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-2 d-grid">
+
+                        <button
+                            class="btn btn-primary"
+                        >
+
+                            <i class="bi bi-search"></i>
+
+                            Filter
+
+                        </button>
+
+                    </div>
+
+
+                    <div class="col-md-2 d-grid">
+
+                    <a
+                        href="/admin/predictions"
+                        class="btn btn-outline-secondary"
+                    >
+
+                        <i class="bi bi-arrow-counterclockwise"></i>
+
+                        Reset
+
+                    </a>
+
+                </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <div class="card shadow">
+
+        <div class="card-body">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Match</th>
+                            <th>Prediction</th>
+                            <th>Odds</th>
+                            <th>Status</th>
+                            <th>Premium</th>
+                            <th>Kickoff</th>
+                            <th>Actions</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        <% if(predictions.length === 0){ %>
+
+                            <tr>
+
+                                <td colspan="7" class="text-center py-5">
+
+                                    <h5>No predictions found.</h5>
+
+                                    <p class="text-muted mb-0">
+
+                                        Try adjusting your search or filters.
+
+                                    </p>
+
+                                </td>
+
+                            </tr>
+
+                        <% } else { %>
+
+                            <% predictions.forEach(function(prediction){ %>
+
+                                <tr>
+
+                                    <td>
+
+                                        <strong>
+
+                                            <%= prediction.homeTeam %>
+
+                                        </strong>
+
+                                        <br>
+
+                                        <small class="text-muted">
+
+                                            vs
+
+                                            <%= prediction.awayTeam %>
+
+                                        </small>
+
+                                        <br>
+
+                                        <small class="text-secondary">
+
+                                            <%= prediction.league %>
+
+                                        </small>
+
+                                    </td>
+
+                                    <td>
+
+                                        <%= prediction.prediction %>
+
+                                    </td>
+
+                                    <td>
+
+                                        <%= prediction.odds %>
+
+                                    </td>
+
+                                    <td>
+
+                                        <% if(prediction.status === "Won"){ %>
+
+                                            <span class="badge bg-success">
+
+                                                Won
+
+                                            </span>
+
+                                        <% } else if(prediction.status === "Lost"){ %>
+
+                                            <span class="badge bg-danger">
+
+                                                Lost
+
+                                            </span>
+
+                                        <% } else if(prediction.status === "Void"){ %>
+
+                                            <span class="badge bg-secondary">
+
+                                                Void
+
+                                            </span>
+
+                                        <% } else if(prediction.status === "Expired"){ %>
+
+                                            <span class="badge bg-dark">
+
+                                                Expired
+
+                                            </span>
+
+                                        <% } else { %>
+
+                                            <span class="badge bg-warning text-dark">
+
+                                                Pending
+
+                                            </span>
+
+                                        <% } %>
+
+                                    </td>
+
+                                    <td>
+
+                                        <% if(prediction.isPremium){ %>
+
+                                            <span class="badge bg-success">
+
+                                                Premium
+
+                                            </span>
+
+                                        <% } else { %>
+
+                                            <span class="badge bg-primary">
+
+                                                Free
+
+                                            </span>
+
+                                        <% } %>
+
+                                    </td>
+
+                                    <td>
+
+                                        <%= new Date(prediction.kickoffTime).toLocaleString("en-NG") %>
+
+                                    </td>
+
+                                    <td>
+
+                                        <a
+                                            href="/predictions/<%= prediction._id %>/edit"
+                                            class="btn btn-warning btn-sm mb-1"
+                                        >
+
+                                            <i class="bi bi-pencil-square"></i>
+
+                                            Edit
+
+                                        </a>
+
+                                        <form
+                                            action="/admin/predictions/<%= prediction._id %>/delete"
+                                            method="POST"
+                                            class="d-inline delete-form"
+                                        >
+
+                                            <button
+                                                type="submit"
+                                                class="btn btn-danger btn-sm delete-btn"
+                                                data-name="<%= prediction.homeTeam %> vs <%= prediction.awayTeam %>"
+                                            >
+                                                <i class="bi bi-trash"></i>
+                                                Delete
+                                            </button>
+
+                                        </form>
+                                        
+                                    </td>
+
+                                </tr>
+
+                            <% }) %>
+
+                        <% } %>
+
+                    </tbody>
+                </table>
+
+            </div>
+
+            
+            <% if (totalPages > 1) { %>
+
+                <nav class="mt-4">
+
+                    <ul class="pagination justify-content-center">
+
+                        <!-- Previous -->
+
+                        <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
+
+                            <a
+                                class="page-link"
+                                href="/admin/predictions?page=<%= currentPage - 1 %>&search=<%= search %>&status=<%= status %>&premium=<%= premium %>&country=<%= country %>&league=<%= league %>&minOdds=<%= minOdds %>&maxOdds=<%= maxOdds %>&dateFrom=<%= dateFrom %>&dateTo=<%= dateTo %>"
+                            >
+                                Previous
+                            </a>
+
+                        </li>
+
+                        <!-- Page Numbers -->
+
+                        <% for (let i = 1; i <= totalPages; i++) { %>
+
+                            <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+
+                                <a
+                                    class="page-link"
+                                    href="/admin/predictions?page=<%= i %>&search=<%= search %>&status=<%= status %>&premium=<%= premium %>&country=<%= country %>&league=<%= league %>&minOdds=<%= minOdds %>&maxOdds=<%= maxOdds %>&dateFrom=<%= dateFrom %>&dateTo=<%= dateTo %>"
+                                >
+                                    <%= i %>
+                                </a>
+
+                            </li>
+
+                        <% } %>
+
+                        <!-- Next -->
+
+                        <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
+
+                            <a
+                                class="page-link"
+                                href="/admin/predictions?page=<%= currentPage + 1 %>&search=<%= search %>&status=<%= status %>&premium=<%= premium %>&country=<%= country %>&league=<%= league %>&minOdds=<%= minOdds %>&maxOdds=<%= maxOdds %>&dateFrom=<%= dateFrom %>&dateTo=<%= dateTo %>"
+                            >
+                                Next
+                            </a>
+
+                        </li>
+
+                    </ul>
+
+                </nav>
+
+            <% } %>
+
+            
+        </div>
+
+    </div>
+
+</section>
+
+<%- include("../partials/deleteModal") %>
+<%- include("../partials/footer") -%>

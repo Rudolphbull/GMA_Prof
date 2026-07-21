@@ -6,7 +6,6 @@ const authMiddleware = require("../middleware/authMiddleware");
 const roleMiddleware = require("../middleware/roleMiddleware");
 const ROLES = require("../config/roles");
 
-// const adminController = require("../controllers/adminController");
 
 // Public
 router.get("/login", authController.newLogin);
@@ -23,16 +22,9 @@ router.get("/booking", authController.booking);
 
 router.get("/career", authController.career);
 
-router.get("/success", authController.success);
+
 
 router.get("/logout", authController.logout);
 
-// Admin
-// router.get(
-//     "/admin",
-//     authMiddleware,
-//     roleMiddleware(ROLES.ADMIN),
-//     adminController.dashboard
-// );
 
 module.exports = router;

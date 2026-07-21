@@ -1,66 +1,81 @@
 <%- include("partials/header") -%>
 
 <section class="container py-5">
+
     <div class="row justify-content-center">
+
         <div class="col-lg-7">
+
             <div class="card shadow border-0 text-center">
+
                 <div class="card-body p-5">
-                    <div class="card border-0 shadow-lg text-center p-5">
 
-                <div class="mb-4">
-                    <i class="bi bi-x-octagon-fill text-danger" style="font-size: 5rem;"></i>
-                </div>
+                    <div class="display-1 text-primary mb-3">
 
-                <% if (typeof message !== "undefined" && message) { %>
-
-                    <div class="alert alert-danger text-center">
-
-                        <h4 class="fw-bold mb-2">
-                            <i class="bi bi-exclamation-triangle-fill"></i>
-                            Error
-                        </h4>
-
-                        <p class="mb-0">
-                            <%= message %>
-                        </p>
+                        <i class="bi bi-search"></i>
 
                     </div>
 
-                <% } else { %>
-                    
-                <div class="display-1 text-primary mb-3">
-                    <i class="bi bi-search"></i>
+                    <h1 class="fw-bold mb-3">
+
+                        <%= typeof pageTitle !== "undefined"
+                            ? pageTitle
+                            : "404 - Page Not Found"
+                        %>
+
+                    </h1>
+
+                    <p class="lead">
+
+                        <%= typeof message !== "undefined"
+                            ? message
+                            : "Oops! The page you're looking for doesn't exist or may have been moved."
+                        %>
+
+                    </p>
+
+                    <p class="mb-4">
+
+                        <%= typeof details !== "undefined"
+                            ? details
+                            : "Please check the URL or return to the homepage to continue exploring Prof Predict."
+                        %>
+
+                    </p>
+
+                    <div class="d-flex justify-content-center gap-3 flex-wrap">
+
+                        <a
+                            href="/"
+                            class="btn btn-primary px-4"
+                        >
+
+                            <i class="bi bi-house-door-fill"></i>
+
+                            Home
+
+                        </a>
+
+                        <a
+                            href="/auth/contact"
+                            class="btn btn-outline-secondary px-4"
+                        >
+
+                            <i class="bi bi-envelope-fill"></i>
+
+                            Contact Us
+
+                        </a>
+
+                    </div>
+
                 </div>
-
-                <h1 class="fw-bold mb-3">404 - Page Not Found</h1>
-
-                <p class="lead">
-                    Oops! The page you're looking for doesn't exist or may have been moved.
-                </p>
-
-                <p class="mb-4">
-                    Please check the URL or return to the homepage to continue exploring Prof Predict.
-                </p>
-
-                <div class="d-flex justify-content-center gap-3 flex-wrap">
-                    <a href="/" class="btn btn-primary px-4">
-                        <i class="bi bi-house-door-fill"></i>
-                        Home
-                    </a>
-
-                    <a href="/auth/contact" class="btn btn-outline-secondary px-4">
-                        <i class="bi bi-envelope-fill"></i>
-                        Contact Us
-                    </a>
-                </div>
-               <% } %>
-
 
             </div>
-        </div>
-    </div>
-</div>
 
+        </div>
+
+    </div>
 
 </section>
 

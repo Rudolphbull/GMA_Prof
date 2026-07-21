@@ -1,0 +1,387 @@
+<%- include("../partials/header") -%>
+
+    <section class="container py-5">
+
+
+        <h1 class="mb-4">
+
+            Manage Users
+
+        </h1>
+
+        <p class="mb-3">
+
+            Showing
+
+            <strong>
+
+                <%= users.length ? ((currentPage - 1) * limit) + 1 : 0 %>
+
+            </strong>
+
+            -
+
+            <strong>
+
+                <%= ((currentPage - 1) * limit) + users.length %>
+
+            </strong>
+
+            of
+
+            <strong>
+
+                <%= totalUsers %>
+
+            </strong>
+
+            users
+
+        </p>
+
+        <div class="card shadow">
+
+            <div class="card-body">
+
+                <div class="table-responsive">
+
+                    <div class="card border-0 shadow-sm mb-4">
+
+                        <div class="card-body">
+
+                            <h5 class="card-title mb-3">
+
+                                <i class="bi bi-funnel me-2"></i>
+
+                                Filter Users
+
+                            </h5>
+
+                            <form method="GET" action="/admin/users" class="row g-3">
+
+                                
+                                <div class="col-md-4">
+
+                                    <input
+                                        type="text"
+                                        name="search"
+                                        class="form-control"
+                                        placeholder="Search username or email..."
+                                        value="<%= search || '' %>"
+                                    >
+
+                                </div>
+
+                                <div class="col-md-2">
+
+                                    <select
+                                        name="role"
+                                        class="form-select"
+                                    >
+
+                                        <option value="">All Roles</option>
+
+                                        <option
+                                            value="user"
+                                            <%= role === "user" ? "selected" : "" %>>
+                                            User
+                                        </option>
+
+                                        <option
+                                            value="admin"
+                                            <%= role === "admin" ? "selected" : "" %>>
+                                            Admin
+                                        </option>
+
+                                        <option
+                                            value="superuser"
+                                            <%= role === "superuser" ? "selected" : "" %>>
+                                            Superuser
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
+                                <div class="col-md-2">
+
+                                    <select
+                                        name="subscription"
+                                        class="form-select"
+                                    >
+
+                                        <option value="">All Subscriptions</option>
+
+                                        <option
+                                            value="active"
+                                            <%= subscription === "active" ? "selected" : "" %>>
+                                            Premium
+                                        </option>
+
+                                        <option
+                                            value="inactive"
+                                            <%= subscription === "inactive" ? "selected" : "" %>>
+                                            Free
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
+                                <div class="col-md-2 d-grid">
+
+                                    <button class="btn btn-primary">
+
+                                        <i class="bi bi-funnel"></i>
+
+                                        Filter
+
+                                    </button>
+
+                                </div>
+
+                                <div class="col-md-2 d-grid">
+
+                                    <a
+                                        href="/admin/users"
+                                        class="btn btn-outline-secondary"
+                                    >
+
+                                        Clear
+
+                                    </a>
+
+                                </div>
+
+
+                            </form>
+
+                        </div>
+
+                    </div>
+
+                    <table class="table table-hover align-middle">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Subscription</th>
+                                <th>Joined</th>
+                                <th>Actions</th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            <% if(users.length === 0){ %>
+
+                            <tr>
+
+                                <td colspan="6" class="text-center py-5">
+
+                                    <h5>No users found.</h5>
+
+                                    <p class="text-muted">
+
+                                        Try another search.
+
+                                    </p>
+
+                                </td>
+
+                            </tr>
+
+                            <% } else { %>
+    
+
+                            <% users.forEach(function(user){ %>
+
+                                <tr>
+
+                                    <td>
+
+                                        <strong>
+
+                                            <%= user.username %>
+
+                                        </strong>
+
+                                    </td>
+
+                                    <td>
+
+                                        <%= user.email %>
+
+                                    </td>
+
+
+                                    <td>
+
+                                        <% if(user.role === "admin"){ %>
+
+                                            <span class="badge bg-danger">
+
+                                                Admin
+
+                                            </span>
+
+                                                <% } else if(user.role === "superuser"){ %>
+
+                                                    <span class="badge bg-dark">
+
+                                                        Superuser
+
+                                                    </span>
+
+                                                <% } else { %>
+
+                                                    <span class="badge bg-primary">
+
+                                                        User
+
+                                                    </span>
+
+                                                <% } %>
+
+                                    </td>
+
+                                    <td>
+
+                                                <% if(user.subscriptionStatus === "active"){ %>
+
+                                                    <span class="badge bg-success">
+
+                                                        Premium
+
+                                                    </span>
+
+                                                <% } else { %>
+
+                                                    <span class="badge bg-secondary">
+
+                                                        Free
+
+                                                    </span>
+
+                                                <% } %>
+
+                                    </td>
+
+                                    <td>
+
+                                        <%= new Date(user.createdAt).toLocaleDateString("en-NG") %>
+
+                                    </td>
+
+                                    <td>
+
+                                        <div class="d-flex gap-2">
+
+                                            <a
+                                                href="/admin/users/<%= user._id %>/edit"
+                                                class="btn btn-warning btn-sm"
+                                            >
+
+                                                <i class="bi bi-pencil-square"></i>
+
+                                                Edit
+
+                                            </a>
+                                            <form
+                                                action="/admin/users/<%= user._id %>/delete"
+                                                method="POST"
+                                            >
+
+                                                <button
+                                                    type="submit"
+                                                    class="btn btn-danger btn-sm delete-btn"
+                                                    data-name="<%= user.username %>"
+                                                >
+                                                    <i class="bi bi-trash"></i>
+                                                    Delete
+                                                </button>
+
+                                            </form>
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+
+
+                        <% }) %>
+
+                        <% } %>
+
+                        </tbody>
+
+                    </table>
+
+
+                        <% if(totalPages > 1){ %>
+
+                            <nav class="mt-4">
+
+                                <ul class="pagination justify-content-center">
+
+                                    <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
+
+                                        <a
+                                            class="page-link"
+                                            href="/admin/users?page=<%= currentPage - 1 %>&search=<%= search %>&role=<%= role %>&subscription=<%= subscription %>"
+                                        >
+                                            Previous
+                                        </a>
+
+                                    </li>
+
+                                    <% for(let i = 1; i <= totalPages; i++){ %>
+
+                                        <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+
+                                            <a
+                                                class="page-link"
+                                                href="/admin/users?page=<%= i %>&search=<%= search %>&role=<%= role %>&subscription=<%= subscription %>"
+                                            >
+                                                <%= i %>
+                                            </a>
+
+                                        </li>
+
+                                    <% } %>
+
+                                    <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
+
+                                        <a
+                                            class="page-link"
+                                            href="/admin/users?page=<%= currentPage + 1 %>&search=<%= search %>&role=<%= role %>&subscription=<%= subscription %>"
+                                        >
+                                            Next
+                                        </a>
+
+                                    </li>
+
+                                </ul>
+
+                            </nav>
+
+                        <% } %>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+          
+<%- include("../partials/deleteModal") %>
+<%- include("../partials/footer") -%>

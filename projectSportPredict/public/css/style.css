@@ -345,6 +345,11 @@ section{
 
 }
 
+.flash-container {
+    padding-top: 5rem;
+    margin-top: 3rem;
+}
+
 /* SCROLLED NAVBAR */
 .custom-navbar.scrolled{
 
@@ -748,7 +753,6 @@ box-shadow:var(--shadow-lg);
 }
 
 .form-alignment {
-    margin-top: 60px;
     margin-bottom: 30px;
     justify-content: center;
 }

@@ -1,0 +1,76 @@
+
+    <!-- Navbar code -->
+        <nav class="navbar navbar-expand-lg navbar-dark fixed-top custom-navbar">
+            <div class="container">
+                
+                <a class="navbar-brand" href="/">
+                    <img
+                        class="logo"
+                        src="/image/pplogo.jpg?v=2"
+                        alt="Prof Predict Logo"
+                    >
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+                </button>
+
+
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                            <li class="nav-item">
+                                <a class="nav-link active fw-bold" aria-current="page" href="/">Home</a>
+                            </li>
+
+
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    About
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="/auth/about">Company</a></li>
+                                    <li><a class="dropdown-item" href="#">Team</a></li>
+                                    <li><a class="dropdown-item" href="/auth/career">Careers</a></li>
+                                </ul>
+                            </li>
+                            
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Predictions
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="/predictions/premium">Todays Bookings</a></li>
+                                    <li><a class="dropdown-item" href="/predictions/yesterdaysresults">Yesterdays Results</a></li>
+                                    
+                                </ul>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link" href="/auth/contact">
+                                    Contact Us
+                                </a>
+
+                            </li>
+                            
+                            
+                        </ul>
+
+                        <a href="/auth/logout" class="btn btn-danger">
+                            Logout
+                        </a>
+
+                        <a href="/auth/login"
+                            class="btn btn-success navbar-cta">
+                            Login/Register
+                        </a>
+                
+                </div>
+            </div>
+        </nav>
+
+        <div class="container flash-container">
+
+            <%- include("flash") -%> 
+
+        </div>
+
+        <!-- nav ends here -->

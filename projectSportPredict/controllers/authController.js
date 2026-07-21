@@ -19,11 +19,10 @@ exports.login = async (req, res) => {
         // Validate input first
         if (!req.body.login || !req.body.password) {
 
-            return res.render("failureLogin", {
-                pageTitle: "Failure Login",
-
-                message: "Invalid username/email or password."
-            });
+            req.flash(
+                "error",
+                "Invalid username/email or password."
+            );
 
         }
 
@@ -38,11 +37,10 @@ exports.login = async (req, res) => {
         // Check if user exists
         if (!user) {
 
-            return res.render("failureLogin", {
-                pageTitle: "Failure Login",
-
-                message: "Invalid username/email or password."
-            });
+            req.flash(
+                "error",
+                "user not found."
+            );
 
         }
 
@@ -54,11 +52,10 @@ exports.login = async (req, res) => {
 
         if (!passwordMatch) {
 
-            return res.render("failureLogin", {
-                pageTitle: "Failure Login",
-
-                message: "Invalid username/email or password.."
-            });
+            req.flash(
+                "error",
+                "password mismatch."
+            );
 
         }
 
@@ -70,7 +67,12 @@ exports.login = async (req, res) => {
             role: user.role || "user"
         };
 
-        console.log("Session after login:", req.session.user);
+        console.log(req.session.user);
+
+        req.flash(
+            "success", 
+            "Login Successful."
+        );
 
         // Redirect to the dashboard
         res.redirect("/predictions/premium");
@@ -79,11 +81,10 @@ exports.login = async (req, res) => {
 
         console.error(err);
 
-        res.render("failureLogin", {
-            pageTitle: "Failure Login",
-
-            message: "An unexpected error occurred."
-        });
+        req.flash(
+            "error",
+            "Invalid username/email or password."
+        );
 
     }
 
@@ -103,11 +104,11 @@ exports.signup = async (req, res) => {
             !req.body.confirmPassword
         ) {
 
-            return res.render("failure", {
-                pageTitle: "Failure",
+            req.flash(
+                "error",
+                "All fields are required."
+            );
 
-                message: "Password and Confirm Password does not Match."
-            });
 
         }
 
@@ -125,11 +126,11 @@ exports.signup = async (req, res) => {
 
         if (existingUser) {
 
-            return res.render("failure", {
-                pageTitle: "User Already Exists",
+            req.flash(
+                "error",
+                "User already exists"
+            );
 
-                message: "User Already Exists."
-            });
 
         }
 
@@ -147,9 +148,12 @@ exports.signup = async (req, res) => {
 
         await user.save();
 
-        res.render("success", {
-            pageTitle: "Success"
-        });
+        req.flash(
+            "success", 
+            "Account created successfully, please login."
+        );
+        
+        return res.redirect("/auth/login");
 
     }
 
@@ -157,13 +161,11 @@ exports.signup = async (req, res) => {
 
         console.error(err);
 
-        return res.render("failure", {
+        req.flash(
+            "error",
+            "An unexpected error occured."
+        );
 
-            pageTitle: "Failure",
-
-            message: "An unexpected error occurred."
-
-        });
 
     }
 
@@ -180,24 +182,13 @@ exports.logout = (req, res) => {
         }
 
         res.clearCookie("connect.sid");
+
         res.redirect("/");
 
     });
 
 };
 
-
-exports.failure = (req, res) => {
-    res.render("failure", {
-        pageTitle: "Failure",
-        message: "An unexpected error occurred."
-    });
-};
-
-
-exports.success = (req, res) => {
-    res.render("success", {pageTitle: "Success"});
-};
 
 exports.contact = (req, res) => {
     res.render("contact", {pageTitle: "Contact"});
@@ -218,7 +209,11 @@ exports.send = async function(req, res) {
     const { name, email, message } = req.body;
 
     if (!name || !email || !message) {
-        return res.render("invalid", {pageTitle: "Invalid"});
+
+        req.flash(
+            "error", 
+            "All fields are required."
+        );
     }
 
     try {
@@ -238,13 +233,20 @@ exports.send = async function(req, res) {
             `
         });
 
-        res.render("successMessage", {pageTitle: "success"});
+        req.flash(
+            "success", 
+            "Message sent successfully."
+        );
+
+        return res.redirect("/auth/contact");
 
     } catch(error) {
 
         console.log(error);
 
-        res.render("failureMessage", {pageTitle: "failure"});
+        req.flash("error", "Message sending failed.");
+
+        return res.redirect("/auth/contact");
     }
 };
 
@@ -255,7 +257,12 @@ exports.booking = async function(req, res) {
     const { companyName, email, phone, enquiry, details } = req.body;
 
     if (!companyName || !email || !phone || !enquiry || !details) {
-        return res.render("invalid", {pageTitle: "Invalid"});
+
+        req.flash(
+            "error", 
+            "All fields are required."
+        );
+        return res.redirect("/auth/contact");
     }
 
     try {
@@ -277,13 +284,23 @@ exports.booking = async function(req, res) {
             `
         });
 
-        res.render("successBooking", {pageTitle: "successBooking"});
+        req.flash(
+            "success", 
+            "Consultation request sent successfully."
+        );
+
+        return res.redirect("/auth/contact");
 
     } catch(error) {
 
         console.log(error);
 
-        res.render("failureBooking", {pageTitle: "failureBooking"});
+        req.flash(
+            "error", 
+            "failed to send consultation request."
+        );
+
+        return res.redirect("/auth/contact");
     }
 };
 

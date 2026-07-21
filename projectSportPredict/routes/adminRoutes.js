@@ -2,7 +2,9 @@ const express = require("express");
 
 const router = express.Router();
 
-const adminController = require("../controllers/adminController");
+const dashboardController = require("../controllers/admin/dashboardController");
+const userController = require("../controllers/admin/userController");
+const predictionController = require("../controllers/admin/predictionController");
 
 const authMiddleware = require("../middleware/authMiddleware");
 
@@ -17,7 +19,7 @@ router.get(
         ROLES.ADMIN,
         ROLES.SUPERUSER
     ),
-    adminController.dashboard
+    dashboardController.dashboard
 );
 
 router.get(
@@ -27,7 +29,73 @@ router.get(
         ROLES.ADMIN,
         ROLES.SUPERUSER
     ),
-    adminController.dashboard
+    dashboardController.dashboard
+);
+
+
+router.get(
+    "/users",
+    authMiddleware.isLoggedIn,
+    roleMiddleware.allowRoles(
+        ROLES.SUPERUSER,
+        ROLES.ADMIN
+    ),
+    userController.users
+);
+
+
+router.get(
+    "/users/:id/edit",
+    authMiddleware.isLoggedIn,
+    roleMiddleware.allowRoles(
+        ROLES.SUPERUSER,
+        ROLES.ADMIN
+    ),
+    userController.editUser
+);
+
+
+router.post(
+    "/users/:id",
+    authMiddleware.isLoggedIn,
+    roleMiddleware.allowRoles(
+        ROLES.SUPERUSER,
+        ROLES.ADMIN
+    ),
+    userController.updateUser
+);
+
+
+router.post(
+    "/users/:id/delete",
+    authMiddleware.isLoggedIn,
+    roleMiddleware.allowRoles(
+        ROLES.SUPERUSER, 
+        ROLES.ADMIN
+    ),
+    userController.deleteUser
+);
+
+
+router.get(
+    "/predictions",
+    authMiddleware.isLoggedIn,
+    roleMiddleware.allowRoles(
+        ROLES.SUPERUSER, 
+        ROLES.ADMIN
+    ),
+    predictionController.predictions
+);
+
+
+router.post(
+    "/predictions/:id/delete",
+    authMiddleware.isLoggedIn,
+    roleMiddleware.allowRoles(
+        ROLES.SUPERUSER,
+        ROLES.ADMIN
+    ),
+    predictionController.deletePrediction
 );
 
 module.exports = router;

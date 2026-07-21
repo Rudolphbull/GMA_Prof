@@ -1,7 +1,11 @@
 const Prediction = require("../models/predictionModel");
 
+const expirePredictions = require("../utils/expirePredictions");
+
 exports.index = async (req, res, next) => {
     try {
+
+        await expirePredictions();
         const predictions = await Prediction.find({
             isPremium: false
         })
@@ -11,7 +15,7 @@ exports.index = async (req, res, next) => {
         })
         .lean();
 
-        res.render("home", {
+        res.render("predictions/home", {
             pageTitle: "Home",
             predictions
         });

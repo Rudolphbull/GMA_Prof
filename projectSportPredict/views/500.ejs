@@ -1,70 +1,103 @@
 <%- include("partials/header") -%>
 
 <section class="container py-5">
+
     <div class="row justify-content-center">
+
         <div class="col-lg-7">
+
             <div class="card shadow border-0 text-center">
+
                 <div class="card-body p-5">
 
-                    
-                    <div class="mb-4">
-                        <i class="bi bi-check-circle-fill text-danger" style="font-size: 5rem;"></i>
+                    <div class="display-1 text-danger mb-3">
+
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+
                     </div>
 
-                    <h4 class="fw-bold text-danger mb-3">
-                    <% if(message){ %>
+                    <h1 class="fw-bold mb-3">
 
-                        <div class="alert alert-danger">
+                        <%= typeof pageTitle !== "undefined"
+                            ? pageTitle
+                            : "500 - Internal Server Error"
+                        %>
 
-                            <%= message %>
+                    </h1>
+
+                    <p class="lead">
+
+                        <%= typeof message !== "undefined"
+                            ? message
+                            : "Oops! Something went wrong while processing your request."
+                        %>
+
+                    </p>
+
+                    <p class="mb-4">
+
+                        <%= typeof details !== "undefined"
+                            ? details
+                            : "Please try again in a few moments. If the problem persists, contact our support team."
+                        %>
+
+                    </p>
+
+                    <div class="d-flex justify-content-center gap-3 flex-wrap">
+
+                        <a
+                            href="/"
+                            class="btn btn-primary px-4"
+                        >
+
+                            <i class="bi bi-house-door-fill"></i>
+
+                            Return Home
+
+                        </a>
+
+                        <a
+                            href="/auth/contact"
+                            class="btn btn-outline-secondary px-4"
+                        >
+
+                            <i class="bi bi-envelope-fill"></i>
+
+                            Contact Support
+
+                        </a>
+
+                    </div>
+
+                    <% if (
+                        typeof error !== "undefined" &&
+                        error &&
+                        process.env.NODE_ENV !== "production"
+                    ) { %>
+
+                        <hr class="my-4">
+
+                        <div class="alert alert-danger text-start">
+
+                            <strong>
+
+                                Development Error Details
+
+                            </strong>
+
+                            <pre class="mb-0 mt-2"><%= error.stack %></pre>
 
                         </div>
 
-                    <% } else { %>
-                        <div class="display-1 text-danger mb-3">
-                        <i class="bi bi-exclamation-triangle-fill"></i>
+                    <% } %>
+
                 </div>
 
-                        <h1 class="fw-bold mb-3">500 - Internal Server Error</h1>
-
-                        <p class="lead">
-                            Oops! Something went wrong while processing your request.
-                        </p>
-
-                        <p class="mb-4">
-                            Please try again in a few moments. If the problem persists, contact our support team.
-                        </p>
-
-                        <div class="d-flex justify-content-center gap-3 flex-wrap">
-
-                            <a href="/" class="btn btn-primary px-4">
-                                <i class="bi bi-house-door-fill"></i>
-                                Return Home
-                            </a>
-
-                            <a href="/auth/contact" class="btn btn-outline-secondary px-4">
-                                <i class="bi bi-envelope-fill"></i>
-                                Contact Support
-                            </a>
-
-                        </div>
-
-                        <% if (typeof error !== "undefined" && error) { %>
-                            <hr class="my-4">
-
-                            <div class="alert alert-danger text-start">
-                                <strong>Development Error Details</strong>
-                                <pre class="mb-0 mt-2"><%= error.stack %></pre>
-                            </div>
-                        <% } %>
-
-                   <% } %>
-
             </div>
-        </div>
-    </div>
-</div>
 
+        </div>
+
+    </div>
 
 </section>
 

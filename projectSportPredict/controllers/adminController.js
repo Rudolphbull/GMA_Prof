@@ -1,241 +1,108 @@
 const Prediction = require("../models/predictionModel");
 const User = require("../models/userModel");
+const expirePredictions = require("../utils/expirePredictions");
 
-exports.dashboard = async (req, res, next) => {
+
+
+
+exports.predictions = async (req, res, next) => {
 
     try {
-        const [
-            totalPredictions,
-            premiumPredictions,
-            freePredictions,
-            pendingPredictions,
-            wonPredictions,
-            lostPredictions,
-            voidPredictions,
-            expiredPredictions,
-            totalUsers,
-            premiumUsers,
-            latestPredictions,
-            recentUsers,
-            userGrowth,
-            predictionGrowth
-            
-        ]= await Promise.all([
 
-            Prediction.countDocuments(),
+        await expirePredictions();
 
-            Prediction.countDocuments({
-                isPremium: true
-            }),
+        const search = req.query.search || "";
 
-            Prediction.countDocuments({
-                isPremium: false
-            }),
+        const status = req.query.status || "";
 
-            Prediction.countDocuments({
-                status: "Pending"
-            }),
+        const premium = req.query.premium || "";
 
-            Prediction.countDocuments({
-                status: "Won"
-            }),
+        const page = parseInt(req.query.page) || 1;
 
-            Prediction.countDocuments({
-                status: "Lost"
-            }),
+        const limit = 10;
 
-            Prediction.countDocuments({
-                status: "Void"
-            }),
+        const skip = (page - 1) * limit;
 
-            Prediction.countDocuments({
-                status: "Expired"
-            }),
+        const query = {};
 
-            User.countDocuments(),
+        if (search) {
 
-            User.countDocuments({
-                subscriptionStatus: "active"
-            }),
+            query.$or = [
 
-            Prediction.find()
+                {
+                    homeTeam: {
+                        $regex: search,
+                        $options: "i"
+                    }
+                },
+
+                {
+                    awayTeam: {
+                        $regex: search,
+                        $options: "i"
+                    }
+                },
+
+                {
+                    league: {
+                        $regex: search,
+                        $options: "i"
+                    }
+                }
+
+            ];
+
+        }
+
+        if (status) {
+
+            query.status = status;
+
+        }
+
+        if (premium) {
+
+            query.isPremium = premium === "true";
+
+        }
+
+        const [predictions, totalPredictions] = await Promise.all([
+
+            Prediction.find(query)
                 .sort({ kickoffTime: -1 })
-                .limit(5)
-                .populate("createdBy", "username"),
+                .populate("createdBy", "username")
+                .skip(skip)
+                .limit(limit),
 
-            User.find()
-                .select("username email role subscriptionStatus createdAt")
-                .sort({ createdAt: -1 })
-                .limit(5),
-            
-            User.aggregate([
+            Prediction.countDocuments(query)
 
-                {
-                    $group: {
+        ]);
 
-                        _id: {
+        const totalPages = Math.ceil(totalPredictions / limit);
 
-                            year: { $year: "$createdAt" },
+        res.render("admin/predictions", {
 
-                            month: { $month: "$createdAt" }
+            pageTitle: "Manage Predictions",
 
-                        },
+            predictions,
 
-                        total: {
+            search,
 
-                            $sum: 1
+            status,
 
-                        }
+            premium,
 
-                    }
+            currentPage: page,
 
-                },
-
-                {
-                    $sort: {
-
-                        "_id.year": 1,
-
-                        "_id.month": 1
-
-                    }
-
-                }
-
-            ]),
-
-
-            Prediction.aggregate([
-
-                {
-                    $group: {
-
-                        _id: {
-
-                            year: { $year: "$createdAt" },
-
-                            month: { $month: "$createdAt" }
-
-                        },
-
-                        total: {
-
-                            $sum: 1
-
-                        }
-
-                    }
-
-                },
-
-                {
-                    $sort: {
-
-                        "_id.year": 1,
-
-                        "_id.month": 1
-
-                    }
-
-                }
-
-            ])
-            ]);
-
-
-        const growthLabels = userGrowth.map(item => {
-
-            return new Date(
-                item._id.year,
-                item._id.month - 1
-            ).toLocaleString("en-NG", {
-
-                month: "short",
-                year: "2-digit"
-
-            });
-
-        });
-
-
-        const growthData = userGrowth.map(item => item.total);
-
-
-        const predictionGrowthLabels = predictionGrowth.map(item => {
-
-            return new Date(
-                item._id.year,
-                item._id.month - 1
-            ).toLocaleString("en-NG", {
-
-                month: "short",
-                year: "2-digit"
-
-            });
-
-        });
-
-        const predictionGrowthData = predictionGrowth.map(item => item.total);
-
-        const completedPredictions =
-        wonPredictions +
-        lostPredictions +
-        voidPredictions +
-        expiredPredictions;
-
-        const winRate = completedPredictions
-        ? ((wonPredictions / completedPredictions) * 100).toFixed(1)
-        : 0;
-
-        const lossRate = completedPredictions
-            ? ((lostPredictions / completedPredictions) * 100).toFixed(1)
-            : 0;
-
-        const voidRate = completedPredictions
-            ? ((voidPredictions / completedPredictions) * 100).toFixed(1)
-            : 0;
-
-        const expiredRate = completedPredictions
-            ? ((expiredPredictions / completedPredictions) * 100).toFixed(1)
-            : 0;
-
-        res.render("admin/dashboard", {
-
-            pageTitle: "Admin Dashboard",
+            totalPages,
 
             totalPredictions,
-            premiumPredictions,
-            freePredictions,
 
-            pendingPredictions,
-            wonPredictions,
-            lostPredictions,
-            voidPredictions,
-            expiredPredictions,
-
-            totalUsers,
-            premiumUsers,
-
-            latestPredictions,
-
-            recentUsers,
-
-            completedPredictions,
-
-            winRate,
-            lossRate,
-            voidRate,
-            expiredRate,
-
-            growthLabels,
-            growthData,
-
-            predictionGrowthLabels,
-            predictionGrowthData
+            limit
 
         });
-        
-    } catch(err){
+
+    } catch (err) {
 
         next(err);
 

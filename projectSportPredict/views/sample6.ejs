@@ -1,0 +1,655 @@
+
+
+
+
+Claim offer
+
+That sounds like a great plan. 👍
+
+We're at the point where the foundation is complete, and what's left is mostly applying the same pattern consistently.
+
+I'd update the controllers in this order
+Prediction Management
+✅ createPrediction
+
+updatePrediction
+
+deletePrediction
+
+User Management
+createUser (if applicable)
+
+updateUser
+
+deleteUser
+
+Authentication
+login
+
+logout
+
+register
+
+Premium
+Subscription activation
+
+Subscription expiration
+
+Access denied (if applicable)
+
+A good pattern to follow
+Success
+req.flash("success", "Prediction updated successfully.");
+return res.redirect("/admin/predictions");
+Error
+req.flash("error", "Please complete all required fields.");
+return res.redirect("/predictions/new");
+Warning
+req.flash("warning", "Your subscription has expired.");
+return res.redirect("/auth/subscription");
+Try to keep the messages:
+
+Short
+
+Specific
+
+Action-oriented
+
+Before we leave this phase
+Once you've updated all the controllers, I suggest we do one final audit.
+
+We'll check:
+
+✅ Every req.flash() is followed by a return res.redirect(...).
+
+✅ No remaining success.ejs / failure.ejs pages are used for simple operation feedback.
+
+✅ Every page gets the flash partial automatically through the shared layout.
+
+✅ No duplicate include("flash") statements remain.
+
+✅ Auto-dismiss and dismiss buttons work consistently.
+
+That will officially close the flash notification task.
+
+Then we return to the roadmap
+From our roadmap, the next major milestone is Phase 2 – Prediction Management.
+
+We've already completed quite a bit of it:
+
+✅ Edit predictions
+
+✅ Delete predictions
+
+✅ Reusable delete confirmation modal
+
+✅ Yesterday's Results page
+
+✅ Flash notification system
+
+✅ Prediction pages reorganized
+
+✅ Search groundwork already exists
+
+We'll review what's left in Phase 2 and tackle those items one by one before moving into the user dashboard and premium enhancements.
+
+We're making steady progress, and the project is becoming much more maintainable as these reusable components come together.
+
+
+kindly confirm what i have done here " const bcrypt = require("bcrypt");
+
+const Prediction = require("../models/predictionModel");
+
+const User = require("../models/userModel");
+
+exports.newLogin = (req, res) => {
+    res.render("login", {pageTitle: "Login"});
+};
+
+exports.newSignup = (req, res) => {
+    res.render("signup", {pageTitle: "Signup"});
+};
+
+exports.login = async (req, res) => {
+
+    try {
+        
+        // Validate input first
+        if (!req.body.login || !req.body.password) {
+
+            return res.render("failureLogin", {
+                pageTitle: "Failure Login",
+
+                message: "Invalid username/email or password."
+            });
+
+        }
+
+        // Search for the user
+        const user = await User.findOne({
+            $or: [
+                { username: req.body.login },
+                { email: req.body.login }
+            ]
+        });
+
+        // Check if user exists
+        if (!user) {
+
+            return res.render("failureLogin", {
+                pageTitle: "Failure Login",
+
+                message: "Invalid username/email or password."
+            });
+
+        }
+
+        // Compare password
+        const passwordMatch = await bcrypt.compare(
+            req.body.password,
+            user.password
+        );
+
+        if (!passwordMatch) {
+
+            return res.render("failureLogin", {
+                pageTitle: "Failure Login",
+
+                message: "Invalid username/email or password.."
+            });
+
+        }
+
+        // Create a session
+        req.session.user = {
+            _id: user._id,
+            username: user.username.toLowerCase().trim(),
+            email: user.email.toLowerCase().trim(),
+            role: user.role || "user"
+        };
+
+        console.log(req.session.user);
+
+        req.flash(
+            "success", 
+            "User Login successful."
+        );
+
+        // Redirect to the dashboard
+        res.redirect("/predictions/premium");
+
+    } catch (err) {
+
+        console.error(err);
+
+        res.render("failureLogin", {
+            pageTitle: "Failure Login",
+
+            message: "An unexpected error occurred."
+        });
+
+    }
+
+};
+
+
+
+exports.signup = async (req, res) => {
+
+    try {
+
+
+        if (
+            !req.body.username.toLowerCase().trim() ||
+            !req.body.email.toLowerCase().trim() ||
+            !req.body.password ||
+            !req.body.confirmPassword
+        ) {
+
+            return res.render("failure", {
+                pageTitle: "Failure",
+
+                message: "Password and Confirm Password does not Match."
+            });
+
+        }
+
+        const hashedPassword =
+            await bcrypt.hash(req.body.password, 10);
+
+
+        const existingUser = await User.findOne({
+                
+            $or: [
+                { username: req.body.username },
+                { email: req.body.email.toLowerCase().trim() }
+            ]
+        });
+
+        if (existingUser) {
+
+            return res.render("failure", {
+                pageTitle: "User Already Exists",
+
+                message: "User Already Exists."
+            });
+
+        }
+
+        const user = new User({
+
+            username: req.body.username.toLowerCase().trim(),
+
+            email: req.body.email.toLowerCase().trim(),
+
+            password: hashedPassword,
+
+            role: "user"
+
+        });
+
+        await user.save();
+
+        req.flash(
+            "success", 
+            "User updated successfully."
+        );
+        
+        return res.redirect("/auth/login", {
+            pageTitle: "Login"
+        });
+
+    }
+
+    catch(err){
+
+        console.error(err);
+
+        return res.render("failure", {
+
+            pageTitle: "Failure",
+
+            message: "An unexpected error occurred."
+
+        });
+
+    }
+
+};
+
+
+exports.logout = (req, res) => {
+
+    req.session.destroy((err) => {
+
+        if (err) {
+            console.error(err);
+            return res.redirect("/");
+        }
+
+        res.clearCookie("connect.sid");
+
+        req.flash(
+            "success", 
+            "Logout successful."
+        );
+
+        res.redirect("/");
+
+    });
+
+};
+
+
+exports.failure = (req, res) => {
+    res.render("failure", {
+        pageTitle: "Failure",
+        message: "An unexpected error occurred."
+    });
+};
+
+
+exports.success = (req, res) => {
+    res.render("success", {pageTitle: "Success"});
+};
+
+exports.contact = (req, res) => {
+    res.render("contact", {pageTitle: "Contact"});
+};
+
+exports.about = (req, res) => {
+    res.render("about", {pageTitle: "About"});
+};
+
+exports.career = (req, res) => {
+    res.render("career", {pageTitle: "Career"});
+};
+
+
+
+exports.send = async function(req, res) {
+
+    const { name, email, message } = req.body;
+
+    if (!name || !email || !message) {
+        return res.render("invalid", {pageTitle: "Invalid"});
+    }
+
+    try {
+
+        await sendTheEmail({
+            name,
+            email,
+            subject: New message from ${name} via profPredict,
+            html: 
+                <h2>New Contact Message(Prof Predict)</h2>
+
+                <p><strong>Name:</strong> ${name}</p>
+                <p><strong>Email:</strong> ${email}</p>
+
+                <h3>Message</h3>
+                <p>${message}</p>
+            
+        });
+
+        req.flash(
+            "success", 
+            "Message sent successfully."
+        );
+
+        return res.redirect("/auth/contact", {pageTitle: "Contact"});
+
+    } catch(error) {
+
+        console.log(error);
+
+        req.flash("failureMessage", "Message sending failed.");
+
+        return res.redirect("/auth/contact", {pageTitle: "Contact"});
+    }
+};
+
+
+
+exports.booking = async function(req, res) {
+
+    const { companyName, email, phone, enquiry, details } = req.body;
+
+    if (!companyName || !email || !phone || !enquiry || !details) {
+
+        req.flash(
+            "invalid", 
+            "All fields are required."
+        );
+        return res.redirect("/auth/contact", {pageTitle: "Contact"});
+    }
+
+    try {
+
+        await sendTheEmail({
+            name: companyName,
+            email,
+            subject: New consultation request from ${companyName},
+            html: 
+                <h2>New Consultation Request(Prof Predict)</h2>
+
+                <p><strong>Company:</strong> ${companyName}</p>
+                <p><strong>Email:</strong> ${email}</p>
+                <p><strong>Phone:</strong> ${phone}</p>
+                <p><strong>Enquiry:</strong> ${enquiry}</p>
+
+                <h3>Details</h3>
+                <p>${details}</p>
+            
+        });
+
+        req.flash(
+            "success", 
+            "Consultation message sent successfully."
+        );
+
+        return res.redirect("/auth/contact", {pageTitle: "Contact"});
+
+    } catch(error) {
+
+        console.log(error);
+
+        req.flash(
+            "failureBooking", 
+            "failed to send consultation message."
+        );
+
+        return res.redirect("/auth/contact", {pageTitle: "Contact"});
+    }
+};
+
+
+Overall, you've done a good job converting the controller to use flash messages. I'd give it 8.5/10 right now. There are a few important corrections to make before you continue with the rest of the app.
+
+1. ❌ res.redirect() does not accept a second argument
+You have this in several places:
+
+return res.redirect("/auth/login", {
+    pageTitle: "Login"
+});
+and
+
+return res.redirect("/auth/contact", {
+    pageTitle: "Contact"
+});
+This is incorrect.
+
+res.redirect() only accepts the URL (and optionally a status code).
+
+It should simply be:
+
+return res.redirect("/auth/login");
+and
+
+return res.redirect("/auth/contact");
+
+2. ❌ Login failures should use flash
+Instead of:
+
+return res.render("failureLogin", {
+    pageTitle: "Failure Login",
+    message: "Invalid username/email or password."
+});
+use:
+
+req.flash(
+    "error",
+    "Invalid username/email or password."
+);
+
+return res.redirect("/auth/login");
+Do this for:
+
+missing credentials
+
+user not found
+
+password mismatch
+
+3. ❌ Signup failures
+Instead of:
+
+return res.render("failure", ...)
+use:
+
+req.flash(
+    "error",
+    "Passwords do not match."
+);
+
+return res.redirect("/auth/signup");
+Likewise:
+
+req.flash(
+    "error",
+    "User already exists."
+);
+
+return res.redirect("/auth/signup");
+4. ❌ Signup success message
+You currently have:
+
+req.flash(
+    "success",
+    "User updated successfully."
+);
+That message is wrong.
+
+It should be:
+
+req.flash(
+    "success",
+    "Account created successfully. Please log in."
+);
+5. ⚠ Logout
+This is the biggest issue.
+
+You have:
+
+req.session.destroy((err) => {
+
+    req.flash(
+        "success",
+        "Logout successful."
+    );
+
+    res.redirect("/");
+});
+After
+
+req.session.destroy()
+the session is gone.
+
+connect-flash stores messages in the session, so the flash may not survive.
+
+A safer approach is to set the flash before destroying the session, or regenerate the session after logout if needed. Depending on your session store, the current code may not reliably display the logout message.
+
+6. ❌ You're inventing flash keys
+Your middleware exposes only:
+
+success
+error
+warning
+But later you do:
+
+req.flash("failureMessage", ...)
+req.flash("failureBooking", ...)
+req.flash("invalid", ...)
+Those will not display because your middleware never reads them.
+
+Instead use:
+
+req.flash("error", "Message sending failed.");
+and
+
+req.flash("error", "Failed to send consultation message.");
+and
+
+req.flash("error", "All fields are required.");
+7. Contact form
+Good:
+
+req.flash(
+    "success",
+    "Message sent successfully."
+);
+
+return res.redirect("/auth/contact");
+Perfect.
+
+8. Booking
+Same here.
+
+Success:
+
+req.flash(
+    "success",
+    "Consultation request sent successfully."
+);
+Failure:
+
+req.flash(
+    "error",
+    "Failed to send consultation request."
+);
+9. Remove these pages
+Once everything has been migrated, these become unnecessary for routine feedback:
+
+exports.failure = ...
+exports.success = ...
+You can remove those routes and views if nothing else depends on them.
+
+10. One small wording improvement
+Instead of:
+
+"User Login successful."
+I'd use:
+
+"Welcome back! You have logged in successfully."
+or simply:
+
+"Login successful."
+It reads more naturally.
+
+Final assessment
+You've clearly understood how connect-flash works. The remaining fixes are mostly about consistency:
+
+Use only the flash keys your middleware exposes (success, error, warning).
+
+Redirect after setting a flash instead of rendering failure pages.
+
+Don't pass objects to res.redirect().
+
+Update the signup success message.
+
+Review the logout flow because of req.session.destroy().
+
+Once you apply those changes, your authentication flow will be clean, consistent, and in line with the flash notification system you've just built. From there, finishing the remaining controllers should be much quicker.
+
+
+aiight..battery low now, let me to charge, we shall continue when i am plugged-in
+
+Sounds like a plan. 😄🔋
+
+You've made excellent progress this session. Here's a quick recap so you can pick up smoothly when you're back:
+
+✅ Completed today
+Reorganized prediction views into views/predictions/.
+
+Fixed all res.render() and EJS include() path issues.
+
+Fixed navigation links (/predictions/...).
+
+Successfully integrated connect-flash.
+
+Made the flash notification reusable.
+
+Moved the navbar into its own partial.
+
+Positioned the flash notifications correctly below the fixed navbar.
+
+Began converting controllers from res.render("success"/"failure") to req.flash() + res.redirect().
+
+🔜 Next session
+We'll:
+
+Finish refactoring the authentication controller.
+
+Standardize all flash messages (success, error, warning).
+
+Review the logout flow.
+
+Remove obsolete success.ejs and failure.ejs if they're no longer used.
+
+Continue with the next items in the roadmap.
+
+You're at a stage now where the application's architecture is becoming much cleaner and more maintainable. The reusable components you've introduced (delete modal, prediction card, navbar, flash notifications) will make future development much faster.
+
+Go get that battery charged 🔋. I'll be here when you're ready to continue building Prof Predict. Have a good break! 😊
+
+

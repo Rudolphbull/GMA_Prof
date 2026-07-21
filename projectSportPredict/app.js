@@ -7,6 +7,8 @@ const path = require("path");
 
 const { MongoStore } = require("connect-mongo");
 
+const flash = require("connect-flash");
+
 const homeRoutes = require("./routes/homeRoutes");
 
 const authRoutes = require("./routes/authRoutes");
@@ -51,13 +53,23 @@ app.use(
     })
 );
 
+
+app.use(flash());
+
 app.use((req, res, next) => {
 
     res.locals.user = req.session.user || null;
 
+    res.locals.success = req.flash("success");
+
+    res.locals.error = req.flash("error");
+
+    res.locals.warning = req.flash("warning");
+
     next();
 
 });
+
 
 app.use("/auth", authRoutes);
 
@@ -71,22 +83,67 @@ app.use("/predictions", predictionRoutes);
 
 //404 middleware
 app.use((req, res) => {
+
     res.status(404).render("404", {
-        pageTitle: "Page Not Found"
+
+        pageTitle: "404 - Page Not Found"
+
     });
+
 });
 
-//Global Error Handler
+
+
+// Otherwise render 500
+
+// Global Error Handler
 app.use((err, req, res, next) => {
-    console.log("Global error handler");
+
+    console.error("Global Error Handler:");
     console.error(err);
 
-    res.status(500).render("500", {
-        pageTitle: "Error",
-        message: err.message
+    const status = err.status || 500;
+
+    // Handle 403 and 404 with the reusable error page
+    if (status === 403 || status === 404) {
+
+        return res.status(status).render("404", {
+
+            pageTitle:
+                status === 403
+                    ? "403 - Access Denied"
+                    : "404 - Page Not Found",
+
+            message: err.message,
+
+            details: err.details
+
+        });
+
+    }
+
+    // Handle all other server errors
+    return res.status(500).render("500", {
+
+        pageTitle: "500 - Internal Server Error",
+
+        message:
+            process.env.NODE_ENV === "production"
+                ? "Oops! Something went wrong while processing your request."
+                : err.message,
+
+        details:
+            process.env.NODE_ENV === "production"
+                ? "Please try again later. If the problem persists, contact our support team."
+                : "An unexpected error occurred while processing this request.",
+
+        error:
+            process.env.NODE_ENV === "production"
+                ? null
+                : err
+
     });
+
 });
-
-
 
 module.exports = app;
