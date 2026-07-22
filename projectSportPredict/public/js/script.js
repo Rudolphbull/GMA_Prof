@@ -32,7 +32,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const deleteItemName = document.getElementById("deleteItemName");
 
+    const bulkAction = document.getElementById("bulkAction");
+
+    const deleteModalTitle = document.getElementById("deleteModalTitle");
+
+    const deleteMessage = document.getElementById("deleteMessage");
+
+
     let currentForm = null;
+
 
     deleteButtons.forEach(button => {
 
@@ -42,8 +50,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
             currentForm = button.closest("form");
 
+            document.getElementById("deleteModalTitle").textContent =
+                "Confirm Delete";
+
+            deleteMessage.textContent =
+                "Are you sure you want to delete this record?";
+
             deleteItemName.textContent =
                 button.dataset.name || "";
+
+            confirmDelete.textContent = "Delete";
 
             deleteModal.show();
 
@@ -83,3 +99,48 @@ document.addEventListener("DOMContentLoaded", () => {
 
 });
 
+
+function showFlash(message, type = "success") {
+
+    const existingFlash = document.querySelector(".client-flash");
+
+    if (existingFlash) {
+
+        existingFlash.remove();
+
+    }
+
+    const flash = document.createElement("div");
+
+    flash.className = `alert alert-${type} alert-dismissible fade show client-flash`;
+
+    flash.setAttribute("role", "alert");
+
+    flash.innerHTML = `
+
+        ${message}
+
+        <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+        ></button>
+
+    `;
+
+    const container = document.getElementById("flashContainer")
+    || document.body;
+
+    container.prepend(flash);
+
+    setTimeout(() => {
+
+        const bsAlert = bootstrap.Alert.getOrCreateInstance(flash);
+
+        bsAlert.close();
+
+    }, 5000);
+
+}
+
+window.showFlash = showFlash;

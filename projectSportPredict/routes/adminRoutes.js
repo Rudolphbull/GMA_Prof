@@ -44,6 +44,16 @@ router.get(
 );
 
 
+router.post(
+    "/predictions/bulk",
+    authMiddleware.isLoggedIn,
+    roleMiddleware.allowRoles(
+        ROLES.SUPERUSER,
+        ROLES.ADMIN
+    ),
+    predictionController.bulkAction
+);
+
 router.get(
     "/users/:id/edit",
     authMiddleware.isLoggedIn,

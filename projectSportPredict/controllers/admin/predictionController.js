@@ -17,6 +17,8 @@ exports.predictions = async (req, res, next) => {
 
         const league = req.query.league || "";
 
+        const sort = req.query.sort || "kickoff-desc";
+
         const minOdds = req.query.minOdds || "";
 
         const maxOdds = req.query.maxOdds || "";
@@ -31,12 +33,12 @@ exports.predictions = async (req, res, next) => {
 
         const skip = (page - 1) * limit;
 
-        const filters = {};
+        const filter = {};
 
 
         if (search) {
 
-            filters.$or = [
+            filter.$or = [
 
                 {
                     homeTeam: {
@@ -82,19 +84,32 @@ exports.predictions = async (req, res, next) => {
 
         }
 
+
+        if (country) {
+
+            filter.country = country;
+
+        }
+
+        if (league) {
+
+            filter.league = league;
+
+        }
+
         if (minOdds || maxOdds) {
 
-            filters.odds = {};
+            filter.odds = {};
 
             if (minOdds) {
 
-                filters.odds.$gte = parseFloat(minOdds);
+                filter.odds.$gte = parseFloat(minOdds);
 
             }
 
             if (maxOdds) {
 
-                filters.odds.$lte = parseFloat(maxOdds);
+                filter.odds.$lte = parseFloat(maxOdds);
 
             }
 
@@ -103,11 +118,11 @@ exports.predictions = async (req, res, next) => {
 
         if (dateFrom || dateTo) {
 
-            filters.kickoffTime = {};
+            filter.kickoffTime = {};
 
             if (dateFrom) {
 
-                filters.kickoffTime.$gte = new Date(dateFrom);
+                filter.kickoffTime.$gte = new Date(dateFrom);
 
             }
 
@@ -117,21 +132,64 @@ exports.predictions = async (req, res, next) => {
 
                 endDate.setHours(23,59,59,999);
 
-                filters.kickoffTime.$lte = endDate;
+                filter.kickoffTime.$lte = endDate;
 
             }
 
         }
 
 
+        let sortOption = {};
+
+            switch (sort) {
+
+                case "kickoff-asc":
+                    sortOption = { kickoffTime: 1 };
+                    break;
+
+                case "kickoff-desc":
+                    sortOption = { kickoffTime: -1 };
+                    break;
+
+                case "odds-asc":
+                    sortOption = { odds: 1 };
+                    break;
+
+                case "odds-desc":
+                    sortOption = { odds: -1 };
+                    break;
+
+                case "confidence-desc":
+                    sortOption = { confidence: -1 };
+                    break;
+
+                case "confidence-asc":
+                    sortOption = { confidence: 1 };
+                    break;
+
+                case "created-desc":
+                    sortOption = { createdAt: -1 };
+                    break;
+
+                case "created-asc":
+                    sortOption = { createdAt: 1 };
+                    break;
+
+                default:
+                    sortOption = { kickoffTime: -1 };
+
+            }
+
+
+
         const [predictions, totalPredictions, countries, leagues] = await Promise.all([
-            Prediction.find(filters)
+            Prediction.find(filter)
                 .populate("createdBy", "username")
-                .sort({ kickoffTime: -1 })
+                .sort(sortOption)
                 .skip(skip)
                 .limit(limit),
 
-            Prediction.countDocuments(filters),
+            Prediction.countDocuments(filter),
 
             Prediction.distinct("country"),
 
@@ -144,8 +202,6 @@ exports.predictions = async (req, res, next) => {
 
         const totalPages = Math.ceil(totalPredictions / limit);
 
-        console.log(countries);
-        console.log(leagues);
 
         res.render("admin/predictions", {
 
@@ -181,7 +237,9 @@ exports.predictions = async (req, res, next) => {
 
             dateFrom,
 
-            dateTo
+            dateTo,
+
+            sort
 
         });
 
@@ -193,6 +251,115 @@ exports.predictions = async (req, res, next) => {
 
 };
 
+
+exports.bulkAction = async (req, res, next) => {
+
+    try {
+
+        let { predictionIds, action } = req.body;
+
+
+        // Nothing selected
+        if (!predictionIds) {
+
+            req.flash(
+                "warning",
+                "Please select at least one prediction."
+            );
+
+            return res.redirect("/admin/predictions");
+
+        }
+
+        // Convert single checkbox to array
+        if (!Array.isArray(predictionIds)) {
+
+            predictionIds = [predictionIds];
+
+        }
+
+        
+        let message = "";
+
+        switch (action) {
+
+            case "won":
+
+                await Prediction.updateMany(
+                    { _id: { $in: predictionIds } },
+                    { status: "Won" }
+                );
+
+                message = `${predictionIds.length} prediction(s) marked as Won.`;
+                break;
+
+            case "lost":
+
+                await Prediction.updateMany(
+                    { _id: { $in: predictionIds } },
+                    { status: "Lost" }
+                );
+
+                message = `${predictionIds.length} prediction(s) marked as Lost.`;
+                break;
+
+            case "void":
+
+                await Prediction.updateMany(
+                    { _id: { $in: predictionIds } },
+                    { status: "Void" }
+                );
+
+                message = `${predictionIds.length} prediction(s) marked as Void.`;
+                break;
+
+            case "premium":
+
+                await Prediction.updateMany(
+                    { _id: { $in: predictionIds } },
+                    { isPremium: true }
+                );
+
+                message = `${predictionIds.length} prediction(s) upgraded to Premium.`;
+                break;
+
+            case "free":
+
+                await Prediction.updateMany(
+                    { _id: { $in: predictionIds } },
+                    { isPremium: false }
+                );
+
+                message = `${predictionIds.length} prediction(s) changed to Free.`;
+                break;
+
+            case "delete":
+
+                await Prediction.deleteMany({
+                    _id: { $in: predictionIds }
+                });
+
+                message = `${predictionIds.length} prediction(s) deleted successfully.`;
+                break;
+
+            default:
+
+                req.flash("error", "Invalid bulk action.");
+
+                return res.redirect("/admin/predictions");
+        }
+
+        req.flash("success", message);
+
+        res.redirect("/admin/predictions");
+
+    } catch (err) {
+
+        next(err);
+
+    }
+
+};
 
 exports.deletePrediction = async (req, res, next) => {
 

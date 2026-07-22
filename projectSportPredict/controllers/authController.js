@@ -106,7 +106,7 @@ exports.signup = async (req, res) => {
 
             req.flash(
                 "error",
-                "All fields are required."
+                "Please complete all required fields."
             );
 
 
@@ -150,7 +150,7 @@ exports.signup = async (req, res) => {
 
         req.flash(
             "success", 
-            "Account created successfully, please login."
+            "Account created successfully. please login."
         );
         
         return res.redirect("/auth/login");
@@ -163,7 +163,7 @@ exports.signup = async (req, res) => {
 
         req.flash(
             "error",
-            "An unexpected error occured."
+            "Failed to create user account. Try again."
         );
 
 
@@ -174,7 +174,14 @@ exports.signup = async (req, res) => {
 
 exports.logout = (req, res) => {
 
-    req.session.destroy((err) => {
+    req.session.user = null;
+
+    req.flash(
+        "success",
+        "Logout successful."
+    );
+
+    req.session.save((err) => {
 
         if (err) {
             console.error(err);
@@ -212,7 +219,7 @@ exports.send = async function(req, res) {
 
         req.flash(
             "error", 
-            "All fields are required."
+            "Please complete all required fields."
         );
     }
 
@@ -260,7 +267,7 @@ exports.booking = async function(req, res) {
 
         req.flash(
             "error", 
-            "All fields are required."
+            "Please complete all required fields."
         );
         return res.redirect("/auth/contact");
     }
