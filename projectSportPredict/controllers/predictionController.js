@@ -1,6 +1,7 @@
 
 const Prediction = require("../models/predictionModel");
 const expirePredictions = require("../utils/expirePredictions");
+const logActivity = require("../utils/activityLogger");
 
 exports.newPrediction = (req, res) => {
     res.render("predictions", {
@@ -72,6 +73,15 @@ exports.createPrediction = async (req, res, next) => {
 
         await newPrediction.save();
 
+        await logActivity({
+            action: "Prediction Created",
+            description: `${newPrediction.homeTeam} vs ${newPrediction.awayTeam}`,
+            icon: "bi-plus-circle-fill",
+            color: "success",
+            createdBy: req.session.user._id
+        });
+        
+
         req.flash(
             "success", 
             "Prediction created successfully."
@@ -126,7 +136,7 @@ exports.updatePrediction = async (req, res, next) => {
    
     try {
 
-        await Prediction.findByIdAndUpdate(
+        const updatedPrediction = await Prediction.findByIdAndUpdate(
             
             req.params.id,
             
@@ -153,6 +163,24 @@ exports.updatePrediction = async (req, res, next) => {
             
         );
 
+        if (!updatedPrediction) {
+
+            const err = new Error("Prediction not found.");
+
+            err.status = 404;
+
+            return next(err);
+
+        }
+
+        await logActivity({
+            action: "Prediction Updated",
+            description: `${updatedPrediction.homeTeam} vs ${updatedPrediction.awayTeam}`,
+            icon: "bi-pencil-square",
+            color: "info",
+            createdBy: req.session.user._id
+        });
+
         req.flash(
             "success", 
             "Prediction updated successfully."
@@ -166,11 +194,19 @@ exports.updatePrediction = async (req, res, next) => {
 };
 
 
-exports.deletePrediction = async (req, res, next) => {
+exports.deletedPrediction = async (req, res, next) => {
     const { redirectTo } = req.body;
     try {
 
         await Prediction.findByIdAndDelete(req.params.id);
+
+        await logActivity({
+            action: "Prediction Deleted",
+            description: `${deletedPrediction.homeTeam} vs ${deletedPrediction.awayTeam}`,
+            icon: "bi-trash-fill",
+            color: "danger",
+            createdBy: req.session.user._id
+        });
 
         req.flash("success", "Prediction deleted successfully.");
 

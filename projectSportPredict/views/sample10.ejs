@@ -1,0 +1,660 @@
+document.addEventListener("DOMContentLoaded", () => {
+
+    const selectAll = document.getElementById("selectAll");
+
+    const checkboxes = document.querySelectorAll(".prediction-checkbox");
+
+    const bulkForm = document.getElementById("bulkActionForm");
+
+    const bulkAction = document.getElementById("bulkAction");
+
+    let deleteConfirmed = false;
+
+
+    // ==========================
+    // Select / Deselect All
+    // ==========================
+
+    if (selectAll) {
+
+        selectAll.addEventListener("change", () => {
+
+            checkboxes.forEach(box => {
+
+                box.checked = selectAll.checked;
+
+            });
+
+        });
+
+    }
+
+
+    // ==========================
+    // Keep "Select All" in Sync
+    // ==========================
+
+    checkboxes.forEach(box => {
+
+        box.addEventListener("change", () => {
+
+            const checked = document.querySelectorAll(
+                ".prediction-checkbox:checked"
+            );
+
+            if (selectAll) {
+
+                selectAll.checked =
+                    checked.length === checkboxes.length;
+
+            }
+
+        });
+
+    });
+
+
+    // ==========================
+    // Bulk Actions
+    // ==========================
+
+    if (bulkForm) {
+
+        bulkForm.addEventListener("submit", (e) => {
+
+
+            // Remove previously created hidden inputs
+            bulkForm
+                .querySelectorAll("input[name='predictionIds']")
+                .forEach(input => input.remove());
+
+
+            // Get selected predictions
+            const selected = document.querySelectorAll(
+                ".prediction-checkbox:checked"
+            );
+
+
+            // Nothing selected
+            if (selected.length === 0) {
+
+                e.preventDefault();
+
+                window.showFlash(
+                    "Please select at least one prediction.",
+                    "warning"
+                );
+
+                return;
+
+            }
+
+
+            // Add hidden inputs
+            selected.forEach(box => {
+
+                const hidden = document.createElement("input");
+
+                hidden.type = "hidden";
+
+                hidden.name = "predictionIds";
+
+                hidden.value = box.value;
+
+                bulkForm.appendChild(hidden);
+
+            });
+
+
+            
+            // Confirm only Bulk Delete
+            if (bulkAction.value === "delete" && !deleteConfirmed) {
+
+                e.preventDefault();
+
+                window.openDeleteModal({
+
+                    form: bulkForm,
+
+                    title: "Bulk Delete Predictions",
+
+                    messageText:
+                        `Are you sure you want to delete ${selected.length} selected prediction(s)?`,
+
+                    buttonText: "Delete",
+
+                    buttonClass: "btn-danger"
+
+                });
+
+                return;
+
+            }
+window.deleteConfirmed = false;
+});
+
+
+
+
+
+ChatGPT
+
+
+
+
+
+Claim offer
+
+
+Pasted code.js
+JavaScript
+
+
+Pasted code(13).html
+File
+
+
+Pasted code(14).html
+File
+
+
+Pasted code(15).html
+File
+Aiight...let's go
+
+
+Pasted code(16).html
+File
+
+Aha!! 🔥🔥🔥
+
+Partner...I have found the real culprit. It is in the HTML you uploaded. 
+
+
+Look carefully.
+
+You have:
+
+<form
+    id="bulkActionForm"
+    method="POST"
+    action="/admin/predictions/bulk"
+>
+
+    ...
+
+</form>   <!-- FORM CLOSES HERE -->
+Then after the form has closed, you have:
+
+<div class="card shadow">
+
+    ...
+
+    <input
+        type="checkbox"
+        name="predictionIds"
+        class="prediction-checkbox"
+🚨 This is the problem.
+Your checkboxes are NOT inside the form.
+
+That means when the form submits...
+
+req.body.predictionIds
+is undefined.
+
+That's why we previously needed hidden inputs.
+
+THIS MUST BECOME
+<form
+    id="bulkActionForm"
+    method="POST"
+    action="/admin/predictions/bulk"
+>
+
+    <!-- Bulk Action Card -->
+
+    ...
+
+    <!-- Prediction Table -->
+
+    <div class="card shadow">
+
+        ...
+
+    </div>
+
+    <!-- Pagination -->
+
+    ...
+
+</form>
+In other words
+Delete THIS:
+
+</form>
+that appears immediately after:
+
+</div>
+
+</div>
+(the Bulk Action card)
+
+and move that closing </form> to AFTER the pagination.
+
+SECOND BUG
+Your Apply button is:
+
+<button
+    type="submit"
+    class="btn btn-success px-4"
+>
+This is good.
+
+I do NOT want to change this.
+
+THIRD BUG
+Your JS still contains:
+
+bulkForm.addEventListener("submit", ...)
+which is okay...
+
+BUT
+
+after the modal confirms,
+
+we must bypass this listener.
+
+Inside confirmationModal.js
+
+replace
+
+form.requestSubmit();
+with
+
+HTMLFormElement.prototype.submit.call(form);
+NOT
+
+form.submit();
+NOT
+
+requestSubmit();
+Use exactly:
+
+HTMLFormElement.prototype.submit.call(form);
+FOURTH BUG
+Your bulk-actions.js should NO LONGER contain ANY of these:
+
+❌
+
+let deleteConfirmed
+❌
+
+window.deleteConfirmed
+❌
+
+hidden.type = "hidden"
+❌
+
+bulkForm.appendChild(hidden)
+Delete all of them.
+
+I need ONE LAST THING
+We're now 95% there.
+
+Please paste your bulk controller.
+
+I want to see:
+
+exports.bulkAction = async (...)
+or whatever you've named it.
+
+I want to verify it's expecting:
+
+const { action, predictionIds } = req.body;
+Once I confirm that, I'm confident we'll have the entire bulk action flow working cleanly. 
+From what you've shared so far, the remaining blocker is the form structure in the template, 
+not the JavaScript logic itself.
+
+
+
+Pasted code(1).js
+JavaScript
+also confirm this for me userController.js codes "
+
+Partner...this controller has some good structure, but I found 8 issues that should be corrected 
+before we proceed. Some are bugs that will definitely cause runtime errors. 
+The good news is they're straightforward to fix.
+
+🔴 1. selectedIds is not defined (Critical)
+You repeatedly use:
+
+description: `${selectedIds.length} users changed to User(s).`
+But selectedIds does not exist anywhere in this controller. 
+
+
+It should be:
+
+description: `${userIds.length} users changed to User(s).`
+Replace every occurrence of:
+
+selectedIds.length
+with:
+
+userIds.length
+🔴 2. Wrong Model Used During Bulk Delete (Critical)
+In the "delete" case you have:
+
+await Prediction.deleteMany({
+    _id: { $in: userIds }
+});
+There is no Prediction model imported in this file, and this is the User Controller.
+
+It should be:
+
+await User.deleteMany({
+    _id: { $in: userIds }
+});
+🔴 3. Expired Action Updates to Active (Logic Bug)
+Your "expired" case currently does:
+
+subscriptionStatus: "Active"
+but the message says:
+
+Expired
+These contradict each other. 
+
+
+It should be:
+
+subscriptionStatus: "Expired"
+provided "Expired" is one of the allowed enum values in your User schema.
+
+🔴 4. role and subscriptionStatus Undefined in deleteUser
+In deleteUser you log:
+
+description:
+`${user.username} → Role: ${role}, Subscription: ${subscriptionStatus}`
+But role and subscriptionStatus are not defined in this function. 
+
+
+It should use the values from the user being deleted:
+
+description:
+`${user.username} → Role: ${user.role}, Subscription: ${user.subscriptionStatus}`
+🟡 5. Unused Variables
+You destructure:
+
+let { userIds, action, role, subscriptionStatus } = req.body;
+But role and subscriptionStatus are never used in bulkAction.
+
+This can simply be:
+
+let { userIds, action } = req.body;
+🟡 6. Action Names Must Match the Frontend
+Your switch expects values like:
+
+"user"
+"superuser"
+"admin"
+"inactive"
+"active"
+"expired"
+"delete"
+Make sure your <select> in users.ejs uses exactly these values. 
+If the frontend uses "User" or "Admin" (capitalized), the switch will fall into the default case.
+
+🟡 7. Protect the Last Superuser in Bulk Delete
+Your single delete prevents deleting the last superuser, but bulk delete does not.
+
+If someone selects the only superuser and chooses Delete Selected, this controller will delete it.
+
+You should add a similar safeguard before User.deleteMany().
+
+🟢 8. Good Things
+These parts are solid:
+
+✅ Pagination
+
+✅ Search
+
+✅ Filtering
+
+✅ Flash messages
+
+✅ Promise.all
+
+✅ logActivity
+
+✅ try/catch
+
+✅ next(err)
+
+Summary
+Issue	Status	Fix
+selectedIds undefined	❌	Use userIds.length
+Prediction.deleteMany()	❌	Change to User.deleteMany()
+"expired" updates to "Active"	❌	Update to "Expired" (if supported by your schema)
+role / subscriptionStatus undefined in deleteUser	❌	Use user.role and user.subscriptionStatus
+Unused destructured variables	⚠️	Remove role and subscriptionStatus
+Frontend action values	⚠️	Ensure they match the switch cases
+Bulk delete last superuser	⚠️	Add the same protection as single delete
+General structure	✅	Looks good
+My recommendation
+I would fix these issues before we continue with Bulk User Management. 
+Once these corrections are in place, the controller will be much more stable, 
+and we'll have a reliable backend to build the frontend bulk actions against.
+
+
+send complete recommendation codes
+
+Absolutely, partner. I went through your userController.js carefully 
+
+. Rather than patching individual lines, here's the complete set of code changes I recommend.
+
+1. Change the destructuring
+Replace this:
+
+let { userIds, action, role, subscriptionStatus } = req.body;
+with:
+
+let { userIds, action } = req.body;
+role and subscriptionStatus are not used in bulkAction().
+
+2. Replace every selectedIds.length
+Search for:
+
+selectedIds.length
+Replace every occurrence with:
+
+userIds.length
+For example, change:
+
+await logActivity({
+    action: "Bulk Role Update",
+    description: `${selectedIds.length} users changed to User(s).`,
+    icon: "bi-check-circle-fill",
+    color: "success",
+    createdBy: req.session.user._id
+});
+to:
+
+await logActivity({
+    action: "Bulk Role Update",
+    description: `${userIds.length} users changed to User(s).`,
+    icon: "bi-check-circle-fill",
+    color: "success",
+    createdBy: req.session.user._id
+});
+Do the same for:
+
+User
+
+Superuser
+
+Admin
+
+Active
+
+Inactive
+
+Expired
+
+Delete
+
+3. Fix Expired Status
+Replace:
+
+case "expired":
+
+    await User.updateMany(
+        { _id: { $in: userIds } },
+        { subscriptionStatus: "Active" }
+    );
+with:
+
+case "expired":
+
+    await User.updateMany(
+        { _id: { $in: userIds } },
+        { subscriptionStatus: "Expired" }
+    );
+Important: This only works if "Expired" is one of the allowed values in your subscriptionStatus enum. 
+If your schema only allows "active" and "inactive", you'll need to update the schema first.
+
+4. Fix Bulk Delete
+Replace:
+
+await Prediction.deleteMany({
+    _id: { $in: userIds }
+});
+with:
+
+await User.deleteMany({
+    _id: { $in: userIds }
+});
+5. Protect the Last Superuser (Recommended)
+Before:
+
+await User.deleteMany({
+    _id: { $in: userIds }
+});
+insert:
+
+const superUsers = await User.find({
+    _id: { $in: userIds },
+    role: "superuser"
+});
+
+const totalSuperUsers = await User.countDocuments({
+    role: "superuser"
+});
+
+if (
+    superUsers.length > 0 &&
+    superUsers.length === totalSuperUsers
+) {
+
+    req.flash(
+        "error",
+        "The last Superuser cannot be deleted."
+    );
+
+    return res.redirect("/admin/users");
+
+}
+This prevents someone from deleting the final Superuser account through bulk actions.
+
+6. Improve Bulk Delete Activity Log
+Replace:
+
+await logActivity({
+    action: "Bulk Delete Update",
+    description: `${userIds.length} users deleted`,
+    icon: "bi-trash-fill",
+    color: "warning",
+    createdBy: req.session.user._id
+});
+with:
+
+await logActivity({
+    action: "Bulk Delete",
+    description: `${userIds.length} user(s) deleted.`,
+    icon: "bi-trash-fill",
+    color: "danger",
+    createdBy: req.session.user._id
+});
+7. Fix deleteUser() Activity Log
+Replace:
+
+description:
+`${user.username} → Role: ${role}, Subscription: ${subscriptionStatus}`,
+with:
+
+description:
+`${user.username} → Role: ${user.role}, Subscription: ${user.subscriptionStatus}`,
+8. Improve Success Messages
+Instead of:
+
+message = `${userIds.length} user(s) changed to User(s).`;
+use:
+
+message = `${userIds.length} user(s) updated successfully.`;
+For delete:
+
+message = `${userIds.length} user(s) deleted successfully.`;
+This keeps the wording consistent across all bulk operations.
+
+9. Verify Your User Schema
+Your controller uses:
+
+role:
+"User"
+
+"Admin"
+
+"Superuser"
+
+and
+
+subscriptionStatus:
+"Active"
+
+"Inactive"
+
+"Expired"
+
+These values must exactly match the enums defined in models/userModel.js. 
+If your schema uses lowercase values (e.g. "user", "admin", "superuser"), then update the controller 
+to use those exact values.
+
+Overall Assessment
+I would rate this controller 8.5/10.
+
+Strengths
+Clean separation of concerns.
+
+Good use of Promise.all.
+
+Proper try/catch with next(err).
+
+Flash messages are consistent.
+
+Activity logging is integrated.
+
+Pagination and filtering are well structured.
+
+Required fixes
+Replace selectedIds with userIds.
+
+Use User.deleteMany() instead of Prediction.deleteMany().
+
+Fix the "expired" case.
+
+Correct the activity log in deleteUser().
+
+Add protection against deleting the last Superuser in bulk.
+
+Once those changes are made, the controller will be in good shape and ready to support the 
+Bulk User Management UI.
+
+

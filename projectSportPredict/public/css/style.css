@@ -752,10 +752,192 @@ box-shadow:var(--shadow-lg);
 
 }
 
+.card-body {
+    color: var(--text);
+}
+
 .form-alignment {
     margin-bottom: 30px;
     justify-content: center;
 }
+
+
+/* Admin Panel CSS */
+/* ===========================
+   Dashboard Cards
+=========================== */
+
+.dashboard-card{
+
+    border: none;
+
+    border-radius: 18px;
+
+    transition: all .30s ease;
+
+    cursor: pointer;
+
+}
+
+.dashboard-card:hover{
+
+    transform: translateY(-8px);
+
+    box-shadow: 0 15px 35px rgba(0,0,0,.15);
+
+}
+
+.dashboard-icon{
+
+    width:65px;
+
+    height:65px;
+
+    border-radius:50%;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    color:#fff;
+
+    font-size:1.7rem;
+
+}
+
+.dashboard-card small{
+
+    letter-spacing:1px;
+
+    font-weight:600;
+
+}
+
+/* ===========================
+   Status Cards
+=========================== */
+
+.status-card{
+
+    border-width:2px;
+
+    border-radius:18px;
+
+    transition:.30s;
+
+    cursor:pointer;
+
+}
+
+.status-card:hover{
+
+    transform:translateY(-8px);
+
+    box-shadow:0 15px 35px rgba(0,0,0,.15);
+
+}
+
+.status-card i{
+
+    transition:.30s;
+
+}
+
+.status-card:hover i{
+
+    transform:scale(1.15);
+
+}
+
+
+/* ==========================
+   Activity Feed
+========================== */
+
+.activity-feed{
+
+    max-height:420px;
+
+    overflow-y:auto;
+
+}
+
+/* Sticky Header */
+
+.card-header{
+
+    position:sticky;
+
+    top:0;
+
+    z-index:10;
+
+    background:#fff;
+
+}
+
+/* Activity Item */
+
+.activity-item{
+
+    transition:all .25s ease;
+
+}
+
+.activity-item:hover{
+
+    background:#f8f9fa;
+
+    transform:translateX(6px);
+
+}
+
+/* Activity Icon */
+
+.activity-icon{
+
+    width:50px;
+
+    height:50px;
+
+    border-radius:50%;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    color:#fff;
+
+    font-size:1.2rem;
+
+    flex-shrink:0;
+
+}
+
+/* Footer */
+
+.card-footer{
+
+    background:#fff;
+
+}
+
+.card-footer a{
+
+    font-weight:600;
+
+}
+
+.card-footer a:hover{
+
+    text-decoration:underline;
+
+}
+
 
 @media(max-width:991px){
 

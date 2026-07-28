@@ -52,7 +52,7 @@ router.post(
         ROLES.SUPERUSER,
         ROLES.ADMIN
     ),
-    predictionController.deletePrediction
+    predictionController.deletedPrediction
 );
 
 

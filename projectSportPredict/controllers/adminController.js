@@ -5,6 +5,7 @@ const expirePredictions = require("../utils/expirePredictions");
 
 
 
+
 exports.predictions = async (req, res, next) => {
 
     try {
@@ -109,3 +110,5 @@ exports.predictions = async (req, res, next) => {
     }
 
 };
+
+

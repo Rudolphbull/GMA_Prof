@@ -1,0 +1,859 @@
+const Prediction = require("../../models/predictionModel");
+const expirePredictions = require("../../utils/expirePredictions");
+const logActivity = require("../../utils/activityLogger");
+
+
+exports.predictions = async (req, res, next) => {
+
+    try {
+
+        await expirePredictions();
+
+        const search = req.query.search || "";
+
+        const status = req.query.status || "";
+
+        const premium = req.query.premium || "";
+
+        const country = req.query.country || "";
+
+        const league = req.query.league || "";
+
+        const sort = req.query.sort || "kickoff-desc";
+
+        const minOdds = req.query.minOdds || "";
+
+        const maxOdds = req.query.maxOdds || "";
+
+        const dateFrom = req.query.dateFrom || "";
+
+        const dateTo = req.query.dateTo || "";
+
+        const page = parseInt(req.query.page) || 1;
+
+        const limit = 10;
+
+        const skip = (page - 1) * limit;
+
+        const filter = {};
+
+
+        if (search) {
+
+            filter.$or = [
+
+                {
+                    homeTeam: {
+                        $regex: search,
+                        $options: "i"
+                    }
+                },
+
+                {
+                    awayTeam: {
+                        $regex: search,
+                        $options: "i"
+                    }
+                },
+
+                {
+                    league: {
+                        $regex: search,
+                        $options: "i"
+                    }
+                },
+
+                {
+                    country: {
+                        $regex: search,
+                        $options: "i"
+                    }
+                }
+
+            ];
+
+        }
+
+        if (status) {
+
+            filter.status = status;
+
+        }
+
+        if (premium) {
+
+            filter.isPremium = premium === "true";
+
+        }
+
+
+        if (country) {
+
+            filter.country = country;
+
+        }
+
+        if (league) {
+
+            filter.league = league;
+
+        }
+
+        if (minOdds || maxOdds) {
+
+            filter.odds = {};
+
+            if (minOdds) {
+
+                filter.odds.$gte = parseFloat(minOdds);
+
+            }
+
+            if (maxOdds) {
+
+                filter.odds.$lte = parseFloat(maxOdds);
+
+            }
+
+        }
+
+
+        if (dateFrom || dateTo) {
+
+            filter.kickoffTime = {};
+
+            if (dateFrom) {
+
+                filter.kickoffTime.$gte = new Date(dateFrom);
+
+            }
+
+            if (dateTo) {
+
+                const endDate = new Date(dateTo);
+
+                endDate.setHours(23,59,59,999);
+
+                filter.kickoffTime.$lte = endDate;
+
+            }
+
+        }
+
+
+        let sortOption = {};
+
+            switch (sort) {
+
+                case "kickoff-asc":
+                    sortOption = { kickoffTime: 1 };
+                    break;
+
+                case "kickoff-desc":
+                    sortOption = { kickoffTime: -1 };
+                    break;
+
+                case "odds-asc":
+                    sortOption = { odds: 1 };
+                    break;
+
+                case "odds-desc":
+                    sortOption = { odds: -1 };
+                    break;
+
+                case "confidence-desc":
+                    sortOption = { confidence: -1 };
+                    break;
+
+                case "confidence-asc":
+                    sortOption = { confidence: 1 };
+                    break;
+
+                case "created-desc":
+                    sortOption = { createdAt: -1 };
+                    break;
+
+                case "created-asc":
+                    sortOption = { createdAt: 1 };
+                    break;
+
+                default:
+                    sortOption = { kickoffTime: -1 };
+
+            }
+
+
+
+        const [predictions, totalPredictions, countries, leagues] = await Promise.all([
+            Prediction.find(filter)
+                .populate("createdBy", "username")
+                .sort(sortOption)
+                .skip(skip)
+                .limit(limit),
+
+            Prediction.countDocuments(filter),
+
+            Prediction.distinct("country"),
+
+            Prediction.distinct("league")
+        ]);
+
+        const cleanCountries = countries.filter(Boolean);
+        const cleanLeagues = leagues.filter(Boolean);
+
+
+        const totalPages = Math.ceil(totalPredictions / limit);
+
+
+        res.render("admin/predictions", {
+
+            pageTitle: "Manage Predictions",
+
+            predictions,
+
+            countries: cleanCountries,
+
+            leagues: cleanLeagues,
+
+            search,
+
+            status,
+
+            premium,
+
+            country,
+
+            league,
+
+            currentPage: page,
+
+            totalPages,
+
+            totalPredictions,
+
+            limit,
+
+            minOdds,
+
+            maxOdds,
+
+            dateFrom,
+
+            dateTo,
+
+            sort
+
+        });
+
+    } catch (err) {
+
+        next(err);
+
+    }
+
+};
+
+
+exports.bulkAction = async (req, res, next) => {
+
+    try {
+
+        let { predictionIds, action } = req.body;
+
+
+        // Nothing selected
+        if (!predictionIds) {
+
+            req.flash(
+                "warning",
+                "Please select at least one prediction."
+            );
+
+            return res.redirect("/admin/predictions");
+
+        }
+
+        // Convert single checkbox to array
+        if (!Array.isArray(predictionIds)) {
+
+            predictionIds = [predictionIds];
+
+        }
+
+        
+        let message = "";
+
+        switch (action) {
+
+            case "won":
+
+                await Prediction.updateMany(
+                    { _id: { $in: predictionIds } },
+                    { status: "Won" }
+                );
+
+                await logActivity({
+                    action: "Bulk Status Update",
+                    description: `${predictionIds.length} predictions marked as Won`,
+                    icon: "bi-check-circle-fill",
+                    color: "success",
+                    createdBy: req.session.user._id
+                });
+
+                message = `${predictionIds.length} prediction(s) marked as Won.`;
+                break;
+
+            case "lost":
+
+                await Prediction.updateMany(
+                    { _id: { $in: predictionIds } },
+                    { status: "Lost" }
+                );
+
+                await logActivity({
+                    action: "Bulk Status Update",
+                    description: `${predictionIds.length} predictions marked as Lost`,
+                    icon: "bi-check-circle-fill",
+                    color: "success",
+                    createdBy: req.session.user._id
+                });
+
+                message = `${predictionIds.length} prediction(s) marked as Lost.`;
+                break;
+
+            case "void":
+
+                await Prediction.updateMany(
+                    { _id: { $in: predictionIds } },
+                    { status: "Void" }
+                );
+
+                await logActivity({
+                    action: "Bulk Status Update",
+                    description: `${predictionIds.length} predictions marked as Void`,
+                    icon: "bi-check-circle-fill",
+                    color: "success",
+                    createdBy: req.session.user._id
+                });
+
+                message = `${predictionIds.length} prediction(s) marked as Void.`;
+                break;
+
+            case "premium":
+
+                await Prediction.updateMany(
+                    { _id: { $in: predictionIds } },
+                    { isPremium: true }
+                );
+
+                await logActivity({
+                    action: "Bulk Premium Update",
+                    description: `${predictionIds.length} predictions moved to Premium`,
+                    icon: "bi-gem",
+                    color: "warning",
+                    createdBy: req.session.user._id
+                });
+
+                message = `${predictionIds.length} prediction(s) upgraded to Premium.`;
+                break;
+
+            case "free":
+
+                await Prediction.updateMany(
+                    { _id: { $in: predictionIds } },
+                    { isPremium: false }
+                );
+
+                await logActivity({
+                    action: "Bulk Free Update",
+                    description: `${predictionIds.length} predictions moved to Free`,
+                    icon: "bi-unlock-fill",
+                    color: "warning",
+                    createdBy: req.session.user._id
+                });
+
+                message = `${predictionIds.length} prediction(s) changed to Free.`;
+                break;
+
+            case "delete":
+
+                await Prediction.deleteMany({
+                    _id: { $in: predictionIds }
+                });
+
+                await logActivity({
+                    action: "Bulk Delete Update",
+                    description: `${predictionIds.length} predictions deleted`,
+                    icon: "bi-trash-fill",
+                    color: "warning",
+                    createdBy: req.session.user._id
+                });
+
+                message = `${predictionIds.length} prediction(s) deleted successfully.`;
+                break;
+
+            default:
+
+                req.flash("error", "Invalid bulk action.");
+
+                return res.redirect("/admin/predictions");
+        }
+
+        req.flash("success", message);
+
+        res.redirect("/admin/predictions");
+
+    } catch (err) {
+
+        next(err);
+
+    }
+
+};
+
+exports.deletePrediction = async (req, res, next) => {
+
+    try {
+
+        const prediction = await Prediction.findById(req.params.id);
+
+        if (!prediction) {
+
+            const err = new Error("Prediction not found.");
+
+            err.status = 404;
+
+            err.details =
+                "The prediction you are trying to delete no longer exists.";
+
+            return next(err);
+
+        }
+
+        await Prediction.findByIdAndDelete(req.params.id);
+
+        await logActivity({
+            action: "Delete Prediction",
+            description: `${prediction.homeTeam} vs ${prediction.awayTeam} deleted`,
+            icon: "bi-trash-fill",
+            color: "danger",
+            createdBy: req.session.user._id
+        });
+
+        req.flash(
+            "success", 
+            "Prediction deleted successfully."
+        );
+
+        res.redirect("/admin/predictions");
+
+    } catch (err) {
+
+        next(err);
+
+    }
+
+};
+
+
+
+            <div class="card-body">
+
+                <form
+                    id="bulkActionForm"
+                    method="POST"
+                    action="/admin/predictions/bulk"
+                >
+
+                    <div class="row align-items-end">
+
+                        <div class="col-md-8">
+
+                            <label
+                                for="bulkAction"
+                                class="form-label text-light fw-semibold"
+                            >
+
+                                <i class="bi bi-lightning-charge"></i>
+
+                                Action
+
+                            </label>
+
+                            <select
+                                class="form-select"
+                                id="bulkAction"
+                                name="action"
+                                required
+                            >
+
+                                <option value="">
+
+                                    Select Action
+
+                                </option>
+
+                                <option value="won">
+
+                                    Mark as Won
+
+                                </option>
+
+                                <option value="lost">
+
+                                    Mark as Lost
+
+                                </option>
+
+                                <option value="void">
+
+                                    Mark as Void
+
+                                </option>
+
+                                <option value="premium">
+
+                                    Make Premium
+
+                                </option>
+
+                                <option value="free">
+
+                                    Make Free
+
+                                </option>
+
+                                <option value="delete">
+
+                                    Delete Selected
+
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                        <div class="col-md-4 text-end">
+
+                            <button
+                                type="submit"
+                                class="btn btn-success px-4"
+                            >
+
+                                <i class="bi bi-check-circle"></i>
+
+                                Apply
+
+                            </button>
+
+                        </div>
+
+                </div>
+
+            
+
+
+                <div class="card shadow">
+
+                    <div class="card-body">
+
+                        <div class="table-responsive">
+
+                            <table class="table table-hover align-middle">
+
+                                <thead>
+
+                                    <tr>
+
+                                        <th style="width:40px;">
+
+                                            <input
+                                                type="checkbox"
+                                                id="selectAll"
+                                                class="form-check-input"
+                                            >
+
+                                        </th>
+                                        <th>Match</th>
+                                        <th>Prediction</th>
+                                        <th>Odds</th>
+                                        <th>Status</th>
+                                        <th>Result</th>
+                                        <th>Premium</th>
+                                        <th>Kickoff</th>
+                                        <th>Actions</th>
+
+                                    </tr>
+
+                                </thead>
+
+                                <tbody>
+
+                                    <% if(predictions.length === 0){ %>
+
+                                        <tr>
+
+                                            <td colspan="9" class="text-center py-5">
+
+                                                <h5>No predictions found.</h5>
+
+                                                <p class="text-muted mb-0">
+
+                                                    Try adjusting your search or filters.
+
+                                                </p>
+
+                                            </td>
+
+                                        </tr>
+
+                                    <% } else { %>
+
+                                        <% predictions.forEach(prediction => { %>
+
+                                            <tr>
+
+                                                <td>
+
+                                                    <input
+                                                        type="checkbox"
+                                                        name="predictionIds"
+                                                        class="form-check-input prediction-checkbox"
+                                                        value="<%= prediction._id %>"
+                                                    >
+
+                                                </td>
+
+                                                <td>
+
+                                                    <strong>
+
+                                                        <%= prediction.homeTeam %>
+
+                                                    </strong>
+
+                                                    <br>
+
+                                                    <small class="text-muted">
+
+                                                        vs
+
+                                                        <%= prediction.awayTeam %>
+
+                                                    </small>
+
+                                                    <br>
+
+                                                    <small class="text-secondary">
+
+                                                        <%= prediction.league %>
+
+                                                    </small>
+
+                                                </td>
+
+                                                <td>
+
+                                                    <%= prediction.prediction %>
+
+                                                </td>
+
+                                                <td>
+
+                                                    <%= prediction.odds %>
+
+                                                </td>
+
+                                                <td>
+
+                                                    <% if(prediction.status === "Won"){ %>
+
+                                                        <span class="badge bg-success">
+
+                                                            Won
+
+                                                        </span>
+
+                                                    <% } else if(prediction.status === "Lost"){ %>
+
+                                                        <span class="badge bg-danger">
+
+                                                            Lost
+
+                                                        </span>
+
+                                                    <% } else if(prediction.status === "Void"){ %>
+
+                                                        <span class="badge bg-secondary">
+
+                                                            Void
+
+                                                        </span>
+
+                                                    <% } else if(prediction.status === "Expired"){ %>
+
+                                                        <span class="badge bg-dark">
+
+                                                            Expired
+
+                                                        </span>
+
+                                                    <% } else { %>
+
+                                                        <span class="badge bg-warning text-dark">
+
+                                                            Pending
+
+                                                        </span>
+
+                                                    <% } %>
+
+                                                </td>
+
+
+                                                <td>
+
+                                                    <%= prediction.result %>
+
+                                                </td>
+
+                                                <td>
+
+                                                    <% if(prediction.isPremium){ %>
+
+                                                        <span class="badge bg-success">
+
+                                                            Premium
+
+                                                        </span>
+
+                                                    <% } else { %>
+
+                                                        <span class="badge bg-primary">
+
+                                                            Free
+
+                                                        </span>
+
+                                                    <% } %>
+
+                                                </td>
+
+                                                <td>
+
+                                                    <%= new Date(prediction.kickoffTime).toLocaleString("en-NG") %>
+
+                                                </td>
+
+                                                <td>
+
+                                                    <a
+                                                        href="/predictions/<%= prediction._id %>/edit"
+                                                        class="btn btn-warning btn-sm mb-1"
+                                                    >
+
+                                                        <i class="bi bi-pencil-square"></i>
+
+                                                        Edit
+
+                                                    </a>
+
+                                                    <form
+                                                        action="/admin/predictions/<%= prediction._id %>/delete"
+                                                        method="POST"
+                                                        class="d-inline delete-form"
+                                                        data-title="Delete Prediction"
+                                                        data-message="Are you sure you want to delete this prediction?"
+                                                        data-item="<%= prediction.homeTeam %> vs <%= prediction.awayTeam %>"
+                                                        data-button="Delete"
+                                                        data-button-class="btn-danger"
+                                                    >
+
+                                                        <button
+                                                            type="submit"
+                                                            class="btn btn-danger btn-sm"
+                                                        >
+
+                                                            <i class="bi bi-trash"></i>
+
+                                                            Delete
+
+                                                        </button>
+
+                                                    </form>
+                                                    
+                                                </td>
+
+                                            </tr>
+
+                                        <% }) %>
+
+                                    <% } %>
+
+                                </tbody>
+                            </table>
+
+                        </div>
+
+                        
+                        <% if (totalPages > 1) { %>
+
+                            <nav class="mt-4">
+
+                                <ul class="pagination justify-content-center">
+
+                                    <!-- Previous -->
+
+                                    <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
+
+                                        <a
+                                            class="page-link"
+                                            href="/admin/predictions?page=<%= currentPage - 1 %>&search=<%= search %>&status=<%= status %>&premium=<%= premium %>&country=<%= country %>&league=<%= league %>&minOdds=<%= minOdds %>&maxOdds=<%= maxOdds %>&dateFrom=<%= dateFrom %>&dateTo=<%= dateTo %>&sort=<%= sort %>"
+                                        >
+                                            Previous
+                                        </a>
+
+                                    </li>
+
+                                    <!-- Page Numbers -->
+
+                                    <% for (let i = 1; i <= totalPages; i++) { %>
+
+                                        <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+
+                                            <a
+                                                class="page-link"
+                                                href="/admin/predictions?page=<%= i %>&search=<%= search %>&status=<%= status %>&premium=<%= premium %>&country=<%= country %>&league=<%= league %>&minOdds=<%= minOdds %>&maxOdds=<%= maxOdds %>&dateFrom=<%= dateFrom %>&dateTo=<%= dateTo %>&sort=<%= sort %>"
+                                            >
+                                                <%= i %>
+                                            </a>
+
+                                        </li>
+
+                                    <% } %>
+
+                                    <!-- Next -->
+
+                                        <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
+
+
+                                            <a
+                                                class="page-link"
+                                                href="/admin/predictions?page=<%= currentPage + 1 %>&search=<%= search %>&status=<%= status %>&premium=<%= premium %>&country=<%= country %>&league=<%= league %>&minOdds=<%= minOdds %>&maxOdds=<%= maxOdds %>&dateFrom=<%= dateFrom %>&dateTo=<%= dateTo %>&sort=<%= sort %>"
+                                            >
+                                                Next
+                                            </a>
+
+                                        </li>
+
+                                </ul>
+
+                            </nav>
+
+                                    <% } %>
+
+                        </form>
+                        
+                    </div>
+
+                </div>

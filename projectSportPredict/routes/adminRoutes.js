@@ -5,12 +5,16 @@ const router = express.Router();
 const dashboardController = require("../controllers/admin/dashboardController");
 const userController = require("../controllers/admin/userController");
 const predictionController = require("../controllers/admin/predictionController");
+const activitiesController = require("../controllers/admin/activitiesController");
+
 
 const authMiddleware = require("../middleware/authMiddleware");
 
 const roleMiddleware = require("../middleware/roleMiddleware");
 
 const ROLES = require("../config/roles");
+
+
 
 router.get(
     "/",
@@ -52,6 +56,17 @@ router.post(
         ROLES.ADMIN
     ),
     predictionController.bulkAction
+);
+
+
+router.post(
+    "/users/bulk",
+    authMiddleware.isLoggedIn,
+    roleMiddleware.allowRoles(
+        ROLES.SUPERUSER,
+        ROLES.ADMIN
+    ),
+    userController.bulkAction
 );
 
 router.get(
@@ -106,6 +121,15 @@ router.post(
         ROLES.ADMIN
     ),
     predictionController.deletePrediction
+);
+
+router.get("/activities", 
+    authMiddleware.isLoggedIn,
+    roleMiddleware.allowRoles(
+        ROLES.SUPERUSER,
+        ROLES.ADMIN
+    ),
+    activitiesController.activities
 );
 
 module.exports = router;

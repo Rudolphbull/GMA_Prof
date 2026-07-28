@@ -4,6 +4,8 @@ const Prediction = require("../models/predictionModel");
 
 const User = require("../models/userModel");
 
+const logActivity = require("../utils/activityLogger");
+
 exports.newLogin = (req, res) => {
     res.render("login", {pageTitle: "Login"});
 };
@@ -67,7 +69,13 @@ exports.login = async (req, res) => {
             role: user.role || "user"
         };
 
-        console.log(req.session.user);
+        await logActivity({
+            action: "User Login",
+            description: user.username,
+            icon: "bi-box-arrow-in-right",
+            color: "success",
+            createdBy: user._id
+        });
 
         req.flash(
             "success", 
@@ -147,6 +155,14 @@ exports.signup = async (req, res) => {
         });
 
         await user.save();
+
+        await logActivity({
+            action: "User Registered",
+            description: user.username,
+            icon: "bi-person-plus-fill",
+            color: "primary",
+            createdBy: user._id
+        });
 
         req.flash(
             "success", 

@@ -506,7 +506,7 @@
 
                 </div>
 
-            </form>
+            
 
         </div>
 
@@ -576,9 +576,11 @@
                                         <input
                                             type="checkbox"
                                             name="predictionIds"
-                                            class="form-check-input prediction-checkbox"
+                                            class="form-check-input bulk-checkbox"
+                                            data-bulk-checkbox
                                             value="<%= prediction._id %>"
                                         >
+
 
                                     </td>
 
@@ -795,13 +797,13 @@
 
             <% } %>
 
-            
+            </form>
         </div>
 
     </div>
 
 </section>
 
-<script src="/js/bulk-actions.js"></script>
+
 <%- include("../partials/deleteModal") %>
 <%- include("../partials/footer") -%>

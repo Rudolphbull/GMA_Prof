@@ -1,7 +1,12 @@
 const Prediction = require("../../models/predictionModel");
 const User = require("../../models/userModel");
 const expirePredictions = require("../../utils/expirePredictions");
+const Activity = require("../../models/activityModel");
+const dayjs = require("dayjs");
 
+const relativeTime = require("dayjs/plugin/relativeTime");
+
+dayjs.extend(relativeTime);
 
 exports.dashboard = async (req, res, next) => {
 
@@ -22,7 +27,8 @@ exports.dashboard = async (req, res, next) => {
             latestPredictions,
             recentUsers,
             userGrowth,
-            predictionGrowth
+            predictionGrowth,
+            recentActivities
             
         ]= await Promise.all([
 
@@ -143,8 +149,21 @@ exports.dashboard = async (req, res, next) => {
 
                 }
 
-            ])
+            ]),
+
+
+            Activity.find()
+            .populate("createdBy", "username")
+            .sort({ createdAt: -1 })
+            .limit(10)
+            
             ]);
+
+            recentActivities.forEach(activity => {
+
+                activity.timeAgo = dayjs(activity.createdAt).fromNow();
+
+            });
 
 
         const growthLabels = userGrowth.map(item => {
@@ -235,7 +254,8 @@ exports.dashboard = async (req, res, next) => {
             growthData,
 
             predictionGrowthLabels,
-            predictionGrowthData
+            predictionGrowthData,
+            recentActivities
 
         });
         

@@ -1,0 +1,2117 @@
+<!-- Current Bulk Action Codes -->
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const bulkForm = document.getElementById("bulkActionForm");
+    const bulkAction = document.getElementById("bulkAction");
+    const selectAll = document.getElementById("selectAll");
+
+    const checkboxes = document.querySelectorAll(
+    "[data-bulk-checkbox]"
+    );
+
+    if (!bulkForm) return;
+
+    // ==========================
+    // Select All
+    // ==========================
+    if (selectAll) {
+
+        selectAll.addEventListener("change", () => {
+
+            checkboxes.forEach(box => {
+
+                box.checked = selectAll.checked;
+
+            });
+
+        });
+
+    }
+
+    // ==========================
+    // Keep Select All In Sync
+    // ==========================
+    checkboxes.forEach(box => {
+
+        box.addEventListener("change", () => {
+
+            if (!selectAll) return;
+
+            selectAll.checked =
+                document.querySelectorAll("[data-bulk-checkbox]:checked").length
+                === checkboxes.length;
+
+        });
+
+    });
+
+    // ==========================
+    // Bulk Submit
+    // ==========================
+    bulkForm.addEventListener("submit", (e) => {
+
+        const selected =
+            document.querySelectorAll("[data-bulk-checkbox]:checked");
+
+        if (!selected.length) {
+
+            e.preventDefault();
+
+            if (window.showFlash) {
+                window.showFlash(
+                    "Please select at least one record.",
+                    "warning"
+                );
+            }
+
+            return;
+
+        }
+
+        if (!bulkAction || !bulkAction.value) {
+
+            e.preventDefault();
+
+            if (window.showFlash) {
+
+                window.showFlash(
+                    "Please choose a bulk action.",
+                    "warning"
+                );
+
+            }
+
+            return;
+
+        }
+
+        if (bulkAction.value === "delete") {
+
+            e.preventDefault();
+
+            if (window.openDeleteModal) {
+
+                window.openDeleteModal({
+
+                form: bulkForm,
+
+                title: "Confirm Bulk Delete",
+
+                messageText:
+                    `Are you sure you want to delete ${selected.length} selected record(s)?`,
+
+                buttonText: "Delete",
+
+                buttonClass: "btn-danger"
+
+            });
+
+        }
+            }
+
+            
+
+    });
+
+});
+
+
+<!-- Original Bulk Action Code -->
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const bulkForm = document.getElementById("bulkActionForm");
+    const bulkAction = document.getElementById("bulkAction");
+    const selectAll = document.getElementById("selectAll");
+    const checkboxes = document.querySelectorAll(".prediction-checkbox");
+
+    if (!bulkForm) return;
+
+    // ==========================
+    // Select All
+    // ==========================
+    if (selectAll) {
+
+        selectAll.addEventListener("change", () => {
+
+            checkboxes.forEach(box => {
+
+                box.checked = selectAll.checked;
+
+            });
+
+        });
+
+    }
+
+    // ==========================
+    // Keep Select All In Sync
+    // ==========================
+    checkboxes.forEach(box => {
+
+        box.addEventListener("change", () => {
+
+            if (!selectAll) return;
+
+            selectAll.checked =
+                document.querySelectorAll(".prediction-checkbox:checked").length
+                === checkboxes.length;
+
+        });
+
+    });
+
+    // ==========================
+    // Bulk Submit
+    // ==========================
+    bulkForm.addEventListener("submit", (e) => {
+
+        const selected =
+            document.querySelectorAll(".prediction-checkbox:checked");
+
+        if (!selected.length) {
+
+            e.preventDefault();
+
+            window.showFlash(
+                "Please select at least one prediction.",
+                "warning"
+            );
+
+            return;
+
+        }
+
+        if (!bulkAction.value) {
+
+            e.preventDefault();
+
+            window.showFlash(
+                "Please choose a bulk action.",
+                "warning"
+            );
+
+            return;
+
+        }
+
+        if (bulkAction.value === "delete") {
+
+            e.preventDefault();
+
+            window.openDeleteModal({
+
+                form: bulkForm,
+
+                title: "Bulk Delete Predictions",
+
+                messageText:
+                    `Are you sure you want to delete ${selected.length} selected prediction(s)?`,
+
+                buttonText: "Delete",
+
+                buttonClass: "btn-danger"
+
+            });
+
+        }
+
+    });
+
+});
+
+
+
+
+<!-- Current Prediction.ejs codes -->
+
+<%- include("../partials/header") -%>
+
+<section class="container py-5">
+
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <h1 class="mb-1">
+                Manage Predictions
+            </h1>
+
+            <p class="mb-0">
+
+                Showing
+
+                <strong>
+                    <%= predictions.length ? ((currentPage - 1) * limit) + 1 : 0 %>
+                </strong>
+
+                -
+
+                <strong>
+                    <%= ((currentPage - 1) * limit) + predictions.length %>
+                </strong>
+
+                of
+
+                <strong>
+                    <%= totalPredictions %>
+                </strong>
+
+                predictions
+
+            </p>
+
+        </div>
+
+        <a
+            href="/predictions/new"
+            class="btn btn-success"
+        >
+
+            <i class="bi bi-plus-circle"></i>
+
+            New Prediction
+
+        </a>
+
+    </div>
+
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-header bg-primary text-white">
+
+            <h5 class="mb-0 text-white">
+
+                <i class="bi bi-funnel"></i>
+
+                Filter Predictions
+
+            </h5>
+
+        </div>
+
+
+        <div class="card shadow-sm mb-4">
+
+            <div class="card-header bg-primary text-white">
+
+                <h5 class="mb-0">
+
+                    <i class="bi bi-check2-square me-2"></i>
+
+                    Bulk Actions
+
+                </h5>
+
+            </div>
+
+
+        
+            <div class="card-body">
+
+                <form
+                    id="bulkActionForm"
+                    method="POST"
+                    action="/admin/predictions/bulk"
+                >
+
+                    <div class="row align-items-end mb-4">
+
+                        <div class="col-md-8">
+
+                            <label
+                                for="bulkAction"
+                                class="form-label text-light fw-semibold"
+                            >
+
+                                <i class="bi bi-lightning-charge"></i>
+
+                                Action
+
+                            </label>
+
+                            <select
+                                class="form-select"
+                                id="bulkAction"
+                                name="action"
+                                required
+                            >
+
+                                <option value="">
+
+                                    Select Action
+
+                                </option>
+
+                                <option value="won">
+
+                                    Mark as Won
+
+                                </option>
+
+                                <option value="lost">
+
+                                    Mark as Lost
+
+                                </option>
+
+                                <option value="void">
+
+                                    Mark as Void
+
+                                </option>
+
+                                <option value="premium">
+
+                                    Make Premium
+
+                                </option>
+
+                                <option value="free">
+
+                                    Make Free
+
+                                </option>
+
+                                <option value="delete">
+
+                                    Delete Selected
+
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                        <div class="col-md-4 text-end">
+
+                            <button
+                                type="submit"
+                                class="btn btn-success px-4"
+                            >
+
+                                <i class="bi bi-check-circle"></i>
+
+                                Apply
+
+                            </button>
+
+                        </div>
+
+                </div>
+
+            
+
+
+                <div class="card shadow">
+
+                    <div class="card-body">
+
+                        <div class="table-responsive">
+
+                            <table class="table table-hover align-middle">
+
+                                <thead>
+
+                                    <tr>
+
+                                        <th style="width:40px;">
+
+                                            <input
+                                                type="checkbox"
+                                                id="selectAll"
+                                                class="form-check-input"
+                                            >
+
+                                        </th>
+                                        <th>Match</th>
+                                        <th>Prediction</th>
+                                        <th>Odds</th>
+                                        <th>Status</th>
+                                        <th>Result</th>
+                                        <th>Premium</th>
+                                        <th>Kickoff</th>
+                                        <th>Actions</th>
+
+                                    </tr>
+
+                                </thead>
+
+                                <tbody>
+
+                                    <% if(predictions.length === 0){ %>
+
+                                        <tr>
+
+                                            <td colspan="9" class="text-center py-5">
+
+                                                <h5>No predictions found.</h5>
+
+                                                <p class="text-muted mb-0">
+
+                                                    Try adjusting your search or filters.
+
+                                                </p>
+
+                                            </td>
+
+                                        </tr>
+
+                                    <% } else { %>
+
+                                        <% predictions.forEach(prediction => { %>
+
+                                            <tr>
+
+                                                <td>
+
+                                                    <!-- <input
+                                                        type="checkbox"
+                                                        name="predictionIds"
+                                                        class="form-check-input prediction-checkbox"
+                                                        value="<%= prediction._id %>"
+                                                    > -->
+
+                                                    <input
+                                                        type="checkbox"
+                                                        data-bulk-checkbox
+                                                        value="<%= prediction._id %>"
+                                                    >
+
+                                                </td>
+
+                                                <td>
+
+                                                    <strong>
+
+                                                        <%= prediction.homeTeam %>
+
+                                                    </strong>
+
+                                                    <br>
+
+                                                    <small class="text-muted">
+
+                                                        vs
+
+                                                        <%= prediction.awayTeam %>
+
+                                                    </small>
+
+                                                    <br>
+
+                                                    <small class="text-secondary">
+
+                                                        <%= prediction.league %>
+
+                                                    </small>
+
+                                                </td>
+
+                                                <td>
+
+                                                    <%= prediction.prediction %>
+
+                                                </td>
+
+                                                <td>
+
+                                                    <%= prediction.odds %>
+
+                                                </td>
+
+                                                <td>
+
+                                                    <% if(prediction.status === "Won"){ %>
+
+                                                        <span class="badge bg-success">
+
+                                                            Won
+
+                                                        </span>
+
+                                                    <% } else if(prediction.status === "Lost"){ %>
+
+                                                        <span class="badge bg-danger">
+
+                                                            Lost
+
+                                                        </span>
+
+                                                    <% } else if(prediction.status === "Void"){ %>
+
+                                                        <span class="badge bg-secondary">
+
+                                                            Void
+
+                                                        </span>
+
+                                                    <% } else if(prediction.status === "Expired"){ %>
+
+                                                        <span class="badge bg-dark">
+
+                                                            Expired
+
+                                                        </span>
+
+                                                    <% } else { %>
+
+                                                        <span class="badge bg-warning text-dark">
+
+                                                            Pending
+
+                                                        </span>
+
+                                                    <% } %>
+
+                                                </td>
+
+
+                                                <td>
+
+                                                    <%= prediction.result %>
+
+                                                </td>
+
+                                                <td>
+
+                                                    <% if(prediction.isPremium){ %>
+
+                                                        <span class="badge bg-success">
+
+                                                            Premium
+
+                                                        </span>
+
+                                                    <% } else { %>
+
+                                                        <span class="badge bg-primary">
+
+                                                            Free
+
+                                                        </span>
+
+                                                    <% } %>
+
+                                                </td>
+
+                                                <td>
+
+                                                    <%= new Date(prediction.kickoffTime).toLocaleString("en-NG") %>
+
+                                                </td>
+
+                                                <td>
+
+                                                    <a
+                                                        href="/predictions/<%= prediction._id %>/edit"
+                                                        class="btn btn-warning btn-sm mb-1"
+                                                    >
+
+                                                        <i class="bi bi-pencil-square"></i>
+
+                                                        Edit
+
+                                                    </a>
+
+                                                    <form
+                                                        action="/admin/predictions/<%= prediction._id %>/delete"
+                                                        method="POST"
+                                                        class="d-inline delete-form"
+                                                        data-title="Delete Prediction"
+                                                        data-message="Are you sure you want to delete this prediction?"
+                                                        data-item="<%= prediction.homeTeam %> vs <%= prediction.awayTeam %>"
+                                                        data-button="Delete"
+                                                        data-button-class="btn-danger"
+                                                    >
+
+                                                        <button
+                                                            type="submit"
+                                                            class="btn btn-danger btn-sm"
+                                                        >
+
+                                                            <i class="bi bi-trash"></i>
+
+                                                            Delete
+
+                                                        </button>
+
+                                                    </form>
+                                                    
+                                                </td>
+
+                                            </tr>
+
+                                        <% }) %>
+
+                                    <% } %>
+
+                                </tbody>
+                            </table>
+
+                        </div>
+
+                        
+                        <% if (totalPages > 1) { %>
+
+                            <nav class="mt-4">
+
+                                <ul class="pagination justify-content-center">
+
+                                    <!-- Previous -->
+
+                                    <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
+
+                                        <a
+                                            class="page-link"
+                                            href="/admin/predictions?page=<%= currentPage - 1 %>&search=<%= search %>&status=<%= status %>&premium=<%= premium %>&country=<%= country %>&league=<%= league %>&minOdds=<%= minOdds %>&maxOdds=<%= maxOdds %>&dateFrom=<%= dateFrom %>&dateTo=<%= dateTo %>&sort=<%= sort %>"
+                                        >
+                                            Previous
+                                        </a>
+
+                                    </li>
+
+                                    <!-- Page Numbers -->
+
+                                    <% for (let i = 1; i <= totalPages; i++) { %>
+
+                                        <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+
+                                            <a
+                                                class="page-link"
+                                                href="/admin/predictions?page=<%= i %>&search=<%= search %>&status=<%= status %>&premium=<%= premium %>&country=<%= country %>&league=<%= league %>&minOdds=<%= minOdds %>&maxOdds=<%= maxOdds %>&dateFrom=<%= dateFrom %>&dateTo=<%= dateTo %>&sort=<%= sort %>"
+                                            >
+                                                <%= i %>
+                                            </a>
+
+                                        </li>
+
+                                    <% } %>
+
+                                    <!-- Next -->
+
+                                        <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
+
+
+                                            <a
+                                                class="page-link"
+                                                href="/admin/predictions?page=<%= currentPage + 1 %>&search=<%= search %>&status=<%= status %>&premium=<%= premium %>&country=<%= country %>&league=<%= league %>&minOdds=<%= minOdds %>&maxOdds=<%= maxOdds %>&dateFrom=<%= dateFrom %>&dateTo=<%= dateTo %>&sort=<%= sort %>"
+                                            >
+                                                Next
+                                            </a>
+
+                                        </li>
+
+                                </ul>
+
+                            </nav>
+
+                                    <% } %>
+
+                        </form>
+                        
+                    </div>
+
+                </div>
+
+</section>
+
+<%- include("../partials/deleteModal") %>
+<%- include("../partials/footer") -%>
+
+
+
+<!-- Original Prediction.ejs code -->
+
+<%- include("../partials/header") -%>
+
+<section class="container py-5">
+
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <h1 class="mb-1">
+                Manage Predictions
+            </h1>
+
+            <p class="mb-0">
+
+                Showing
+
+                <strong>
+                    <%= predictions.length ? ((currentPage - 1) * limit) + 1 : 0 %>
+                </strong>
+
+                -
+
+                <strong>
+                    <%= ((currentPage - 1) * limit) + predictions.length %>
+                </strong>
+
+                of
+
+                <strong>
+                    <%= totalPredictions %>
+                </strong>
+
+                predictions
+
+            </p>
+
+        </div>
+
+        <a
+            href="/predictions/new"
+            class="btn btn-success"
+        >
+
+            <i class="bi bi-plus-circle"></i>
+
+            New Prediction
+
+        </a>
+
+    </div>
+
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-header bg-primary text-white">
+
+            <h5 class="mb-0 text-white">
+
+                <i class="bi bi-funnel"></i>
+
+                Filter Predictions
+
+            </h5>
+
+        </div>
+
+        
+            <div class="card-body">
+
+                <form
+                    id="bulkActionForm"
+                    method="POST"
+                    action="/admin/predictions/bulk"
+                >
+
+                    <div class="row align-items-end mb-4">
+
+                        <div class="col-md-8">
+
+                            <label
+                                for="bulkAction"
+                                class="form-label text-light fw-semibold"
+                            >
+
+                                <i class="bi bi-lightning-charge"></i>
+
+                                Action
+
+                            </label>
+
+                            <select
+                                class="form-select"
+                                id="bulkAction"
+                                name="action"
+                                required
+                            >
+
+                                <option value="">
+
+                                    Select Action
+
+                                </option>
+
+                                <option value="won">
+
+                                    Mark as Won
+
+                                </option>
+
+                                <option value="lost">
+
+                                    Mark as Lost
+
+                                </option>
+
+                                <option value="void">
+
+                                    Mark as Void
+
+                                </option>
+
+                                <option value="premium">
+
+                                    Make Premium
+
+                                </option>
+
+                                <option value="free">
+
+                                    Make Free
+
+                                </option>
+
+                                <option value="delete">
+
+                                    Delete Selected
+
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                        <div class="col-md-4 text-end">
+
+                            <button
+                                type="submit"
+                                class="btn btn-success px-4"
+                            >
+
+                                <i class="bi bi-check-circle"></i>
+
+                                Apply
+
+                            </button>
+
+                        </div>
+
+                </div>
+
+            
+
+
+                <div class="card shadow">
+
+                    <div class="card-body">
+
+                        <div class="table-responsive">
+
+                            <table class="table table-hover align-middle">
+
+                                <thead>
+
+                                    <tr>
+
+                                        <th style="width:40px;">
+
+                                            <input
+                                                type="checkbox"
+                                                id="selectAll"
+                                                class="form-check-input"
+                                            >
+
+                                        </th>
+                                        <th>Match</th>
+                                        <th>Prediction</th>
+                                        <th>Odds</th>
+                                        <th>Status</th>
+                                        <th>Result</th>
+                                        <th>Premium</th>
+                                        <th>Kickoff</th>
+                                        <th>Actions</th>
+
+                                    </tr>
+
+                                </thead>
+
+                                <tbody>
+
+                                    <% if(predictions.length === 0){ %>
+
+                                        <tr>
+
+                                            <td colspan="9" class="text-center py-5">
+
+                                                <h5>No predictions found.</h5>
+
+                                                <p class="text-muted mb-0">
+
+                                                    Try adjusting your search or filters.
+
+                                                </p>
+
+                                            </td>
+
+                                        </tr>
+
+                                    <% } else { %>
+
+                                        <% predictions.forEach(prediction => { %>
+
+                                            <tr>
+
+                                                <td>
+
+                                                    <input
+                                                        type="checkbox"
+                                                        name="predictionIds"
+                                                        class="form-check-input prediction-checkbox"
+                                                        value="<%= prediction._id %>"
+                                                    >
+
+                                                </td>
+
+                                                <td>
+
+                                                    <strong>
+
+                                                        <%= prediction.homeTeam %>
+
+                                                    </strong>
+
+                                                    <br>
+
+                                                    <small class="text-muted">
+
+                                                        vs
+
+                                                        <%= prediction.awayTeam %>
+
+                                                    </small>
+
+                                                    <br>
+
+                                                    <small class="text-secondary">
+
+                                                        <%= prediction.league %>
+
+                                                    </small>
+
+                                                </td>
+
+                                                <td>
+
+                                                    <%= prediction.prediction %>
+
+                                                </td>
+
+                                                <td>
+
+                                                    <%= prediction.odds %>
+
+                                                </td>
+
+                                                <td>
+
+                                                    <% if(prediction.status === "Won"){ %>
+
+                                                        <span class="badge bg-success">
+
+                                                            Won
+
+                                                        </span>
+
+                                                    <% } else if(prediction.status === "Lost"){ %>
+
+                                                        <span class="badge bg-danger">
+
+                                                            Lost
+
+                                                        </span>
+
+                                                    <% } else if(prediction.status === "Void"){ %>
+
+                                                        <span class="badge bg-secondary">
+
+                                                            Void
+
+                                                        </span>
+
+                                                    <% } else if(prediction.status === "Expired"){ %>
+
+                                                        <span class="badge bg-dark">
+
+                                                            Expired
+
+                                                        </span>
+
+                                                    <% } else { %>
+
+                                                        <span class="badge bg-warning text-dark">
+
+                                                            Pending
+
+                                                        </span>
+
+                                                    <% } %>
+
+                                                </td>
+
+
+                                                <td>
+
+                                                    <%= prediction.result %>
+
+                                                </td>
+
+                                                <td>
+
+                                                    <% if(prediction.isPremium){ %>
+
+                                                        <span class="badge bg-success">
+
+                                                            Premium
+
+                                                        </span>
+
+                                                    <% } else { %>
+
+                                                        <span class="badge bg-primary">
+
+                                                            Free
+
+                                                        </span>
+
+                                                    <% } %>
+
+                                                </td>
+
+                                                <td>
+
+                                                    <%= new Date(prediction.kickoffTime).toLocaleString("en-NG") %>
+
+                                                </td>
+
+                                                <td>
+
+                                                    <a
+                                                        href="/predictions/<%= prediction._id %>/edit"
+                                                        class="btn btn-warning btn-sm mb-1"
+                                                    >
+
+                                                        <i class="bi bi-pencil-square"></i>
+
+                                                        Edit
+
+                                                    </a>
+
+                                                    <form
+                                                        action="/admin/predictions/<%= prediction._id %>/delete"
+                                                        method="POST"
+                                                        class="d-inline delete-form"
+                                                        data-title="Delete Prediction"
+                                                        data-message="Are you sure you want to delete this prediction?"
+                                                        data-item="<%= prediction.homeTeam %> vs <%= prediction.awayTeam %>"
+                                                        data-button="Delete"
+                                                        data-button-class="btn-danger"
+                                                    >
+
+                                                        <button
+                                                            type="submit"
+                                                            class="btn btn-danger btn-sm"
+                                                        >
+
+                                                            <i class="bi bi-trash"></i>
+
+                                                            Delete
+
+                                                        </button>
+
+                                                    </form>
+                                                    
+                                                </td>
+
+                                            </tr>
+
+                                        <% }) %>
+
+                                    <% } %>
+
+                                </tbody>
+                            </table>
+
+                        </div>
+
+                        
+                        <% if (totalPages > 1) { %>
+
+                            <nav class="mt-4">
+
+                                <ul class="pagination justify-content-center">
+
+                                    <!-- Previous -->
+
+                                    <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
+
+                                        <a
+                                            class="page-link"
+                                            href="/admin/predictions?page=<%= currentPage - 1 %>&search=<%= search %>&status=<%= status %>&premium=<%= premium %>&country=<%= country %>&league=<%= league %>&minOdds=<%= minOdds %>&maxOdds=<%= maxOdds %>&dateFrom=<%= dateFrom %>&dateTo=<%= dateTo %>&sort=<%= sort %>"
+                                        >
+                                            Previous
+                                        </a>
+
+                                    </li>
+
+                                    <!-- Page Numbers -->
+
+                                    <% for (let i = 1; i <= totalPages; i++) { %>
+
+                                        <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+
+                                            <a
+                                                class="page-link"
+                                                href="/admin/predictions?page=<%= i %>&search=<%= search %>&status=<%= status %>&premium=<%= premium %>&country=<%= country %>&league=<%= league %>&minOdds=<%= minOdds %>&maxOdds=<%= maxOdds %>&dateFrom=<%= dateFrom %>&dateTo=<%= dateTo %>&sort=<%= sort %>"
+                                            >
+                                                <%= i %>
+                                            </a>
+
+                                        </li>
+
+                                    <% } %>
+
+                                    <!-- Next -->
+
+                                        <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
+
+
+                                            <a
+                                                class="page-link"
+                                                href="/admin/predictions?page=<%= currentPage + 1 %>&search=<%= search %>&status=<%= status %>&premium=<%= premium %>&country=<%= country %>&league=<%= league %>&minOdds=<%= minOdds %>&maxOdds=<%= maxOdds %>&dateFrom=<%= dateFrom %>&dateTo=<%= dateTo %>&sort=<%= sort %>"
+                                            >
+                                                Next
+                                            </a>
+
+                                        </li>
+
+                                </ul>
+
+                            </nav>
+
+                                    <% } %>
+
+                        </form>
+                        
+                    </div>
+
+                </div>
+
+</section>
+
+<%- include("../partials/deleteModal") %>
+<%- include("../partials/footer") -%>
+
+
+<!-- Current user.ejs codes -->
+
+<%- include("../partials/header") -%>
+
+    <section class="container py-5">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+
+            <div>
+                
+                <h1 class="mb-4">
+
+                    Manage Users
+
+                </h1>
+
+                <p class="mb-3">
+
+                    Showing
+
+                    <strong>
+
+                        <%= users.length ? ((currentPage - 1) * limit) + 1 : 0 %>
+
+                    </strong>
+
+                    -
+
+                    <strong>
+
+                        <%= ((currentPage - 1) * limit) + users.length %>
+
+                    </strong>
+
+                    of
+
+                    <strong>
+
+                        <%= totalUsers %>
+
+                    </strong>
+
+                    users
+
+                </p>
+                
+            </div>
+
+
+            <a
+                href="/auth/signup"
+                class="btn btn-success"
+            >
+
+                <i class="bi bi-plus-circle"></i>
+
+                New User
+
+            </a>
+
+        </div>
+
+
+                    <div class="card shadow-sm mb-4">
+
+                            <div class="card-header bg-primary text-white">
+
+                                <h5 class="mb-0 text-white">
+
+                                    <i class="bi bi-funnel me-2"></i>
+
+                                    Filter Users
+
+                                </h5>
+                            </div>
+
+                        <div class="card-body">
+                    
+
+                            <form 
+                            
+                                method="GET" 
+                                
+                                action="/admin/users"
+                            >
+
+                        <!-- Row 1 -->
+                            <div class="row g-3 mb-3">
+
+                                <div class="col-md-5">
+
+                                        <label for="search" class="form-label text-light fw-semibold">
+                                            <i class="bi bi-search"></i>
+                                            Search
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            name="search"
+                                            id="search"
+                                            class="form-control"
+                                            placeholder="Search username or email..."
+                                            value="<%= search || '' %>"
+                                        >
+
+                                    </div>
+
+
+                                    <div class="col-md-3">
+
+                                        <label for="role" class="form-label text-light">
+                                            👥 Role
+                                        </label>
+
+                                        <select
+                                            name="role"
+                                            class="form-select"
+                                            id="role"
+                                        >
+
+                                            <option value="">All Roles</option>
+
+                                            <option
+                                                value="user"
+                                                <%= role === "user" ? "selected" : "" %>>
+                                                User
+                                            </option>
+
+                                            <option
+                                                value="admin"
+                                                <%= role === "admin" ? "selected" : "" %>>
+                                                Admin
+                                            </option>
+
+                                            <option
+                                                value="superuser"
+                                                <%= role === "superuser" ? "selected" : "" %>>
+                                                Superuser
+                                            </option>
+
+                                        </select>
+
+                                    </div>
+
+
+                                    <div class="col-md-4">
+
+                                        
+                                        <label for="subscription" class="form-label text-light fw-semibold">
+                                            <i class="bi bi-clipboard-check"></i>
+
+                                            Subscription
+                                        </label>
+
+
+                                        <select
+                                            name="subscription"
+                                            class="form-select"
+                                            id="subscription"
+                                        >
+
+                                            <option value="">All Subscriptions</option>
+
+                                            <option
+                                                value="active"
+                                                <%= subscription === "active" ? "selected" : "" %>>
+                                                Premium
+                                            </option>
+
+                                            <option
+                                                value="inactive"
+                                                <%= subscription === "inactive" ? "selected" : "" %>>
+                                                Free
+                                            </option>
+
+                                            <option
+                                                value="expired"
+                                                <%= subscription === "expired" ? "selected" : "" %>>
+                                                Free
+                                            </option>
+
+                                        </select>
+
+                                    </div>
+                            </div>
+                            
+                            
+                                        
+                            <!-- Buttons -->
+                            <div class="row">
+
+                                <div class="col text-end">
+
+
+                                    <button class="btn btn-primary btn-lg px-4 me-2">
+
+                                            <i class="bi bi-funnel"></i>
+
+                                            Filter
+
+                                    </button>
+
+                                     <a
+                                            href="/admin/users"
+                                            class="btn btn-outline-secondary"
+                                        >
+
+                                        <i class="bi bi-arrow-counterclockwise"></i>
+
+                                            Clear
+
+                                    </a>
+
+
+                                </div>
+
+                            </div>  
+
+                            </form>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="card shadow-sm mb-4">
+
+                        <div class="card-header bg-primary text-white">
+
+                            <h5 class="mb-0">
+
+                                <i class="bi bi-check2-square me-2"></i>
+
+                                Bulk Actions
+
+                            </h5>
+
+                        </div>
+
+                        <div class="card-body">
+
+                            <form
+                                id="bulkActionForm"
+                                method="POST"
+                                action="/admin/users/bulk"
+                            >
+
+                                <div class="row align-items-end mb-4">
+
+                                    <div class="col-md-8">
+
+                                        <label
+                                            for="bulkAction"
+                                            class="form-label text-light fw-semibold"
+                                        >
+
+                                            <i class="bi bi-lightning-charge"></i>
+
+                                            Action
+
+                                        </label>
+
+                                        <select
+                                            class="form-select"
+                                            id="bulkAction"
+                                            name="action"
+                                            required
+                                        >
+
+                                            <option value="">
+
+                                                Select Action
+
+                                            </option>
+
+                                            <option value="user">
+
+                                                Change to User
+
+                                            </option>
+
+                                            <option value="superuser">
+
+                                                Change to Superuser
+
+                                            </option>
+
+                                            <option value="admin">
+
+                                                Change to Admin
+
+                                            </option>
+
+                                            <option value="inactive">
+
+                                                Change to Inactive
+
+                                            </option>
+
+                                            <option value="active">
+
+                                                Change to Active
+
+                                            </option>
+
+                                            <option value="expired">
+
+                                                Change to Expired
+
+                                            </option>
+
+                                            <option value="delete">
+
+                                                Delete Selected
+
+                                            </option>
+
+                                        </select>
+
+                                    </div>
+
+                                    <div class="col-md-4 text-end">
+
+                                        <button
+                                            type="submit"
+                                            class="btn btn-success px-4"
+                                        >
+
+                                            <i class="bi bi-check-circle"></i>
+
+                                            Apply
+
+                                        </button>
+
+                                    </div>
+
+                            </div>
+
+                        
+
+                    <table class="table table-hover align-middle">
+
+                        <thead>
+
+                            <tr>
+
+                                <th style="width:40px;">
+
+                                    <input
+                                        type="checkbox"
+                                        id="selectAll"
+                                        class="form-check-input"
+                                    >
+
+                                </th>
+
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Subscription</th>
+                                <th>Joined</th>
+                                <th>Actions</th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            <% if(users.length === 0){ %>
+
+                            <tr>
+
+                                <td colspan="7" class="text-center py-5">
+
+                                    <h5>No users found.</h5>
+
+                                    <p class="text-muted">
+
+                                        Try another search.
+
+                                    </p>
+
+                                </td>
+
+                            </tr>
+
+                            <% } else { %>
+    
+
+                            <% users.forEach(function(user){ %>
+
+                                <tr>
+
+
+                                    
+                                    <td>
+
+                                        <!-- <input
+                                            type="checkbox"
+                                            name="user"
+                                            class="form-check-input user-checkbox"
+                                            value="<%= user.username %>"
+                                        > -->
+
+                                        <input
+                                            type="checkbox"
+                                            data-bulk-checkbox
+                                            value="<%= user._id %>"
+                                        >
+
+
+                                    </td>
+
+                                    <td>
+
+                                        <strong>
+
+                                            <%= user.username %>
+
+                                        </strong>
+
+                                    </td>
+
+                                    <td>
+
+                                        <%= user.email %>
+
+                                    </td>
+
+
+                                    <td>
+
+                                        <% if(user.role === "admin"){ %>
+
+                                            <span class="badge bg-danger">
+
+                                                Admin
+
+                                            </span>
+
+                                                <% } else if(user.role === "superuser"){ %>
+
+                                                    <span class="badge bg-dark">
+
+                                                        Superuser
+
+                                                    </span>
+
+                                                <% } else { %>
+
+                                                    <span class="badge bg-primary">
+
+                                                        User
+
+                                                    </span>
+
+                                                <% } %>
+
+                                    </td>
+
+                                    <td>
+
+                                                <% if(user.subscriptionStatus === "active"){ %>
+
+                                                    <span class="badge bg-success">
+
+                                                        Premium
+
+                                                    </span>
+
+                                                <% } else { %>
+
+                                                    <span class="badge bg-secondary">
+
+                                                        Free
+
+                                                    </span>
+
+                                                <% } %>
+
+                                    </td>
+
+                                    <td>
+
+                                        <%= new Date(user.createdAt).toLocaleDateString("en-NG") %>
+
+                                    </td>
+
+                                    <td>
+
+                                        <div class="d-flex gap-2">
+
+                                            <a
+                                                href="/admin/users/<%= user._id %>/edit"
+                                                class="btn btn-warning btn-sm"
+                                            >
+
+                                                <i class="bi bi-pencil-square"></i>
+
+                                                Edit
+
+                                            </a>
+                                            <form
+                                                action="/admin/users/<%= user._id %>/delete"
+                                                method="POST"
+                                                class="delete-form"
+                                                data-title="Delete User"
+                                                data-message="Are you sure you want to delete this user?"
+                                                data-item="<%= user.username %>"
+                                                data-button="Delete"
+                                                data-button-class="btn-danger"
+                                            >
+
+                                                <button
+                                                    type="submit"
+                                                    class="btn btn-danger btn-sm"
+                                                >
+
+                                                    <i class="bi bi-trash"></i>
+
+                                                    Delete
+
+                                                </button>
+
+                                            </form>
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+
+
+                        <% }) %>
+
+                        <% } %>
+
+                        </tbody>
+
+                    </table>
+
+
+                        <% if(totalPages > 1){ %>
+
+                            <nav class="mt-4">
+
+                                <ul class="pagination justify-content-center">
+
+                                    <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
+
+                                        <a
+                                            class="page-link"
+                                            href="/admin/users?page=<%= currentPage - 1 %>&search=<%= search %>&role=<%= role %>&subscription=<%= subscription %>"
+                                        >
+                                            Previous
+                                        </a>
+
+                                    </li>
+
+                                    <% for(let i = 1; i <= totalPages; i++){ %>
+
+                                        <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+
+                                            <a
+                                                class="page-link"
+                                                href="/admin/users?page=<%= i %>&search=<%= search %>&role=<%= role %>&subscription=<%= subscription %>"
+                                            >
+                                                <%= i %>
+                                            </a>
+
+                                        </li>
+
+                                    <% } %>
+
+                                    <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
+
+                                        <a
+                                            class="page-link"
+                                            href="/admin/users?page=<%= currentPage + 1 %>&search=<%= search %>&role=<%= role %>&subscription=<%= subscription %>"
+                                        >
+                                            Next
+                                        </a>
+
+                                    </li>
+
+                                </ul>
+
+                            </nav>
+
+                        <% } %>
+
+                </div>
+
+                </form>
+                
+            </div>
+
+        </div>
+
+    </section>
+
+    
+   
+<%- include("../partials/deleteModal") %>
+<%- include("../partials/footer") -%>
+
+
+
+<!-- 
+Codes for Exports.BulkAction -->
+
+
+exports.bulkAction = async (req, res, next) => {
+
+    try {
+
+        let { user, action } = req.body;
+
+
+        // Nothing selected
+        if (!user) {
+
+            req.flash(
+                "warning",
+                "Please select at least one user."
+            );
+
+            return res.redirect("/admin/users");
+
+        }
+
+        // Convert single checkbox to array
+        if (!Array.isArray(user)) {
+
+            user = [user];
+
+        }
+
+        
+        let message = "";
+
+        switch (action) {
+
+            const users = await User.find(
+                
+                { _id: {$in: user } }
+
+            );
+
+            case "user":
+
+                await User.updateMany(
+                    { _id: { $in: user } },
+                    { role: "user" }
+                );
+
+                await logActivity({
+                    action: "Bulk Role Update",
+                    description: `${user.length} users changed to User(s).`,
+                    icon: "bi-check-circle-fill",
+                    color: "success",
+                    createdBy: req.session.user._id
+                });
+
+                message = `${user.length} user(s) updated successfully.`;
+                break;
+
+            case "superuser":
+
+                 if (user.role === "superuser") {
+
+                    await User.find(
+                        { _id: { $in: user } },
+                        { role: "superuser" }
+                    );
+
+                    const superUserCount = await User.countDocuments({
+
+                        role: "superuser"
+
+                    });
+
+                    if (superUserCount === 1) {
+
+                        const err = new Error(
+                            "The last Superuser cannot be demoted or upgraded."
+                        );
+
+                        err.status = 403;
+
+                        err.details =
+                            "At least one Superuser account must remain in the system.";
+
+                        return next(err);
+
+                    }
+
+                }
+
+                await User.updateMany(
+                    { _id: { $in: user } },
+                    { role: "superuser" }
+                );
+
+                await logActivity({
+                    action: "Bulk Role Update",
+                    description: `${user.length} users changed to Superuser(s).`,
+                    icon: "bi-check-circle-fill",
+                    color: "success",
+                    createdBy: req.session.user._id
+                });
+
+                message = `${user.length} user(s) updated successfully.`;
+                break;
+
+            case "admin":
+
+                await User.updateMany(
+                    { _id: { $in: user } },
+                    { role: "admin" }
+                );
+
+
+                
+                 if (user.role === "admin") {
+
+                    const adminCount = await User.countDocuments({
+
+                        role: "admin"
+
+                    });
+
+                    if (adminCount === 1) {
+
+                        const err = new Error(
+                            "The last Admin cannot be demoted."
+                        );
+
+                        err.status = 403;
+
+                        err.details =
+                            "At least one Admin account must remain in the system.";
+
+                        return next(err);
+
+                    }
+
+                }
+
+                await User.updateMany(
+                    { _id: { $in: user } },
+                    { role: "admin" }
+                );
+
+                await logActivity({
+                    action: "Bulk Role Update",
+                    description: `${user.length} users changed to Admin(s).`,
+                    icon: "bi-check-circle-fill",
+                    color: "success",
+                    createdBy: req.session.user._id
+                });
+
+                message = `${user.length} user(s) updated successfully.`;
+                break;
+
+            case "inactive":
+
+                await User.updateMany(
+                    { _id: { $in: user } },
+                    { subscriptionStatus: "inactive" }
+                );
+
+                await logActivity({
+                    action: "Bulk subscriptionStatus Update",
+                    description: `${user.length} users changed to Inactive`,
+                    icon: "bi-gem",
+                    color: "warning",
+                    createdBy: req.session.user._id
+                });
+
+                message = `${user.length} user(s) updated successfully.`;
+                break;
+
+            case "active":
+
+                await User.updateMany(
+                    { _id: { $in: user } },
+                    { subscriptionStatus: "active" }
+                );
+
+                await logActivity({
+                    action: "Bulk subscriptionStatus Update",
+                    description: `${user.length} users changed to Active`,
+                    icon: "bi-unlock-fill",
+                    color: "warning",
+                    createdBy: req.session.user._id
+                });
+
+                message = `${user.length} user(s) updated successfully.`;
+                break;
+
+                        
+            case "expired":
+
+                await User.updateMany(
+                    { _id: { $in: user } },
+                    { subscriptionStatus: "expired" }
+                );
+
+                await logActivity({
+                    action: "Bulk subscriptionStatus Update",
+                    description: `${user.length} users changed to Expired`,
+                    icon: "bi-unlock-fill",
+                    color: "warning",
+                    createdBy: req.session.user._id
+                });
+
+                message = `${user.length} user(s) updated successfully.`;
+                break;
+    
+
+            case "delete":
+
+                await User.find({
+                    _id: { $in: user }
+                });
+
+                if (user.role === "superuser") {
+
+                    const superUserCount = await User.countDocuments({
+
+                        role: "superuser"
+
+                    });
+
+                    if (superUserCount === 1) {
+
+                        const err = new Error(
+                            "The last Superuser cannot be deleted."
+                        );
+
+                        err.status = 403;
+
+                        err.details =
+                            "At least one Superuser account must remain in the system.";
+
+                        return next(err);
+
+                    }
+
+                }
+
+                 if (user.role === "admin") {
+
+                    const adminCount = await User.countDocuments({
+
+                        role: "admin"
+
+                    });
+
+                    if (adminCount === 1) {
+
+                        const err = new Error(
+                            "The last Admin cannot be deleted."
+                        );
+
+                        err.status = 403;
+
+                        err.details =
+                            "At least one Admin account must remain in the system.";
+
+                        return next(err);
+
+                    }
+
+                }
+
+
+                await User.deleteMany({
+                    _id: { $in: user }
+                });
+
+                await logActivity({
+                    action: "Bulk Delete Update",
+                    description: `${user.length} users deleted`,
+                    icon: "bi-trash-fill",
+                    color: "danger",
+                    createdBy: req.session.user._id
+                });
+
+                message = `${user.length} user(s) deleted successfully.`;
+                break;
+
+            default:
+
+                req.flash("error", "Invalid bulk action.");
+
+                return res.redirect("/admin/users");
+        }
+
+        req.flash("success", message);
+
+        res.redirect("/admin/users");
+
+    } catch (err) {
+
+        next(err);
+
+    }
+
+};
+
+

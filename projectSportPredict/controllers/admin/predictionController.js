@@ -1,5 +1,7 @@
 const Prediction = require("../../models/predictionModel");
 const expirePredictions = require("../../utils/expirePredictions");
+const logActivity = require("../../utils/activityLogger");
+
 
 exports.predictions = async (req, res, next) => {
 
@@ -290,6 +292,14 @@ exports.bulkAction = async (req, res, next) => {
                     { status: "Won" }
                 );
 
+                await logActivity({
+                    action: "Bulk Status Update",
+                    description: `${predictionIds.length} predictions marked as Won`,
+                    icon: "bi-check-circle-fill",
+                    color: "success",
+                    createdBy: req.session.user._id
+                });
+
                 message = `${predictionIds.length} prediction(s) marked as Won.`;
                 break;
 
@@ -299,6 +309,14 @@ exports.bulkAction = async (req, res, next) => {
                     { _id: { $in: predictionIds } },
                     { status: "Lost" }
                 );
+
+                await logActivity({
+                    action: "Bulk Status Update",
+                    description: `${predictionIds.length} predictions marked as Lost`,
+                    icon: "bi-check-circle-fill",
+                    color: "success",
+                    createdBy: req.session.user._id
+                });
 
                 message = `${predictionIds.length} prediction(s) marked as Lost.`;
                 break;
@@ -310,6 +328,14 @@ exports.bulkAction = async (req, res, next) => {
                     { status: "Void" }
                 );
 
+                await logActivity({
+                    action: "Bulk Status Update",
+                    description: `${predictionIds.length} predictions marked as Void`,
+                    icon: "bi-check-circle-fill",
+                    color: "success",
+                    createdBy: req.session.user._id
+                });
+
                 message = `${predictionIds.length} prediction(s) marked as Void.`;
                 break;
 
@@ -319,6 +345,14 @@ exports.bulkAction = async (req, res, next) => {
                     { _id: { $in: predictionIds } },
                     { isPremium: true }
                 );
+
+                await logActivity({
+                    action: "Bulk Premium Update",
+                    description: `${predictionIds.length} predictions moved to Premium`,
+                    icon: "bi-gem",
+                    color: "warning",
+                    createdBy: req.session.user._id
+                });
 
                 message = `${predictionIds.length} prediction(s) upgraded to Premium.`;
                 break;
@@ -330,6 +364,14 @@ exports.bulkAction = async (req, res, next) => {
                     { isPremium: false }
                 );
 
+                await logActivity({
+                    action: "Bulk Free Update",
+                    description: `${predictionIds.length} predictions moved to Free`,
+                    icon: "bi-unlock-fill",
+                    color: "warning",
+                    createdBy: req.session.user._id
+                });
+
                 message = `${predictionIds.length} prediction(s) changed to Free.`;
                 break;
 
@@ -337,6 +379,14 @@ exports.bulkAction = async (req, res, next) => {
 
                 await Prediction.deleteMany({
                     _id: { $in: predictionIds }
+                });
+
+                await logActivity({
+                    action: "Bulk Delete Update",
+                    description: `${predictionIds.length} predictions deleted`,
+                    icon: "bi-trash-fill",
+                    color: "warning",
+                    createdBy: req.session.user._id
                 });
 
                 message = `${predictionIds.length} prediction(s) deleted successfully.`;
@@ -381,6 +431,14 @@ exports.deletePrediction = async (req, res, next) => {
         }
 
         await Prediction.findByIdAndDelete(req.params.id);
+
+        await logActivity({
+            action: "Delete Prediction",
+            description: `${prediction.homeTeam} vs ${prediction.awayTeam} deleted`,
+            icon: "bi-trash-fill",
+            color: "danger",
+            createdBy: req.session.user._id
+        });
 
         req.flash(
             "success", 
