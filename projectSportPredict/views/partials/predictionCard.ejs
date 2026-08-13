@@ -64,7 +64,7 @@
 
             </p>
 
-            <% if (user && (user.role === "admin" || user.role === "superuser")) { %>
+            <% if (user && (user.role === roles.ADMIN || user.role === roles.SUPERUSER)) { %>
 
                 <a
                     href="/predictions/<%= prediction._id %>/edit?redirectTo=<%= redirectTo %>"
@@ -77,8 +77,17 @@
                 <form
                     action="/predictions/<%= prediction._id %>/delete"
                     method="POST"
-                    style="display:inline;"
-                    onsubmit="return confirm('Delete this prediction permanently?');">
+                    class="delete-form d-inline"
+
+                    data-title="Delete Prediction"
+
+                    data-message="Are you sure you want to permanently delete this prediction?"
+
+                    data-item="<%= prediction.homeTeam %> vs <%= prediction.awayTeam %>"
+
+                    data-button="Delete"
+
+                    data-button-class="btn-danger">
 
                     <input
                         type="hidden"

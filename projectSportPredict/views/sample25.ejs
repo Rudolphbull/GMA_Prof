@@ -1,0 +1,7683 @@
+//Current Bulk Action before trying to fix pagination challenge with subscription records
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const bulkForm = document.getElementById("bulkActionForm");
+
+    if (!bulkForm) return;
+
+    const bulkAction = document.getElementById("bulkAction");
+    const selectAll = document.getElementById("selectAll");
+    const checkboxes = document.querySelectorAll("[data-bulk-checkbox]");
+
+    // ============================================
+    // Module Configuration
+    // ============================================
+
+    const moduleName =
+        bulkForm.dataset.module || "predictions";
+
+    const idField =
+        bulkForm.dataset.idField || "predictionIds";
+
+    const idsKey = `bulk_${moduleName}_ids`;
+    const actionKey = `bulk_${moduleName}_action`;
+
+    // ============================================
+    // Helpers
+    // ============================================
+
+    const getSavedIds = () => {
+
+        try {
+
+            return JSON.parse(
+                sessionStorage.getItem(idsKey)
+            ) || [];
+
+        } catch {
+
+            return [];
+
+        }
+
+    };
+
+    const saveIds = (ids) => {
+
+        sessionStorage.setItem(
+            idsKey,
+            JSON.stringify(ids)
+        );
+
+    };
+
+    // ============================================
+    // Restore Saved State
+    // ============================================
+
+    let savedIds = getSavedIds();
+
+    checkboxes.forEach(box => {
+
+        if (savedIds.includes(box.value)) {
+
+            box.checked = true;
+
+        }
+
+    });
+
+    if (bulkAction) {
+
+        bulkAction.value =
+            sessionStorage.getItem(actionKey) || "";
+
+    }
+
+    if (selectAll) {
+
+        selectAll.checked =
+            checkboxes.length > 0 &&
+            [...checkboxes].every(box => box.checked);
+
+    }
+
+    // ============================================
+    // Select All
+    // ============================================
+
+    if (selectAll) {
+
+        selectAll.addEventListener("change", () => {
+
+            let ids = getSavedIds();
+
+            checkboxes.forEach(box => {
+
+                box.checked = selectAll.checked;
+
+                if (selectAll.checked) {
+
+                    if (!ids.includes(box.value)) {
+
+                        ids.push(box.value);
+
+                    }
+
+                } else {
+
+                    ids = ids.filter(id => id !== box.value);
+
+                }
+
+            });
+
+            saveIds(ids);
+
+        });
+
+    }
+
+    // ============================================
+    // Individual Checkbox
+    // ============================================
+
+    checkboxes.forEach(box => {
+
+        box.addEventListener("change", () => {
+
+            let ids = getSavedIds();
+
+            if (box.checked) {
+
+                if (!ids.includes(box.value)) {
+
+                    ids.push(box.value);
+
+                }
+
+            } else {
+
+                ids = ids.filter(id => id !== box.value);
+
+            }
+
+            saveIds(ids);
+
+            if (selectAll) {
+
+                selectAll.checked =
+                    [...checkboxes].every(c => c.checked);
+
+            }
+
+        });
+
+    });
+
+    // ============================================
+    // Remember Bulk Action
+    // ============================================
+
+    if (bulkAction) {
+
+        bulkAction.addEventListener("change", () => {
+
+            sessionStorage.setItem(
+                actionKey,
+                bulkAction.value
+            );
+
+        });
+
+    }
+
+    // ============================================
+    // Bulk Submit
+    // ============================================
+
+    bulkForm.addEventListener("submit", (e) => {
+
+        const ids = [...checkboxes]
+            .filter(box => box.checked)
+            .map(box => box.value);
+
+        // Keep storage in sync
+        saveIds(ids);
+
+        bulkForm
+            .querySelectorAll(`input[name="${idField}"]`)
+            .forEach(input => input.remove());
+
+        ids.forEach(id => {
+
+            const hidden =
+                document.createElement("input");
+
+            hidden.type = "hidden";
+            hidden.name = idField;
+            hidden.value = id;
+
+            bulkForm.appendChild(hidden);
+
+        });
+
+        if (ids.length === 0) {
+
+            e.preventDefault();
+
+            window.showFlash?.(
+                "Please select at least one record.",
+                "warning"
+            );
+
+            return;
+
+        }
+
+        if (!bulkAction || !bulkAction.value) {
+
+            e.preventDefault();
+
+            window.showFlash?.(
+                "Please choose a bulk action.",
+                "warning"
+            );
+
+            return;
+
+        }
+
+        if (bulkAction.value === "delete") {
+
+            e.preventDefault();
+
+            window.openDeleteModal({
+
+                form: bulkForm,
+
+                title: "Confirm Bulk Delete",
+
+                messageText:
+                    `Are you sure you want to delete ${ids.length} selected record(s)?`,
+
+                buttonText: "Delete",
+
+                buttonClass: "btn-danger"
+
+            });
+
+        }
+
+    });
+
+    // ============================================
+    // Clear Storage After Successful Submit
+    // ============================================
+
+    bulkForm.addEventListener("submit", () => {
+
+        if (bulkAction?.value !== "delete") {
+
+            sessionStorage.removeItem(idsKey);
+
+            sessionStorage.removeItem(actionKey);
+
+        }
+
+    });
+
+});
+
+
+// =====================================
+// Reusable Confirmation Modal
+// =====================================
+console.log("confirmationModal.js loaded");
+
+(() => {
+
+    const modalElement = document.getElementById("deleteModal");
+
+    console.log("Modal Element:", modalElement);
+
+    if (!modalElement) return;
+
+    const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+
+    const modalTitle = document.getElementById("deleteModalTitle");
+    const message = document.getElementById("deleteMessage");
+    const itemName = document.getElementById("deleteItemName");
+    const confirmBtn = document.getElementById("confirmDelete");
+
+    if (
+        !modalTitle ||
+        !message ||
+        !itemName ||
+        !confirmBtn
+    ) {
+        console.warn("Delete modal is missing required elements.");
+        return;
+    }
+
+    let formToSubmit = null;
+
+    // =====================================
+    // Open Modal
+    // =====================================
+
+    window.openDeleteModal = ({
+
+        form,
+
+        title = "Confirm Action",
+
+        messageText = "Are you sure you want to continue?",
+
+        itemText = "",
+
+        buttonText = "Delete",
+
+        buttonClass = "btn-danger"
+
+    }) => {
+
+        if (!form) return;
+
+        formToSubmit = form;
+
+        modalTitle.textContent = title;
+        message.textContent = messageText;
+        itemName.textContent = itemText;
+
+        confirmBtn.className = "btn";
+        confirmBtn.classList.add(...buttonClass.split(" "));
+        confirmBtn.textContent = buttonText;
+
+        modal.show();
+
+    };
+
+    // =====================================
+    // Individual Delete Forms
+    // =====================================
+
+    document.querySelectorAll(".delete-form").forEach(form => {
+
+        form.addEventListener("submit", e => {
+            console.log("Delete form intercepted.")
+            e.preventDefault();
+
+            window.openDeleteModal({
+
+                form,
+
+                title:
+                    form.dataset.title ||
+                    "Confirm Action",
+
+                messageText:
+                    form.dataset.message ||
+                    "Are you sure you want to continue?",
+
+                itemText:
+                    form.dataset.item || "",
+
+                buttonText:
+                    form.dataset.button ||
+                    "Delete",
+
+                buttonClass:
+                    form.dataset.buttonClass ||
+                    "btn-danger"
+
+            });
+
+        });
+
+    });
+
+    // =====================================
+    // Confirm
+    // =====================================
+confirmBtn.addEventListener("click", () => {
+
+    if (!formToSubmit) return;
+
+    const form = formToSubmit;
+
+    // =====================================
+    // DEBUG
+    // =====================================
+
+    console.log("========== DELETE DEBUG ==========");
+    console.log("Action:", form.action);
+    console.log("Method:", form.method);
+    console.log("Form:", form);
+    console.log("==================================");
+
+    if (form.id === "bulkActionForm") {
+
+        const moduleName =
+            form.dataset.module || "predictions";
+
+        sessionStorage.removeItem(
+            `bulk_${moduleName}_ids`
+        );
+
+        sessionStorage.removeItem(
+            `bulk_${moduleName}_action`
+        );
+
+    }
+
+    formToSubmit = null;
+
+    modal.hide();
+
+    console.log("Submitting form id:", form.id);
+    console.log("Submitting action:", form.getAttribute("action"));
+    console.log("Submitting method:", form.getAttribute("method"));
+
+    HTMLFormElement.prototype.submit.call(form);
+
+});
+
+    // =====================================
+    // Reset
+    // =====================================
+
+    modalElement.addEventListener("hidden.bs.modal", () => {
+
+        formToSubmit = null;
+
+        modalTitle.textContent = "Confirm Action";
+
+        message.textContent = "";
+
+        itemName.textContent = "";
+
+        confirmBtn.className = "btn btn-danger";
+
+        confirmBtn.textContent = "Delete";
+
+    });
+
+})();
+
+
+hello chatGPT
+
+Ah yes, partner 😎 — I know exactly what is happening.
+
+What you've achieved so far is half of the persistence problem:
+
+✅ The bulk action dropdown/value survives pagination.
+❌ The selected subscriptions do not survive pagination.
+When you move from page 1 → page 2, the page is rendered again and the checkboxes on page 1 are gone from the DOM, so their checked state disappears.
+The important distinction
+
+We should not try to keep the actual checkbox DOM state alive across pages.
+
+Instead, we should maintain a separate collection of selected subscription IDs.
+
+For example:
+
+Page 1
+☑ Peter       → ID: 65abc...
+☑ Patience    → ID: 65def...
+☐ John        → ID: 65ghi...
+
+Internally JavaScript keeps:
+
+selectedIds = [
+    "65abc...",
+    "65def..."
+]
+
+Then when you go to page 2:
+
+selectedIds = [
+    "65abc...",
+    "65def...",
+    "65xyz..."   ← selected on page 2
+]
+
+When you return to page 1, JavaScript looks at the current checkboxes and says:
+
+"Is this subscription ID inside selectedIds?"
+
+If yes:
+
+checkbox.checked = true;
+
+That gives us true cross-page selection.
+
+I recommend we do it properly
+
+For your Prof Predict subscription management, I would make the selection system work like this:
+
+1. Selection survives pagination
+
+Select Peter and Patience on page 1.
+
+Go to page 2.
+
+They remain selected internally.
+
+2. Select more on page 2
+
+Select John and Mary.
+
+Now the selection contains:
+
+Peter
+Patience
+John
+Mary
+3. Return to page 1
+
+Peter and Patience automatically appear checked again.
+
+4. Bulk action remains selected
+
+Your existing behavior where the bulk action remains selected should continue.
+
+5. "Select all" should be page-aware
+
+This is important.
+
+If page 1 has 10 subscriptions and you click Select All, it should add those 10 IDs to the persistent selection.
+
+When you move to page 2, selecting all there should add page 2's subscriptions rather than replacing page 1's selections.
+
+6. Unchecking must remove only that subscription
+
+If you return to page 1 and uncheck Peter:
+
+Peter ❌
+Patience ✅
+John ✅
+Mary ✅
+
+Peter's ID is removed from the persistent selection.
+
+7. Bulk action should submit all selected IDs
+
+Not merely the IDs currently visible on the page.
+
+That's the critical part.
+
+One thing I don't want us to do
+
+I wouldn't use localStorage as the first solution.
+
+For this page, a JavaScript Set is cleaner:
+
+const selectedSubscriptionIds = new Set();
+
+It gives us:
+
+no duplicate IDs
+easy add/remove
+easy checking
+easy conversion to an array when submitting
+
+And because pagination is happening within the current page/session, that's normally enough.
+
+If your pagination is causing a full browser reload, then we'll need to persist that Set between requests — most likely with sessionStorage or by carrying the IDs through the pagination URLs/form state.
+
+So we're very close
+
+The fact that the action survives but the selected subscriptions don't tells me your current implementation is already preserving the action state, but the checkbox selection state is still tied to the current page's DOM.
+
+Send me the current JavaScript that handles:
+
+the subscription checkboxes,
+Select All,
+the bulk-action dropdown,
+and the bulk-action form submission,
+
+plus the relevant checkbox HTML from your subscription EJS.
+
+I'll modify your existing implementation, rather than replacing the whole thing, so we preserve what is already working and make the selected subscriptions persist correctly across pagination.
+
+please ensure it is bug free..as we have wasted enough time on this subscription module
+
+Absolutely, partner. 👍
+
+And this time, we should not patch blindly. Since we've already spent too much time on the subscription module, I'll treat this as a production bug fix and make sure the solution accounts for the edge cases—not just the page-1 → page-2 symptom.
+
+The target behavior will be:
+
+✅ Selected subscriptions persist across pagination.
+✅ Selections from multiple pages accumulate.
+✅ Returning to an earlier page restores the checked state.
+✅ Unchecking an item removes only that item.
+✅ Select All adds/removes the current page correctly.
+✅ Bulk action selection remains intact.
+✅ Changing pagination/search/filter does not accidentally wipe selections.
+✅ No duplicate subscription IDs.
+✅ Bulk submission sends all selected IDs, not merely IDs visible on the current page.
+✅ Empty selection is handled safely.
+✅ After a successful bulk operation, the selection is cleared.
+✅ Flash messages continue to report the actual number of records affected.
+✅ We won't introduce MongoDB transactions, since we've already established your current MongoDB setup doesn't support them.
+✅ We won't disturb the subscription activation/renewal business rules we've already established.
+
+Most importantly: I want to work from your actual current code, because replacing the JavaScript with a generic version could easily reintroduce one of the bugs we've already eliminated.
+
+Please send me the current:
+
+subscription management EJS — especially the table, checkboxes, pagination and bulk-action form.
+JavaScript for that page — the code handling checkbox selection, Select All, bulk action and pagination.
+Bulk-action route/controller if the submitted IDs are processed there.
+
+Once you send those, I'll trace the complete flow:
+
+checkbox → persistent selection → pagination → form submission → controller → database → flash message
+
+and give you the corrected code in one coherent implementation rather than another piecemeal fix.
+
+We are going to finish this subscription module properly. 💪🏾
+
+
+document.addEventListener("DOMContentLoaded", () => {
+
+```
+const bulkForm = document.getElementById("bulkActionForm");
+
+if (!bulkForm) return;
+
+const bulkAction = document.getElementById("bulkAction");
+const selectAll = document.getElementById("selectAll");
+const checkboxes = document.querySelectorAll("[data-bulk-checkbox]");
+
+// ============================================
+// Module Configuration
+// ============================================
+
+const moduleName =
+    bulkForm.dataset.module || "predictions";
+
+const idField =
+    bulkForm.dataset.idField || "predictionIds";
+
+const idsKey = `bulk_${moduleName}_ids`;
+const actionKey = `bulk_${moduleName}_action`;
+
+// ============================================
+// Helpers
+// ============================================
+
+const getSavedIds = () => {
+
+    try {
+
+        return JSON.parse(
+            sessionStorage.getItem(idsKey)
+        ) || [];
+
+    } catch {
+
+        return [];
+
+    }
+
+};
+
+const saveIds = (ids) => {
+
+    sessionStorage.setItem(
+        idsKey,
+        JSON.stringify(ids)
+    );
+
+};
+
+// ============================================
+// Restore Saved State
+// ============================================
+
+let savedIds = getSavedIds();
+
+checkboxes.forEach(box => {
+
+    if (savedIds.includes(box.value)) {
+
+        box.checked = true;
+
+    }
+
+});
+
+if (bulkAction) {
+
+    bulkAction.value =
+        sessionStorage.getItem(actionKey) || "";
+
+}
+
+if (selectAll) {
+
+    selectAll.checked =
+        checkboxes.length > 0 &&
+        [...checkboxes].every(box => box.checked);
+
+}
+
+// ============================================
+// Select All
+// ============================================
+
+if (selectAll) {
+
+    selectAll.addEventListener("change", () => {
+
+        let ids = getSavedIds();
+
+        checkboxes.forEach(box => {
+
+            box.checked = selectAll.checked;
+
+            if (selectAll.checked) {
+
+                if (!ids.includes(box.value)) {
+
+                    ids.push(box.value);
+
+                }
+
+            } else {
+
+                ids = ids.filter(id => id !== box.value);
+
+            }
+
+        });
+
+        saveIds(ids);
+
+    });
+
+}
+
+// ============================================
+// Individual Checkbox
+// ============================================
+
+checkboxes.forEach(box => {
+
+    box.addEventListener("change", () => {
+
+        let ids = getSavedIds();
+
+        if (box.checked) {
+
+            if (!ids.includes(box.value)) {
+
+                ids.push(box.value);
+
+            }
+
+        } else {
+
+            ids = ids.filter(id => id !== box.value);
+
+        }
+
+        saveIds(ids);
+
+        if (selectAll) {
+
+            selectAll.checked =
+                [...checkboxes].every(c => c.checked);
+
+        }
+
+    });
+
+});
+
+// ============================================
+// Remember Bulk Action
+// ============================================
+
+if (bulkAction) {
+
+    bulkAction.addEventListener("change", () => {
+
+        sessionStorage.setItem(
+            actionKey,
+            bulkAction.value
+        );
+
+    });
+
+}
+
+// ============================================
+// Bulk Submit
+// ============================================
+
+bulkForm.addEventListener("submit", (e) => {
+
+    const ids = [...checkboxes]
+        .filter(box => box.checked)
+        .map(box => box.value);
+
+    // Keep storage in sync
+    saveIds(ids);
+
+    bulkForm
+        .querySelectorAll(`input[name="${idField}"]`)
+        .forEach(input => input.remove());
+
+    ids.forEach(id => {
+
+        const hidden =
+            document.createElement("input");
+
+        hidden.type = "hidden";
+        hidden.name = idField;
+        hidden.value = id;
+
+        bulkForm.appendChild(hidden);
+
+    });
+
+    if (ids.length === 0) {
+
+        e.preventDefault();
+
+        window.showFlash?.(
+            "Please select at least one record.",
+            "warning"
+        );
+
+        return;
+
+    }
+
+    if (!bulkAction || !bulkAction.value) {
+
+        e.preventDefault();
+
+        window.showFlash?.(
+            "Please choose a bulk action.",
+            "warning"
+        );
+
+        return;
+
+    }
+
+    if (bulkAction.value === "delete") {
+
+        e.preventDefault();
+
+        window.openDeleteModal({
+
+            form: bulkForm,
+
+            title: "Confirm Bulk Delete",
+
+            messageText:
+                `Are you sure you want to delete ${ids.length} selected record(s)?`,
+
+            buttonText: "Delete",
+
+            buttonClass: "btn-danger"
+
+        });
+
+    }
+
+});
+
+// ============================================
+// Clear Storage After Successful Submit
+// ============================================
+
+bulkForm.addEventListener("submit", () => {
+
+    if (bulkAction?.value !== "delete") {
+
+        sessionStorage.removeItem(idsKey);
+
+        sessionStorage.removeItem(actionKey);
+
+    }
+
+});
+```
+
+});
+
+
+Yes, partner — I remember. 👍🏾 Your flash notification is centralized in the flash partial, and that partial is already included through header.ejs. So we should absolutely not start modifying individual subscription pages just to handle this.
+
+The better solution is to make the existing bulk-selection script detect the successful redirected page, while keeping the flash partial untouched.
+
+There is one important point, though: the flash message itself is not the right source of truth. A flash can say "success" for many different operations. We should clear the subscription selection only when the bulk operation actually succeeded.
+
+The cleanest solution for your current setup
+
+Your controller already knows when the bulk operation succeeds. We should have it set a small response-local flag when redirecting:
+
+res.locals.bulkActionCompleted = true;
+
+But because res.locals doesn't survive the redirect, that won't work by itself.
+
+Instead, put the flag into the flash/session data that survives the redirect, or—better—use your existing success flash and add a dedicated completion flag alongside it.
+
+For example, after a successful bulk subscription operation:
+
+req.flash(
+    "success",
+    `${successfulCount} subscription(s) activated successfully.`
+);
+
+req.flash(
+    "bulkActionCompleted",
+    "true"
+);
+
+return res.redirect("/admin/subscriptions");
+
+Then in header.ejs, after the flash partial has been included, expose that flag to the page:
+
+<% if (messages.bulkActionCompleted) { %>
+
+<script>
+    window.bulkActionCompleted = true;
+</script>
+
+<% } %>
+
+Then our bulk-selection JavaScript can safely do:
+
+if (window.bulkActionCompleted) {
+
+    sessionStorage.removeItem(idsKey);
+    sessionStorage.removeItem(actionKey);
+
+}
+But I don't want you changing this yet
+
+Because we've already got a working system, I want to inspect your actual flash implementation before telling you exactly where that flag belongs.
+
+Please send me these two pieces:
+
+Your flash partial.
+The relevant part of your subscription bulk controller where it sets the success flash and redirects.
+
+Then I'll integrate the clearing mechanism into your existing architecture without disturbing the flash system or the now-working cross-page selection.
+
+<% if (success.length) { %>
+
+```
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+
+    <%= success[0] %>
+
+    <button
+        type="button"
+        class="btn-close"
+        data-bs-dismiss="alert">
+    </button>
+
+</div>
+
+<% } %>
+
+<% if (error.length) { %>
+
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+
+    <%= error[0] %>
+
+    <button
+        type="button"
+        class="btn-close"
+        data-bs-dismiss="alert">
+    </button>
+
+</div>
+
+<% } %>
+
+<% if (warning.length) { %>
+
+<div class="alert alert-warning alert-dismissible fade show" role="alert">
+
+    <%= warning[0] %>
+
+    <button
+        type="button"
+        class="btn-close"
+        data-bs-dismiss="alert">
+    </button>
+
+</div>
+```
+
+<% } %>
+
+
+Yes, partner. Now I can see exactly how your flash system works.
+
+And we don't need to modify the flash partial at all. It's doing its job correctly.
+
+The better approach here is actually simpler: since the page is redirected after a successful bulk operation and the flash is displayed on that redirected page, we can use the presence of the success flash itself to clear the persisted bulk state.
+
+However, we need to be careful because a generic success message could come from another subscription operation. We don't want, for example, a successful single activation to unexpectedly clear a bulk selection.
+
+Best solution for your current architecture
+
+Let's make the bulk JavaScript clear its state when the page loads if a success flash is present AND the current page was reached after a bulk submission.
+
+We can accomplish that by storing a small temporary marker when the bulk form is submitted:
+
+sessionStorage.setItem(
+    `${idsKey}_pending`,
+    "true"
+);
+
+Then after the redirect:
+
+Page loads.
+Flash partial displays the success message.
+JavaScript sees the pending marker.
+It clears the selected IDs and action.
+The pending marker itself is removed.
+
+That means:
+
+SELECT
+  ↓
+sessionStorage
+  ↓
+SUBMIT
+  ↓
+pending = true
+  ↓
+server processes
+  ↓
+redirect
+  ↓
+success flash appears
+  ↓
+clear IDs + action
+
+If the server fails and redirects with an error, we can keep the selections.
+
+One small thing I need from you
+
+Because your flash partial exposes success, error, and warning to EJS, I need to see how those variables are created in your app.js/middleware.
+
+Something along the lines of:
+
+res.locals.success = req.flash("success");
+res.locals.error = req.flash("error");
+res.locals.warning = req.flash("warning");
+
+I don't want to assume the exact implementation.
+
+Send me that flash middleware section from your app.js (or wherever you define success, error, and warning).
+
+Then I'll give you the final implementation for:
+
+persistent cross-page selection ✅
+persistent bulk action ✅
+successful operation → clear both ✅
+failed operation → retain both ✅
+no changes to your flash partial ✅
+no changes to subscription business logic ✅
+
+We're very close now. This should be the last piece of this particular pagination/selection issue.
+
+
+app.use(flash());
+
+app.use((req, res, next) => {
+
+```
+res.locals.user = req.session.user || null;
+
+res.locals.success = req.flash("success");
+
+res.locals.error = req.flash("error");
+
+res.locals.warning = req.flash("warning");
+
+next();
+```
+
+});
+
+
+Absolutely, partner. Let's go with response 2 — but I want to simplify it slightly so we don't introduce another moving part unnecessarily.
+
+Your existing flash system is fine:
+
+app.use(flash());
+
+app.use((req, res, next) => {
+    res.locals.user = req.session.user || null;
+    res.locals.success = req.flash("success");
+    res.locals.error = req.flash("error");
+    res.locals.warning = req.flash("warning");
+    next();
+});
+The clean implementation
+
+Since the flash partial is already in header.ejs, we'll let the bulk JavaScript detect the success flash after the redirect.
+
+Add this key beside your existing keys:
+
+const pendingKey = `bulk_${moduleName}_pending`;
+
+Then, immediately after your configuration section, add:
+
+// ============================================
+// Clear Completed Bulk Action
+// ============================================
+
+const hasSuccessFlash =
+    document.querySelector(".alert-success");
+
+const hasErrorFlash =
+    document.querySelector(".alert-danger");
+
+const hasWarningFlash =
+    document.querySelector(".alert-warning");
+
+const isPending =
+    sessionStorage.getItem(pendingKey) === "true";
+
+
+if (isPending) {
+
+    if (hasSuccessFlash) {
+
+        sessionStorage.removeItem(idsKey);
+
+        sessionStorage.removeItem(actionKey);
+
+        sessionStorage.removeItem(pendingKey);
+
+    } else if (
+        hasErrorFlash ||
+        hasWarningFlash
+    ) {
+
+        sessionStorage.removeItem(pendingKey);
+
+    }
+
+}
+
+Then, in your submit handler, after you've confirmed that there is a valid selection and a valid action:
+
+sessionStorage.setItem(
+    pendingKey,
+    "true"
+);
+One important correction
+
+Remove this entire listener from the version I previously gave you:
+
+bulkForm.addEventListener("submit", () => {
+
+    if (bulkAction?.value !== "delete") {
+
+        sessionStorage.removeItem(idsKey);
+
+        sessionStorage.removeItem(actionKey);
+
+    }
+
+});
+
+We do not want that anymore.
+
+The selection must survive the submission/redirect until the success flash appears.
+
+So the lifecycle becomes:
+
+Select subscriptions
+       ↓
+Navigate page 1 → page 2 → page 3
+       ↓
+Selection remains
+       ↓
+Choose "Activate"
+       ↓
+Submit
+       ↓
+pending = true
+       ↓
+Controller processes subscriptions
+       ↓
+Redirect to subscriptions
+       ↓
+Flash: "5 subscriptions activated successfully"
+       ↓
+JavaScript sees .alert-success
+       ↓
+IDs removed
+Action removed
+Pending removed
+       ↓
+Fresh page
+
+If the operation fails:
+
+Submit
+  ↓
+pending = true
+  ↓
+Controller fails
+  ↓
+Flash: error
+  ↓
+IDs remain
+Action remains
+pending removed
+
+That's exactly what we want.
+
+And leave your flash partial exactly as it is. No changes there.
+
+One final thing: because your delete action uses openDeleteModal(), we should check that helper before declaring this finished. If the user opens the confirmation modal and presses Cancel, we need to make sure the pending flag doesn't remain behind. Send me your current openDeleteModal() helper and I'll make sure that path is safe too.
+
+
+// =====================================
+// Reusable Confirmation Modal
+// =====================================
+console.log("confirmationModal.js loaded");
+
+(() => {
+
+```
+const modalElement = document.getElementById("deleteModal");
+
+console.log("Modal Element:", modalElement);
+
+if (!modalElement) return;
+
+const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+
+const modalTitle = document.getElementById("deleteModalTitle");
+const message = document.getElementById("deleteMessage");
+const itemName = document.getElementById("deleteItemName");
+const confirmBtn = document.getElementById("confirmDelete");
+
+if (
+    !modalTitle ||
+    !message ||
+    !itemName ||
+    !confirmBtn
+) {
+    console.warn("Delete modal is missing required elements.");
+    return;
+}
+
+let formToSubmit = null;
+
+// =====================================
+// Open Modal
+// =====================================
+
+window.openDeleteModal = ({
+
+    form,
+
+    title = "Confirm Action",
+
+    messageText = "Are you sure you want to continue?",
+
+    itemText = "",
+
+    buttonText = "Delete",
+
+    buttonClass = "btn-danger"
+
+}) => {
+
+    if (!form) return;
+
+    formToSubmit = form;
+
+    modalTitle.textContent = title;
+    message.textContent = messageText;
+    itemName.textContent = itemText;
+
+    confirmBtn.className = "btn";
+    confirmBtn.classList.add(...buttonClass.split(" "));
+    confirmBtn.textContent = buttonText;
+
+    modal.show();
+
+};
+
+// =====================================
+// Individual Delete Forms
+// =====================================
+
+document.querySelectorAll(".delete-form").forEach(form => {
+
+    form.addEventListener("submit", e => {
+        console.log("Delete form intercepted.")
+        e.preventDefault();
+
+        window.openDeleteModal({
+
+            form,
+
+            title:
+                form.dataset.title ||
+                "Confirm Action",
+
+            messageText:
+                form.dataset.message ||
+                "Are you sure you want to continue?",
+
+            itemText:
+                form.dataset.item || "",
+
+            buttonText:
+                form.dataset.button ||
+                "Delete",
+
+            buttonClass:
+                form.dataset.buttonClass ||
+                "btn-danger"
+
+        });
+
+    });
+
+});
+
+// =====================================
+// Confirm
+// =====================================
+```
+
+confirmBtn.addEventListener("click", () => {
+
+```
+if (!formToSubmit) return;
+
+const form = formToSubmit;
+
+// =====================================
+// DEBUG
+// =====================================
+
+console.log("========== DELETE DEBUG ==========");
+console.log("Action:", form.action);
+console.log("Method:", form.method);
+console.log("Form:", form);
+console.log("==================================");
+
+if (form.id === "bulkActionForm") {
+
+    const moduleName =
+        form.dataset.module || "predictions";
+
+    sessionStorage.removeItem(
+        `bulk_${moduleName}_ids`
+    );
+
+    sessionStorage.removeItem(
+        `bulk_${moduleName}_action`
+    );
+
+}
+
+formToSubmit = null;
+
+modal.hide();
+
+console.log("Submitting form id:", form.id);
+console.log("Submitting action:", form.getAttribute("action"));
+console.log("Submitting method:", form.getAttribute("method"));
+
+HTMLFormElement.prototype.submit.call(form);
+```
+
+});
+
+```
+// =====================================
+// Reset
+// =====================================
+
+modalElement.addEventListener("hidden.bs.modal", () => {
+
+    formToSubmit = null;
+
+    modalTitle.textContent = "Confirm Action";
+
+    message.textContent = "";
+
+    itemName.textContent = "";
+
+    confirmBtn.className = "btn btn-danger";
+
+    confirmBtn.textContent = "Delete";
+
+});
+```
+
+})();
+
+
+Yes, partner — this is the missing piece, and I can see an important conflict with the solution we just built.
+
+Your current confirmationModal.js does this when Delete is confirmed:
+
+sessionStorage.removeItem(`bulk_${moduleName}_ids`);
+sessionStorage.removeItem(`bulk_${moduleName}_action`);
+
+That means it clears the selection before the server has processed the deletion.
+
+We should remove that behavior.
+
+There is also a second subtle issue: if the user opens the bulk-delete confirmation and clicks Cancel, our pending flag must be removed, while the selected IDs and action must remain.
+
+So let's make the confirmation modal properly distinguish:
+
+Cancel → keep IDs/action, remove pending
+Confirm → keep IDs/action/pending until redirected success page clears them
+Server success → success flash appears → bulk JS clears everything
+Server failure → IDs/action remain available for retry
+Replace your confirmationModal.js with this
+// =====================================
+// Reusable Confirmation Modal
+// =====================================
+console.log("confirmationModal.js loaded");
+
+(() => {
+
+    const modalElement =
+        document.getElementById("deleteModal");
+
+    console.log("Modal Element:", modalElement);
+
+    if (!modalElement) return;
+
+    const modal =
+        bootstrap.Modal.getOrCreateInstance(
+            modalElement
+        );
+
+    const modalTitle =
+        document.getElementById("deleteModalTitle");
+
+    const message =
+        document.getElementById("deleteMessage");
+
+    const itemName =
+        document.getElementById("deleteItemName");
+
+    const confirmBtn =
+        document.getElementById("confirmDelete");
+
+
+    if (
+        !modalTitle ||
+        !message ||
+        !itemName ||
+        !confirmBtn
+    ) {
+
+        console.warn(
+            "Delete modal is missing required elements."
+        );
+
+        return;
+
+    }
+
+
+    // =====================================
+    // State
+    // =====================================
+
+    let formToSubmit = null;
+
+    let bulkDeleteConfirmed = false;
+
+
+    // =====================================
+    // Get Bulk Storage Keys
+    // =====================================
+
+    const getBulkKeys = (form) => {
+
+        if (!form) return null;
+
+        if (form.id !== "bulkActionForm") {
+            return null;
+        }
+
+        const moduleName =
+            form.dataset.module || "predictions";
+
+        return {
+
+            idsKey:
+                `bulk_${moduleName}_ids`,
+
+            actionKey:
+                `bulk_${moduleName}_action`,
+
+            pendingKey:
+                `bulk_${moduleName}_pending`
+
+        };
+
+    };
+
+
+    // =====================================
+    // Open Modal
+    // =====================================
+
+    window.openDeleteModal = ({
+
+        form,
+
+        title = "Confirm Action",
+
+        messageText =
+            "Are you sure you want to continue?",
+
+        itemText = "",
+
+        buttonText = "Delete",
+
+        buttonClass = "btn-danger"
+
+    }) => {
+
+        if (!form) return;
+
+
+        formToSubmit = form;
+
+        bulkDeleteConfirmed = false;
+
+
+        modalTitle.textContent =
+            title;
+
+        message.textContent =
+            messageText;
+
+        itemName.textContent =
+            itemText;
+
+
+        confirmBtn.className =
+            "btn";
+
+        confirmBtn.classList.add(
+            ...buttonClass.split(" ")
+        );
+
+        confirmBtn.textContent =
+            buttonText;
+
+
+        modal.show();
+
+    };
+
+
+    // =====================================
+    // Individual Delete Forms
+    // =====================================
+
+    document
+        .querySelectorAll(".delete-form")
+        .forEach(form => {
+
+            form.addEventListener(
+                "submit",
+                e => {
+
+                    console.log(
+                        "Delete form intercepted."
+                    );
+
+                    e.preventDefault();
+
+
+                    window.openDeleteModal({
+
+                        form,
+
+                        title:
+                            form.dataset.title ||
+                            "Confirm Action",
+
+                        messageText:
+                            form.dataset.message ||
+                            "Are you sure you want to continue?",
+
+                        itemText:
+                            form.dataset.item ||
+                            "",
+
+                        buttonText:
+                            form.dataset.button ||
+                            "Delete",
+
+                        buttonClass:
+                            form.dataset.buttonClass ||
+                            "btn-danger"
+
+                    });
+
+                }
+            );
+
+        });
+
+
+    // =====================================
+    // Confirm
+    // =====================================
+
+    confirmBtn.addEventListener(
+        "click",
+        () => {
+
+            if (!formToSubmit) return;
+
+
+            const form =
+                formToSubmit;
+
+
+            // =================================
+            // DEBUG
+            // =================================
+
+            console.log(
+                "========== DELETE DEBUG =========="
+            );
+
+            console.log(
+                "Action:",
+                form.action
+            );
+
+            console.log(
+                "Method:",
+                form.method
+            );
+
+            console.log(
+                "Form:",
+                form
+            );
+
+            console.log(
+                "=================================="
+            );
+
+
+            // =================================
+            // Bulk Delete
+            // =================================
+
+            if (
+                form.id === "bulkActionForm"
+            ) {
+
+                const keys =
+                    getBulkKeys(form);
+
+
+                if (keys) {
+
+                    /*
+                     * IMPORTANT:
+                     *
+                     * DO NOT remove the selected IDs
+                     * or bulk action here.
+                     *
+                     * They must survive until the
+                     * redirected page confirms that
+                     * the operation succeeded.
+                     */
+
+                    sessionStorage.setItem(
+                        keys.pendingKey,
+                        "true"
+                    );
+
+                    console.log(
+                        "Bulk delete confirmed."
+                    );
+
+                    console.log(
+                        "Selection retained until success."
+                    );
+
+                }
+
+                bulkDeleteConfirmed =
+                    true;
+
+            }
+
+
+            formToSubmit = null;
+
+            modal.hide();
+
+
+            console.log(
+                "Submitting form id:",
+                form.id
+            );
+
+            console.log(
+                "Submitting action:",
+                form.getAttribute("action")
+            );
+
+            console.log(
+                "Submitting method:",
+                form.getAttribute("method")
+            );
+
+
+            /*
+             * Use native submit so the form is sent
+             * without triggering the submit listener
+             * again.
+             */
+
+            HTMLFormElement.prototype.submit.call(
+                form
+            );
+
+        }
+    );
+
+
+    // =====================================
+    // Modal Closed / Cancelled
+    // =====================================
+
+    modalElement.addEventListener(
+        "hidden.bs.modal",
+        () => {
+
+            /*
+             * If the modal was closed without
+             * confirming a bulk delete, remove
+             * only the pending marker.
+             *
+             * DO NOT remove the selected IDs
+             * or selected action.
+             */
+
+            if (
+                formToSubmit &&
+                !bulkDeleteConfirmed
+            ) {
+
+                const keys =
+                    getBulkKeys(formToSubmit);
+
+
+                if (keys) {
+
+                    sessionStorage.removeItem(
+                        keys.pendingKey
+                    );
+
+                    console.log(
+                        "Bulk delete cancelled."
+                    );
+
+                }
+
+            }
+
+
+            formToSubmit = null;
+
+            bulkDeleteConfirmed =
+                false;
+
+
+            // =================================
+            // Reset Modal
+            // =================================
+
+            modalTitle.textContent =
+                "Confirm Action";
+
+            message.textContent =
+                "";
+
+            itemName.textContent =
+                "";
+
+            confirmBtn.className =
+                "btn btn-danger";
+
+            confirmBtn.textContent =
+                "Delete";
+
+        }
+    );
+
+})();
+There is one more important correction
+
+In the bulk-selection JavaScript I gave you previously, make sure the submit handler does not contain this anymore:
+
+sessionStorage.removeItem(idsKey);
+sessionStorage.removeItem(actionKey);
+
+And your confirmation modal must not contain it either.
+
+The only place that should clear them after a successful operation is the page-load logic:
+
+if (isPending && hasSuccessFlash) {
+
+    sessionStorage.removeItem(idsKey);
+
+    sessionStorage.removeItem(actionKey);
+
+    sessionStorage.removeItem(pendingKey);
+
+}
+Your final flow is now solid
+
+For bulk activation/renewal/suspension/etc.:
+
+Select records
+      ↓
+IDs stored in sessionStorage
+      ↓
+Navigate pages
+      ↓
+IDs remain
+      ↓
+Submit
+      ↓
+pending = true
+      ↓
+Controller processes
+      ↓
+Redirect
+      ↓
+SUCCESS FLASH
+      ↓
+Clear IDs + action + pending
+
+For bulk delete:
+
+Select records
+      ↓
+Submit
+      ↓
+Confirmation modal
+      ↓
+CANCEL ──────────────→ IDs/action remain
+                         pending removed
+
+CONFIRM
+      ↓
+pending remains true
+      ↓
+Form submitted
+      ↓
+Controller processes
+      ↓
+Redirect
+      ↓
+SUCCESS FLASH
+      ↓
+Clear IDs + action + pending
+
+And importantly, a failed deletion doesn't destroy the user's selection.
+
+That is the behavior I would consider correct for Prof Predict. We are no longer clearing state prematurely, and we're keeping the existing centralized flash architecture untouched.
+
+
+are you insinuating all of this should go "
+
+```
+const bulkActionPending =
+    sessionStorage.getItem(pendingKey) === "true";
+
+
+if (bulkActionPending) {
+
+    if (hasSuccessFlash) {
+
+        sessionStorage.removeItem(idsKey);
+
+        sessionStorage.removeItem(actionKey);
+
+        sessionStorage.removeItem(pendingKey);
+
+    } else if (
+        hasErrorFlash ||
+        hasWarningFlash
+    ) {
+
+        // Operation did not succeed.
+        // Keep selection and action for retry,
+        // but remove the pending marker.
+
+        sessionStorage.removeItem(pendingKey);
+
+    }
+
+}
+```
+
+Yes, partner — exactly, but with one clarification: that block belongs in the bulk-selection JavaScript, not confirmationModal.js.
+
+So do not put it in the confirmation modal.
+
+It should go in the main bulk-action script you originally sent me, after these keys are defined:
+
+const idsKey = `bulk_${moduleName}_ids`;
+const actionKey = `bulk_${moduleName}_action`;
+const pendingKey = `bulk_${moduleName}_pending`;
+
+Then immediately after that:
+
+// ============================================
+// Clear Completed Bulk Action State
+// ============================================
+
+const hasSuccessFlash =
+    document.querySelector(".alert-success");
+
+const hasErrorFlash =
+    document.querySelector(".alert-danger");
+
+const hasWarningFlash =
+    document.querySelector(".alert-warning");
+
+const bulkActionPending =
+    sessionStorage.getItem(pendingKey) === "true";
+
+
+if (bulkActionPending) {
+
+    if (hasSuccessFlash) {
+
+        sessionStorage.removeItem(idsKey);
+
+        sessionStorage.removeItem(actionKey);
+
+        sessionStorage.removeItem(pendingKey);
+
+    } else if (
+        hasErrorFlash ||
+        hasWarningFlash
+    ) {
+
+        // Keep selection/action available for retry.
+        sessionStorage.removeItem(pendingKey);
+
+    }
+
+}
+And there are 3 important rules
+
+1. confirmationModal.js does NOT clear IDs/action.
+
+We removed this:
+
+sessionStorage.removeItem(`bulk_${moduleName}_ids`);
+sessionStorage.removeItem(`bulk_${moduleName}_action`);
+
+from the confirmation modal.
+
+2. Your bulk script sets pendingKey when submission is genuinely proceeding.
+
+For normal bulk actions:
+
+sessionStorage.setItem(
+    pendingKey,
+    "true"
+);
+
+For bulk delete, the confirmation modal sets it when the user actually clicks Confirm.
+
+3. The block you just quoted clears everything after the redirect.
+
+So when your existing flash partial displays:
+
+<div class="alert alert-success">
+
+the bulk script sees .alert-success, removes the stored selections/action, and the page is fresh.
+
+One correction to my earlier wording
+
+I would not say "after the flash message disappears." The Bootstrap alert doesn't need to disappear first.
+
+It is:
+
+server succeeds → redirect → success flash renders → JavaScript sees success flash → sessionStorage is cleared.
+
+That's actually better because the user sees the success message while the underlying selection state has already been reset.
+
+So yes: that exact block goes into your bulk-action JavaScript. Keep your flash partial and flash middleware exactly as they are.
+
+
+Absolutely, partner. 😎🤝
+
+Subscription bulk-selection is now settled. We won't reopen that unless something genuinely breaks.
+
+Let's move on to the Payment Module.
+
+Given what we've already built in Prof Predict, I recommend we approach payments in a controlled order so we don't create another tangled module:
+
+Payment constants/configuration
+payment statuses
+payment methods/providers
+payment types
+transaction/reference handling
+Payment model
+user
+subscription
+amount
+currency
+reference
+status
+provider
+payment date
+metadata/audit fields
+Payment service
+create payment
+verify payment
+prevent duplicate references
+update payment status
+connect successful payment to subscription activation/renewal
+Payment controller/routes
+initiate payment
+callback/webhook
+verification
+admin payment management
+Subscription integration
+new subscription payment → activate
+active subscription payment → extend/renew
+expired/suspended subscription payment → reactivate/renew
+never reset an existing active subscription's expiry when the user is paying for another period
+Admin payment management
+payment history
+status
+search/filter
+transaction reference
+user/subscription relationship
+Security & reliability
+idempotency
+duplicate webhook protection
+amount verification
+provider/reference verification
+audit trail
+safe failure handling
+One thing I strongly recommend
+
+Before we write any payment code, let's inspect the current subscription constants, model, service, and activation/renewal logic we ended up with.
+
+That way the payment module will plug into the system we've actually built rather than creating a second subscription logic path.
+
+Send me the current payment-related code you already have, if any. If you haven't created the payment module yet, send me your current config/constants.js and subscriptionService.js, and we'll build the payment module on top of those.
+
+
+�🚀 Application Server started on port: 40
+
+[nodemon] restarting due to changes...
+
+[nodemon] starting `node server.js`
+
+◇ injected env (4) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+
+◇ injected env (0) from .env // tip: ◈ secrets for agents [[www.dotenvx.com](http://www.dotenvx.com)]
+
+MongoDB Connected
+
+�🚀 Application Server started on port: 40
+
+\========== EXPIRE SUBSCRIPTIONS ==========
+
+Current Time: 2026-08-12T13:38:07.207Z
+
+✓ 0 subscription(s) expired automatically.
+
+\========== EXPIRE SUBSCRIPTIONS ==========
+
+Current Time: 2026-08-12T13:38:25.924Z
+
+✓ 0 subscription(s) expired automatically.
+
+�🔥Bulk Action HIT!!! POST /admin/subscriptions/bulk
+
+action: 'suspend',
+
+subscriptionIds: [
+
+'6a77f916d98b26a5e846675b',
+
+'6a77d616e7bdffbfb76f3140',
+
+'6a6caf648ed4c7542c2ef3df'
+
+]
+
+}
+
+(node:14580) [DEP0044] DeprecationWarning: The `util.isArray` API is deprecated. Please use `Array.isArray()` instead.
+
+(Use `node --trace-deprecation ...` to show where the warning was created)
+
+\========== EXPIRE SUBSCRIPTIONS ==========
+
+Current Time: 2026-08-12T13:38:36.889Z
+
+✓ 0 subscription(s) expired automatically.
+
+\========== EXPIRE SUBSCRIPTIONS ==========
+
+Current Time: 2026-08-12T13:38:48.434Z
+
+✓ 0 subscription(s) expired automatically.
+
+�🚀Bulk Action HIT!!! POST /admin/subscriptions/bulk
+
+action: 'activate',
+
+subscriptionIds: [
+
+'6a77f916d98b26a5e846675b',
+
+'6a77d616e7bdffbfb76f3140',
+
+'6a6caf648ed4c7542c2ef3df'
+
+]
+
+}
+
+\========== EXPIRE SUBSCRIPTIONS ==========
+
+Current Time: 2026-08-12T13:39:00.445Z
+
+✓ 0 subscription(s) expired automatically.
+
+\========== EXPIRE SUBSCRIPTIONS ==========
+
+Current Time: 2026-08-12T13:39:54.742Z
+
+✓ 0 subscription(s) expired automatically.
+
+\========== EXPIRE SUBSCRIPTIONS ==========
+
+Current Time: 2026-08-12T13:40:19.531Z
+
+✓ 0 subscription(s) expired automatically.
+
+
+Ah — that symptom is very revealing, partner. We likely have a route-order conflict.
+
+The fact that:
+
+/admin/subscriptions/archive does not render the archive page
+you get "Invalid Subscription ID"
+and you're redirected to /admin/subscriptions
+
+strongly suggests that Express is treating:
+
+archive
+
+as the value of a dynamic route such as:
+
+/admin/subscriptions/:id
+
+So somewhere before your archive route, Express is probably matching:
+
+GET /admin/subscriptions/archive
+
+against:
+
+router.get("/subscriptions/:id", ...)
+
+Then your controller tries to validate:
+
+req.params.id === "archive"
+
+and, correctly, concludes:
+
+Invalid Subscription ID
+This is likely a route-order issue
+
+We previously had the archive route:
+
+router.get(
+    "/subscriptions/archive",
+    authMiddleware.isLoggedIn,
+    roleMiddleware.allowRoles(
+        ROLES.ADMIN,
+        ROLES.SUPERUSER
+    ),
+    subscriptionController.archivedSubscriptions
+);
+
+But if you have a dynamic route like:
+
+router.get(
+    "/subscriptions/:id",
+    ...
+);
+
+the archive route must come before it.
+
+For example:
+
+// =====================================
+// Subscription Archive
+// =====================================
+
+router.get(
+    "/subscriptions/archive",
+    authMiddleware.isLoggedIn,
+    roleMiddleware.allowRoles(
+        ROLES.ADMIN,
+        ROLES.SUPERUSER
+    ),
+    subscriptionController.archivedSubscriptions
+);
+
+
+// =====================================
+// Dynamic Subscription Route
+// =====================================
+
+router.get(
+    "/subscriptions/:id",
+    ...
+);
+
+Express evaluates routes in declaration order.
+
+So:
+
+/subscriptions/archive
+        ↓
+archive route first
+        ↓
+archivedSubscriptions()
+
+rather than:
+
+/subscriptions/archive
+        ↓
+/subscriptions/:id
+        ↓
+id = "archive"
+        ↓
+Invalid Subscription ID ❌
+Don't change anything yet
+
+I want to see your current subscriptionRoutes.js, because we shouldn't assume the exact dynamic route or its ordering.
+
+Send me that file/code, partner.
+
+I'll inspect the actual route order and tell you exactly what needs moving—hopefully this is a one-line route-order fix and we can get the archive page back without disturbing the subscription module we've just stabilized.
+
+aiight..archive is back after moving it up the :id rute, next is a layout issue, but let's leave that for now..as the contents of the archive page..pushes close to the wall
+
+Exactly, partner. 😎
+
+Let's leave the archive layout alone for now. That's a presentation issue, not a functional issue, and we've just confirmed the archive routing is working again.
+
+The important wins right now are:
+
+✅ Cross-page subscription selection works.
+✅ Bulk actions persist across pagination.
+✅ All selected IDs reach the backend.
+✅ Successful bulk operations can clear the stored selection/action.
+✅ Archive route is working again after fixing the :id route ordering.
+✅ We haven't disturbed the subscription business logic.
+
+For the archive page layout, we'll later give the content some proper horizontal breathing room—most likely by adjusting the archive page's container rather than hacking individual elements.
+
+Let's park that one.
+
+Now we can move forward with the Payment Module as planned. 🚀
+
+
+when i try to create a manual payment, i get a 404, more like the form does not know where to post to " d automatically.
+========== EXPIRE SUBSCRIPTIONS ==========
+Current Time: 2026-08-12T13:52:19.460Z
+✓ 0 subscription(s) expired automatically.
+[nodemon] restarting due to changes...
+[nodemon] starting `node server.js`
+◇ injected env (4) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+MongoDB Connected
+�🔥 Application Server started on port: 40
+[nodemon] restarting due to changes...
+[nodemon] starting `node server.js`
+◇ injected env (4) from .env // tip: ⌘ suppress logs { quiet: true }
+◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+[nodemon] restarting due to changes...
+MongoDB Connected
+�🚀 Application Server started on port: 40
+[nodemon] starting `node server.js`
+◇ injected env (4) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+MongoDB Connected
+�🚀 Application Server started on port: 40
+========== EXPIRE SUBSCRIPTIONS ==========
+Current Time: 2026-08-12T13:56:31.979Z
+✓ 0 subscription(s) expired automatically.
+========================================
+PAYMENTS LIST CONTROLLER HIT
+URL: /admin/payments
+METHOD: GET
+========================================
+
+
+Yes, partner — that log gives us a very strong clue. The payment list route is working, but the POST endpoint used by the manual-payment form is almost certainly missing, mismatched, or using the wrong URL.
+
+This line confirms the GET side is fine:
+
+PAYMENTS LIST CONTROLLER HIT
+URL: /admin/payments
+METHOD: GET
+
+But when you submit the manual payment form, we're apparently getting a 404, which means Express isn't finding the POST route the form is submitting to.
+
+Let's trace this instead of guessing
+
+I need to see the actual current payment routes and manual-payment form.
+
+Please send me:
+
+1. paymentRoutes.js — the complete current file if possible.
+
+2. The EJS form for creating the manual payment — especially:
+
+<form ...>
+
+and its action and method.
+
+3. If you already created it, the relevant paymentController.js function for manual payment creation.
+
+Then I'll match these three pieces:
+
+Manual Payment Form
+       ↓
+<form action="???">
+       ↓
+paymentRoutes.js
+       ↓
+POST /admin/payments/???
+       ↓
+paymentController.createManualPayment()
+What I suspect
+
+For example, if your form currently says:
+
+<form action="/admin/payments/create" method="POST">
+
+but your route is:
+
+router.post(
+    "/payments/manual",
+    ...
+);
+
+then Express will correctly return:
+
+404
+
+because /admin/payments/create doesn't exist.
+
+Or we may have the opposite situation where the route exists but the form is posting to the wrong path.
+
+Don't change anything yet. Send me those three pieces and I'll line them up exactly. Since we're starting the Payment Module, let's get this foundation correct before adding verification, renewal, or provider integration.
+
+
+
+
+```
+// =========================================
+```
+
+// Payment Management
+// =========================================
+
+// =========================================
+// Payment List
+// =========================================
+
+router.get(
+"/payments",
+authMiddleware.isLoggedIn,
+roleMiddleware.allowRoles(
+ROLES.ADMIN,
+ROLES.SUPERUSER
+),
+paymentController.payments
+);
+
+
+
+router.get(
+"/payments/create",
+authMiddleware.isLoggedIn,
+roleMiddleware.allowRoles(
+ROLES.ADMIN,
+ROLES.SUPERUSER
+),
+paymentController.createPaymentForm
+);
+
+// =========================================
+// Create Manual Payment
+// =========================================
+
+router.post(
+"/payments",
+authMiddleware.isLoggedIn,
+roleMiddleware.allowRoles(
+ROLES.ADMIN,
+ROLES.SUPERUSER
+),
+paymentController.createPayment
+);
+
+// =========================================
+// Payment Details
+// =========================================
+
+router.get(
+"/payments/\:id",
+authMiddleware.isLoggedIn,
+roleMiddleware.allowRoles(
+ROLES.ADMIN,
+ROLES.SUPERUSER
+),
+paymentController.paymentDetails
+);
+
+
+
+// =========================================
+// Complete / Process Payment
+// =========================================
+
+router.post(
+"/payments/\:id/complete",
+authMiddleware.isLoggedIn,
+roleMiddleware.allowRoles(
+ROLES.ADMIN,
+ROLES.SUPERUSER
+),
+paymentController.completePayment
+);
+
+// =========================================
+// Fail Payment
+// =========================================
+
+router.post(
+"/payments/\:id/fail",
+authMiddleware.isLoggedIn,
+roleMiddleware.allowRoles(
+ROLES.ADMIN,
+ROLES.SUPERUSER
+),
+paymentController.failPayment
+);
+
+// =========================================
+// Abandon Payment
+// =========================================
+
+router.post(
+"/payments/\:id/abandon",
+authMiddleware.isLoggedIn,
+roleMiddleware.allowRoles(
+ROLES.ADMIN,
+ROLES.SUPERUSER
+),
+paymentController.abandonPayment
+);
+
+// =========================================
+// Refund Payment
+// =========================================
+
+router.post(
+"/payments/\:id/refund",
+authMiddleware.isLoggedIn,
+roleMiddleware.allowRoles(
+ROLES.ADMIN,
+ROLES.SUPERUSER
+),
+paymentController.refundPayment
+);
+
+
+Pasted code(20260812-140715).html
+File
+
+There it is, partner. We found the 404. 😎
+
+Your routes are expecting the manual payment POST at:
+
+POST /admin/payments
+
+Your route explicitly defines that here:
+
+router.post(
+    "/payments",
+    ...
+    paymentController.createPayment
+);
+
+But your manual payment form is posting to:
+
+action="/admin/payments/create"
+
+as shown in the uploaded form.
+
+And /admin/payments/create is only registered as a GET route:
+
+router.get("/payments/create", ...);
+
+So Express receives:
+
+POST /admin/payments/create
+
+and has no matching route → 404.
+
+The fix is one line
+
+Change this:
+
+<form
+    action="/admin/payments/create"
+    method="POST">
+
+to:
+
+<form
+    action="/admin/payments"
+    method="POST">
+
+That's it.
+
+Your flow will then correctly be:
+
+GET /admin/payments/create
+        ↓
+createPaymentForm
+        ↓
+Display manual payment form
+        ↓
+POST /admin/payments
+        ↓
+createPayment
+        ↓
+Redirect /admin/payments
+
+The rest of your form fields are already posting names that look deliberately aligned with the payment model/controller—user, amount, plan, duration, paymentMethod, gateway, currency, and customerEmail.
+
+One other thing I noticed
+
+Your amount help text says:
+
+"Enter the amount in the smallest currency unit. Example: ₦5,000 = 500000 Kobo."
+
+But the input itself has:
+
+step="1"
+
+That's fine if your payment system is intentionally storing amounts in kobo. However, ₦5,000 = 500000 kobo is correct, so we should make sure the controller/model also expects kobo rather than naira. We'll verify that when we inspect the payment model/service.
+
+For now, though:
+
+Change only the form action from /admin/payments/create → /admin/payments.
+
+Then try creating the manual payment again. If it gets past the 404 and produces a validation/error message, that's progress—we'll then tackle the actual payment creation logic rather than the routing.
+
+
+==================
+PAYMENTS LIST CONTROLLER HIT
+URL: /admin/payments
+METHOD: GET
+========================================
+Create Payment Error: TypeError: logActivity is not a function
+    at exports.createPayment (C:\Users\GMA Technologies LTD\desktop\projectSportPredict\controllers\admin\paymentController.js:445:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+(node:6568) [DEP0044] DeprecationWarning: The `util.isArray` API is deprecated. Please use `Array.isArray()` instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+========================================
+PAYMENTS LIST CONTROLLER HIT
+URL: /admin/payments
+METHOD: GET
+========================================
+
+
+Good — the 404 is fixed. We're now reaching createPayment() and the error is inside the controller:
+
+Create Payment Error: TypeError: logActivity is not a function
+
+Specifically:
+
+paymentController.js:445
+
+So the payment itself got far enough into the controller that it reached the activity logging step. This is now a logActivity import/export mismatch, not a payment-route problem.
+
+Don't change the payment logic yet
+
+We need to inspect how logActivity is currently defined and exported.
+
+Please send me the top portion of:
+
+controllers/admin/paymentController.js
+
+especially the imports/requires near the top, and also the current activity logger service/module where logActivity is defined.
+
+I'm looking for something like:
+
+const { logActivity } = require(...);
+
+versus:
+
+const logActivity = require(...);
+
+and whether the source module actually exports:
+
+module.exports = logActivity;
+
+or:
+
+module.exports = {
+    logActivity
+};
+
+Those two patterns require different imports.
+
+Why I'm confident this is the issue
+
+The error isn't:
+
+logActivity is not defined
+
+It's:
+
+logActivity is not a function
+
+That means the variable exists, but what was imported into paymentController.js isn't callable as a function.
+
+For example, if the logger has:
+
+module.exports = {
+    logActivity
+};
+
+then this is correct:
+
+const { logActivity } = require("../../services/activityService");
+
+whereas this would produce exactly the kind of problem we're seeing:
+
+const logActivity =
+    require("../../services/activityService");
+
+because logActivity would actually contain the exported object.
+
+So don't rewrite line 445 or remove activity logging. Activity logging is valuable for the payment module.
+
+Send me the imports from paymentController.js and the activity logger file, and I'll give you the exact correction.
+
+
+const mongoose = require("mongoose");
+const paymentService = require("../../services/paymentService");
+const Payment = require("../../models/paymentModel");
+const User = require("../../models/userModel");
+
+
+const {
+    PAYMENT_STATUS,
+    PAYMENT_METHODS,
+    PAYMENT_GATEWAYS,
+    SUBSCRIPTION_PLANS
+} = require("../../config/constants");
+
+
+const { logActivity } = require("../../utils/activityLogger");
+
+
+Yep, partner — that import itself is correct only if activityLogger.js exports an object containing logActivity.
+
+You currently have:
+
+const { logActivity } = require("../../utils/activityLogger");
+
+But the runtime says:
+
+TypeError: logActivity is not a function
+
+So the next thing we need to verify is the actual export from utils/activityLogger.js.
+
+Please send me the contents of:
+
+utils/activityLogger.js
+
+I'm specifically looking for the bottom of the file, such as:
+
+module.exports = {
+    logActivity
+};
+
+or:
+
+exports.logActivity = logActivity;
+
+or perhaps:
+
+module.exports = logActivity;
+Don't change this import yet
+
+Keep:
+
+const { logActivity } = require("../../utils/activityLogger");
+
+until we see the logger's export.
+
+If the logger currently ends with:
+
+module.exports = logActivity;
+
+then that is the mismatch, and the controller should instead use:
+
+const logActivity =
+    require("../../utils/activityLogger");
+
+But if it exports:
+
+module.exports = {
+    logActivity
+};
+
+then your current controller import is correct, and we'll investigate what is actually being returned.
+
+Send activityLogger.js and we'll fix this precisely.
+
+const Activity = require("../models/activityModel");
+
+module.exports = async function logActivity({
+
+```
+action,
+
+description,
+
+icon = "bi-activity",
+
+color = "primary",
+
+createdBy = null
+```
+
+}) {
+
+```
+try {
+
+    await Activity.create({
+
+        action,
+
+        description,
+
+        icon,
+
+        color,
+
+        createdBy
+
+    });
+
+}
+
+catch(err){
+
+    console.error(err);
+
+}
+```
+
+};
+
+
+There we go, partner. We found it. ✅
+
+Your activityLogger.js exports the function directly:
+
+module.exports = async function logActivity({
+    ...
+}) {
+    ...
+};
+
+Therefore this import in paymentController.js is wrong:
+
+const { logActivity } =
+    require("../../utils/activityLogger");
+
+You're destructuring logActivity from the exported value, but the exported value is already the function itself. That's why Node gives:
+
+TypeError: logActivity is not a function
+Fix one line
+
+Change:
+
+const { logActivity } =
+    require("../../utils/activityLogger");
+
+to:
+
+const logActivity =
+    require("../../utils/activityLogger");
+
+That's all we need to change here.
+
+Why this works
+
+Your logger:
+
+module.exports = async function logActivity(...) {
+
+means:
+
+require("../../utils/activityLogger")
+        ↓
+the logActivity function itself
+
+So the controller should receive it directly:
+
+const logActivity =
+    require("../../utils/activityLogger");
+
+Then your existing call around line 445 can remain exactly as it is:
+
+await logActivity({
+    action: "...",
+    description: "...",
+    icon: "...",
+    color: "...",
+    createdBy: ...
+});
+Don't modify activityLogger.js
+
+The logger itself is fine. The problem is only the import.
+
+After changing that one line, restart/reload and try creating the manual payment again.
+
+If another error appears, send me the complete new error. We're now past the routing problem and fixing the actual payment creation pipeline one layer at a time.
+
+
+partner...i enjoy everything you do...but look at the screenshot...minimum payment should be 5,000 and not 50.00
+
+
+const mongoose = require("mongoose");
+
+const {
+SUBSCRIPTION\_PLANS,
+PAYMENT\_GATEWAYS,
+PAYMENT\_METHODS,
+PAYMENT\_STATUS
+} = require("../config/constants");
+
+const paymentSchema = new mongoose.Schema({
+
+```
+// =====================================
+// User
+// =====================================
+
+user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+    index: true
+},
+
+// =====================================
+// Related Subscription
+// =====================================
+
+subscription: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Subscription",
+    default: null
+},
+
+// =====================================
+// Payment Gateway
+// =====================================
+
+gateway: {
+    type: String,
+    enum: Object.values(PAYMENT_GATEWAYS),
+    required: true,
+    index: true
+},
+
+// =====================================
+// Payment Method
+// =====================================
+
+paymentMethod: {
+    type: String,
+    enum: Object.values(PAYMENT_METHODS),
+    default: PAYMENT_METHODS.OTHER
+},
+
+// =====================================
+// Internal Payment Reference
+// Example:
+// PP-PAY-20260807-000001
+// =====================================
+
+reference: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true,
+    index: true
+},
+
+// =====================================
+// Customer Receipt Number
+// Example:
+// PP-RCP-20260807-000001
+// =====================================
+
+receiptNumber: {
+    type: String,
+    unique: true,
+    sparse: true,
+    trim: true,
+    index: true
+},
+
+// =====================================
+// Gateway Reference
+// =====================================
+
+gatewayReference: {
+    type: String,
+    default: "",
+    trim: true,
+    index: true
+},
+
+// =====================================
+// Gateway Transaction ID
+// =====================================
+
+gatewayTransactionId: {
+    type: String,
+    default: "",
+    trim: true,
+    index: true
+},
+
+// =====================================
+// Amount
+// Stored in smallest currency unit.
+//
+// NGN:
+// ₦5,000 = 500000 Kobo
+//
+// USD:
+// $10.50 = 1050 cents
+// =====================================
+
+amount: {
+    type: Number,
+    required: true,
+    min: 0,
+    validate: {
+        validator: Number.isInteger, //force no decimal
+        message: 'Amount must be in the smallest currency unit: kobo or cents'
+    }
+},
+
+currency: {
+    type: String,
+    default: "NGN",
+    uppercase: true,
+    trim: true,
+    enum: ["NGN", "USD"],
+    required: true
+},
+
+// =====================================
+// Purchased Subscription
+// =====================================
+
+planPurchased: {
+    type: String,
+    enum: Object.values(SUBSCRIPTION_PLANS),
+    required: true
+},
+
+durationPurchased: {
+    type: Number,
+    required: true,
+    min: 1
+},
+
+
+// =====================================
+// Payment Status
+// =====================================
+
+status: {
+    type: String,
+    enum: Object.values(PAYMENT_STATUS),
+    default: PAYMENT_STATUS.PENDING,
+    index: true
+},
+
+isProcessed: {
+    type: Boolean,
+    default: false
+},
+
+processedAt: {
+    type: Date,
+    default: null
+},
+
+// =====================================
+// Failure Information
+// =====================================
+
+failureReason: {
+    type: String,
+    default: "",
+    trim: true
+},
+
+// =====================================
+// Payment Dates
+// =====================================
+
+paidAt: {
+    type: Date,
+    default: null
+},
+
+verifiedAt: {
+    type: Date,
+    default: null
+},
+
+refundedAt: {
+    type: Date,
+    default: null
+},
+
+// =====================================
+// Customer
+// =====================================
+
+customerEmail: {
+    type: String,
+    required: true,
+    lowercase: true,
+    trim: true,
+    index: true
+},
+
+// =====================================
+// Refund Information
+// =====================================
+
+refundReason: {
+    type: String,
+    default: "",
+    trim: true
+},
+
+// =====================================
+// Raw Gateway Response
+// =====================================
+
+providerResponse: {
+    type: mongoose.Schema.Types.Mixed,
+    default: null,
+    select: false //don't return by default in queries
+},
+
+
+// =====================================
+// Extra Metadata
+// =====================================
+
+metadata: {
+    type: mongoose.Schema.Types.Mixed,
+    default: {},
+    select: false
+},
+
+// =====================================
+// Manual Payments
+// =====================================
+
+// isManual: {
+//     type: Boolean,
+//     default: false
+// },
+
+// manualPaymentDetails: {
+//     paymentMethod: {
+//         type: String,
+//         enum: ["BANK_TRANSFER", "POS", "CASH", "CHEQUE"],
+//         required: function() { return this.isManual }
+//     },
+//     referenceNumber: { 
+//         type: String, 
+        
+//         trim: true
+//     },
+
+//     bankName: { 
+//         type: String, 
+        
+//         trim: true
+//     },
+
+//     paidAt: { type: Date },
+
+//     proofUrl: { type: String },
+
+//     verifiedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+
+//     verifiedAt: { type: Date}
+// },
+
+createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    default: null
+},
+```
+
+}, {
+timestamps: true
+});
+
+// =====================================
+// Indexes
+// =====================================
+
+paymentSchema.index({ reference: 1 });
+
+paymentSchema.index({
+user: 1,
+createdAt: -1
+});
+
+paymentSchema.index({ status: 1, createdAt: -1 });
+
+paymentSchema.index({
+status: 1,
+gateway: 1
+});
+
+paymentSchema.index({
+gateway: 1,
+paymentMethod: 1
+});
+
+paymentSchema.index({
+gateway: 1,
+gatewayReference: 1
+});
+
+paymentSchema.index({
+gateway: 1,
+gatewayTransactionId: 1
+});
+
+paymentSchema.index({
+customerEmail: 1,
+createdAt: -1
+});
+
+paymentSchema.index({ customerEmail: 1, status: 1 });
+// =====================================
+// Virtuals
+// =====================================
+
+paymentSchema.virtual("isSuccessful").get(function () {
+
+```
+return this.status === PAYMENT_STATUS.SUCCESSFUL;
+```
+
+});
+
+paymentSchema.virtual("isPending").get(function () {
+
+```
+return this.status === PAYMENT_STATUS.PENDING;
+```
+
+});
+
+paymentSchema.virtual("isRefunded").get(function () {
+
+```
+return this.status === PAYMENT_STATUS.REFUNDED;
+```
+
+});
+
+// =====================================
+// Instance Methods
+// =====================================
+
+paymentSchema.methods.markSuccessful = function (
+providerResponse = {}
+) {
+
+```
+this.status = PAYMENT_STATUS.SUCCESSFUL;
+
+this.providerResponse = providerResponse;
+
+this.paidAt = new Date();
+
+this.verifiedAt = new Date();
+
+this.failureReason = "";
+
+return this.save();
+```
+
+};
+
+paymentSchema.methods.markFailed = function (
+reason = "",
+providerResponse = {}
+) {
+
+```
+this.status = PAYMENT_STATUS.FAILED;
+
+this.failureReason = reason;
+
+this.providerResponse = providerResponse;
+
+return this.save();
+```
+
+};
+
+paymentSchema.methods.markRefunded = function (
+reason = ""
+) {
+
+```
+this.status = PAYMENT_STATUS.REFUNDED;
+
+this.refundReason = reason;
+
+this.refundedAt = new Date();
+
+return this.save();
+```
+
+};
+
+// paymentSchema.methods.markVerified = function(userId) {
+//     this.isManual = true;
+//     this.manualDetails.verifiedBy = userId;
+//     this.manualDetails.verifiedAt = new Date();
+//     this.status = PAYMENT\_STATUS.SUCCESSFUL;
+//     this.paidAt = new Date();
+//     return this.save();
+// }
+
+paymentSchema.methods.toDisplayAmount = function () {
+return ( this.amount / 100 ).toLocaleString('en-NG', {
+style: 'currency',
+currency: this.currency
+});
+}
+
+// =====================================
+// JSON
+// =====================================
+
+paymentSchema.set("toJSON", {
+
+```
+virtuals: true,
+
+versionKey: false,
+
+transform(doc, ret) {
+
+    delete ret.__v;
+
+    return ret;
+
+}
+```
+
+});
+
+module.exports = mongoose.model(
+"Payment",
+paymentSchema
+);
+
+
+Ahhh — that is an important clue, partner. And yes, please note that result. It tells us exactly where the mismatch is.
+
+You entered:
+
+₦5,000
+
+but the model's new minimum validator interpreted the value as 5,000 kobo, which is only:
+
+₦50
+
+Therefore it correctly rejected it with:
+
+Minimum NGN payment is ₦5,000
+
+from the model's perspective.
+
+So the problem is NOT the minimum rule
+
+The minimum rule itself is correct:
+
+500,000 kobo = ₦5,000
+
+The problem is that createPayment() is passing 5000 into Payment.amount instead of converting the admin's ₦5,000 input into 500000 kobo first.
+
+The correct pipeline needs to be:
+
+Admin enters
+5,000
+   ↓
+Controller receives
+5000
+   ↓
+Validate minimum
+5000 >= 5000 ✅
+   ↓
+Convert to minor unit
+5000 × 100
+   ↓
+500000
+   ↓
+Payment.amount
+   ↓
+Model minimum validator
+500000 >= 500000 ✅
+   ↓
+Saved
+   ↓
+Display
+500000 / 100
+   ↓
+₦5,000.00
+And this also explains your original ₦50.00
+
+Previously, you entered 50, and the payment ended up displaying:
+
+NGN 50.00
+
+That strongly suggests the controller was storing 50 directly rather than treating the form input as naira and converting it to kobo.
+
+So we should not change the model again right now. The model is doing exactly what we've told it to do.
+
+Next step
+
+Send me your current:
+
+exports.createPayment
+
+from paymentController.js.
+
+I'll adjust the amount handling so that:
+
+₦5,000 → 500000 stored
+₦10,000 → 1000000 stored
+₦50 → rejected
+₦4,999 → rejected
+₦5,000.50 → handled correctly if we decide to permit decimals
+database continues storing minor units
+display continues showing normal naira
+
+And we'll make sure the validation happens before conversion, otherwise we'll keep getting exactly the false rejection you just encountered.
+
+
+
+
+exports.createPayment = async (
+req,
+res
+) => {
+
+```
+try {
+
+    const {
+
+        user,
+        amount,
+        plan,
+        paymentMethod,
+        gateway,
+        currency,
+        duration,
+        customerEmail,
+        metadata
+
+    } = req.body;
+
+
+    const payment =
+        await paymentService.createPayment({
+
+            user,
+
+            amount:
+                Number(amount),
+
+            plan,
+
+            paymentMethod,
+
+            gateway,
+
+            currency,
+
+            duration:
+                Number(duration),
+
+            customerEmail,
+
+            createdBy:
+                req.session.user._id,
+
+            metadata
+
+        });
+
+
+    // =============================================
+    // Activity Log
+    // =============================================
+
+    await logActivity({
+
+        action:
+            "Payment Created",
+
+        description:
+            `Payment ${payment.reference} created for ${payment.customerEmail}.`,
+
+        icon:
+            "bi-credit-card",
+
+        color:
+            "primary",
+
+        createdBy:
+            req.session.user._id
+
+    });
+
+
+    req.flash(
+        "success",
+        "Payment created successfully."
+    );
+
+
+    return res.redirect(
+        `/admin/payments/${payment._id}`
+    );
+
+} catch (err) {
+
+    console.error(
+        "Create Payment Error:",
+        err
+    );
+
+    req.flash(
+        "error",
+        err.message ||
+        "Unable to create payment."
+    );
+
+    return res.redirect(
+        req.body.redirectTo ||
+        "/admin/payments"
+    );
+
+}
+```
+
+};
+
+Yes, partner — this confirms the problem is not in createPayment() itself alone; it is in the contract between createPayment() and paymentService.createPayment().
+
+Your controller currently does this:
+
+amount: Number(amount),
+
+So when the admin enters:
+
+5000
+
+the service receives:
+
+amount: 5000
+
+and, if the service passes that straight into the model, the model correctly interprets it as:
+
+5,000 kobo = ₦50
+
+Hence the minimum validator rejects it.
+
+But I don't want to add * 100 here yet
+
+We need to inspect your current paymentService.createPayment() first.
+
+Why? Because if the service already performs any amount normalization/conversion, adding:
+
+Number(amount) * 100
+
+to the controller could result in double conversion:
+
+5000
+→ controller ×100
+→ 500000
+→ service ×100
+→ 50,000,000 ❌
+
+That would be a nasty payment bug.
+
+So the correct next step
+
+Please send me the current:
+
+paymentService.createPayment
+
+from:
+
+services/paymentService.js
+
+Once I see it, I'll establish the exact contract:
+
+FORM
+₦5,000
+   ↓
+CONTROLLER
+5,000 naira
+   ↓
+SERVICE
+500,000 kobo
+   ↓
+MODEL
+500,000
+   ↓
+DISPLAY
+₦5,000.00
+
+And we'll enforce the ₦5,000 minimum at the correct layer without accidentally changing the amount twice.
+
+Don't change this controller yet. The Number(amount) line is not inherently wrong; we need to see what paymentService.createPayment() expects before modifying it.
+
+
+
+exports.createPayment = async ({
+
+```
+user,
+
+amount,
+
+plan = SUBSCRIPTION_PLANS.PREMIUM,
+
+paymentMethod =
+    PAYMENT_METHODS.OTHER,
+
+gateway =
+    PAYMENT_GATEWAYS.MANUAL,
+
+currency = "NGN",
+
+duration = 30,
+
+customerEmail,
+
+createdBy = null,
+
+metadata = {}
+```
+
+}) => {
+
+```
+// =================================================
+// Validate User
+// =================================================
+
+const existingUser =
+    await User.findById(user);
+
+if (!existingUser) {
+
+    throw new Error(
+        "User not found."
+    );
+
+}
+
+
+// =================================================
+// Validate Amount
+// =================================================
+
+if (
+    typeof amount !== "number" ||
+    !Number.isFinite(amount) ||
+    amount <= 0
+) {
+
+    throw new Error(
+        "Payment amount must be greater than zero."
+    );
+
+}
+
+
+// =================================================
+// Validate Duration
+// =================================================
+
+if (
+    !Number.isFinite(Number(duration)) ||
+    Number(duration) <= 0
+) {
+
+    throw new Error(
+        "Payment duration must be greater than zero."
+    );
+
+}
+
+
+// =================================================
+// Determine Customer Email
+// =================================================
+
+const email =
+    customerEmail ||
+    existingUser.email;
+
+if (!email) {
+
+    throw new Error(
+        "Customer email is required."
+    );
+
+}
+
+
+// =================================================
+// Create Payment
+// =================================================
+
+const payment =
+    await Payment.create({
+
+        user,
+
+        subscription: null,
+
+        gateway,
+
+        paymentMethod,
+
+        reference:
+            exports.generateReference(),
+
+        amount,
+
+        currency,
+
+        planPurchased:
+            plan,
+
+        durationPurchased:
+            Number(duration),
+
+        status:
+            PAYMENT_STATUS.PENDING,
+
+        isProcessed: false,
+
+        customerEmail:
+            email,
+
+        metadata,
+
+        createdBy
+
+    });
+
+
+return payment;
+```
+
+};
+
+
+Yes, partner. If you want it to look cleaner and clearly belong to the Amount field, I'd use Bootstrap's form-text rather than a plain text-muted <small>.
+
+Recommended
+<div class="mb-3">
+
+    <label for="amount" class="form-label">
+        Amount
+    </label>
+
+    <input
+        type="number"
+        class="form-control"
+        id="amount"
+        name="amount"
+        min="5000"
+        step="0.01"
+        required
+    >
+
+    <div class="form-text">
+        Minimum payment: ₦5,000.00
+    </div>
+
+</div>
+
+This naturally places the text directly underneath the input and gives it the standard Bootstrap helper-text appearance.
+
+Even better for your payment form
+
+I would make the instruction concise:
+
+<div class="form-text">
+    Enter amount in NGN. Minimum: ₦5,000.00
+</div>
+
+So visually:
+
+Amount
+┌─────────────────────────────┐
+│ 5000                        │
+└─────────────────────────────┘
+Enter amount in NGN. Minimum: ₦5,000.00
+
+I prefer this over:
+
+<small class="text-muted">
+
+because form-text is specifically intended for help text associated with a form control.
+
+
+payment created successful with an error " 
+[nodemon] restarting due to changes...
+[nodemon] starting `node server.js`
+◇ injected env (4) from .env // tip: ⌘ enable debugging { debug: true }
+◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+MongoDB Connected
+�🚀 Application Server started on port: 40
+(node:5636) [DEP0044] DeprecationWarning: The `util.isArray` API is deprecated. Please use `Array.isArray()` instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+=================================
+PAYMENT DETAILS ROUTE HIT
+req.originalUrl: /admin/payments/6a7c8e4bd6753dea3e59aec8
+req.params: { id: '6a7c8e4bd6753dea3e59aec8' }
+paymentId: 6a7c8e4bd6753dea3e59aec8
+=================================
+Global Error Handler:
+Error: C:\Users\GMA Technologies LTD\desktop\projectSportPredict\views\admin\payments\paymentDetails.ejs:1
+ >> 1| <% include("../partials/header") %>
+    2|
+    3| <section class="container-fluid py-4">
+    4|
+
+Could not find the include file "../partials/header"
+    at getIncludePath (C:\Users\GMA Technologies LTD\desktop\projectSportPredict\node_modules\ejs\lib\ejs.js:185:13)
+    at includeFile (C:\Users\GMA Technologies LTD\desktop\projectSportPredict\node_modules\ejs\lib\ejs.js:311:19)
+    at include (C:\Users\GMA Technologies LTD\desktop\projectSportPredict\node_modules\ejs\lib\ejs.js:701:16)
+    at eval (eval at compile (C:\Users\GMA Technologies LTD\desktop\projectSportPredict\node_modules\ejs\lib\ejs.js:673:12), <anonymous>:10:8)
+    at paymentDetails (C:\Users\GMA Technologies LTD\desktop\projectSportPredict\node_modules\ejs\lib\ejs.js:703:17)
+    at tryHandleCache (C:\Users\GMA Technologies LTD\desktop\projectSportPredict\node_modules\ejs\lib\ejs.js:274:36)
+    at exports.renderFile [as engine] (C:\Users\GMA Technologies LTD\desktop\projectSportPredict\node_modules\ejs\lib\ejs.js:491:10)
+    at View.render (C:\Users\GMA Technologies LTD\desktop\projectSportPredict\node_modules\express\lib\view.js:135:8)
+    at tryRender (C:\Users\GMA Technologies LTD\desktop\projectSportPredict\node_modules\express\lib\application.js:657:10)
+    at app.render (C:\Users\GMA Technologies LTD\desktop\projectSportPredict\node_modules\express\lib\application.js:609:3) {
+  path: 'C:\\Users\\GMA Technologies LTD\\desktop\\projectSportPredict\\views\\admin\\payments\\paymentDetails.ejs'
+}
+
+
+Yes, partner — I agree that the view path is now the first thing I'd inspect, especially because the payment was created correctly and the details route was definitely hit.
+
+But there's an important distinction:
+
+/admin/payments/:id
+        ↓
+paymentDetails controller
+        ↓
+render("admin/payments/paymentDetails", ...)
+        ↓
+paymentDetails.ejs
+
+If the view path itself were wrong, we'd normally expect an EJS "Failed to lookup view" or include error—not necessarily "Invalid payment ID".
+
+So let's verify the entire details-page path before changing anything.
+
+Please send me the current:
+
+exports.paymentDetails = async (req, res) => {
+    ...
+};
+
+and the exact folder structure around:
+
+views/
+├── admin/
+│   └── payments/
+│       ├── payments.ejs
+│       ├── paymentForm.ejs
+│       └── paymentDetails.ejs
+└── partials/
+    └── header.ejs
+
+I'm particularly interested in the controller's:
+
+res.render(...)
+
+and any code that generates the payment-details URL.
+
+Because we already know this is valid:
+
+paymentId: 6a7c8e4bd6753dea3e59aec8
+
+So I don't want to alter the ID validation until we see whether the controller is actually receiving/looking up the same ID.
+
+Send the paymentDetails controller function first. That's the shortest route to the answer.
+
+
+exports.paymentDetails = async (req, res) => {
+
+```
+try {
+
+    const paymentId = req.params.id;
+
+    console.log("=================================");
+    console.log("PAYMENT DETAILS ROUTE HIT");
+    console.log(
+        "req.originalUrl:",
+        req.originalUrl
+    );
+    console.log(
+        "req.params:",
+        req.params
+    );
+    console.log(
+        "paymentId:",
+        paymentId
+    );
+    console.log("=================================");
+
+
+    if (
+        !mongoose.Types.ObjectId.isValid(
+            paymentId
+        )
+    ) {
+
+        req.flash(
+            "error",
+            "Invalid payment ID."
+        );
+
+        return res.redirect(
+            "/admin/payments"
+        );
+
+    }
+
+
+    const payment =
+        await Payment.findById(
+            paymentId
+        )
+
+            .populate(
+                "user",
+                "username email role"
+            )
+
+            .populate(
+                "subscription",
+                "plan status startedAt expiresAt source"
+            )
+
+            .populate(
+                "createdBy",
+                "username email"
+            )
+
+            .lean();
+
+
+    if (!payment) {
+
+        req.flash(
+            "error",
+            "Payment not found."
+        );
+
+        return res.redirect(
+            "/admin/payments"
+        );
+
+    }
+
+
+    return res.render(
+        "admin/payments/paymentDetails",
+        {
+
+            title:
+                "Payment Details",
+
+            payment,
+
+            PAYMENT_STATUS,
+
+            PAYMENT_METHODS,
+
+            PAYMENT_GATEWAYS,
+
+            SUBSCRIPTION_PLANS
+
+        }
+    );
+
+} catch (err) {
+
+    console.error(
+        "Payment Details Error:",
+        err
+    );
+
+    req.flash(
+        "error",
+        "Unable to load payment details."
+    );
+
+    return res.redirect(
+        "/admin/payments"
+    );
+
+}
+```
+
+};
+
+Partner, this controller is correct. In fact, this code gives us a very important clue.
+
+Your logged ID was:
+
+6a7c8e4bd6753dea3e59aec8
+
+That is 24 hexadecimal characters, which is a valid MongoDB ObjectId.
+
+And your controller does:
+
+const paymentId = req.params.id;
+
+if (
+    !mongoose.Types.ObjectId.isValid(paymentId)
+) {
+    req.flash(
+        "error",
+        "Invalid payment ID."
+    );
+
+    return res.redirect(
+        "/admin/payments"
+    );
+}
+
+So if the log really shows:
+
+paymentId: 6a7c8e4bd6753dea3e59aec8
+
+then this particular request should NOT produce "Invalid payment ID."
+
+That changes our direction
+
+The problem is very likely somewhere in the view/link that is generating another request, or we're seeing the flash from a different request.
+
+Your controller's flow is:
+
+/admin/payments/:id
+       ↓
+req.params.id
+       ↓
+ObjectId validation
+       ↓
+Payment.findById()
+       ↓
+res.render("admin/payments/paymentDetails")
+
+And this line is also correct:
+
+res.render(
+    "admin/payments/paymentDetails",
+    {
+        ...
+    }
+);
+
+assuming the file is:
+
+views/
+└── admin/
+    └── payments/
+        └── paymentDetails.ejs
+Here's what I want to check next
+
+Please send me the current paymentDetails.ejs, especially:
+
+the top/header include
+anywhere it displays the payment ID
+any buttons/forms
+any links back to payment details
+any href="/admin/payments/..."
+any JavaScript that redirects or submits a payment ID
+
+Because I strongly suspect we have something like:
+
+href="/admin/payments/<%= something %>"
+
+where something isn't actually payment._id.
+
+One tiny diagnostic we can also add
+
+Immediately after your validation, temporarily add:
+
+console.log(
+    "ObjectId valid:",
+    mongoose.Types.ObjectId.isValid(paymentId)
+);
+
+So the log becomes:
+
+paymentId: 6a7c8e4bd6753dea3e59aec8
+ObjectId valid: true
+
+If it says true, then we have absolute confirmation that the "Invalid payment ID" flash is coming from somewhere else, not this validation block.
+
+And notice something else
+
+If the ID were valid but the database couldn't find the payment, your controller would say:
+
+Payment not found.
+
+—not:
+
+Invalid payment ID.
+
+So there are only two relevant possibilities here:
+
+Another request is hitting this controller with a bad ID, or
+Something in the payment details view is generating a second malformed request.
+
+Given that you specifically suspect the views, send me paymentDetails.ejs now. I think we'll find it there.
+
+
+*<*% include("../../partials/header") %>
+
+\<section class="container-fluid py-4">
+
+
+\<!-- =========================================
+     HEADER
+\========================================== -->
+
+\<div class="d-flex justify-content-between align-items-center mb-4">
+
+    \<div>
+
+        \<h3 class="mb-1">
+            \<i class="bi bi-credit-card">\</i>
+            Payment Details
+        \</h3>
+
+        \<p class="text-light mb-0">
+            View payment information and processing status.
+        \</p>
+
+    \</div>
+
+    \<div class="d-flex gap-2">
+
+        \<a
+            href="/admin/payments"
+            class="btn btn-outline-secondary"
+        >
+            \<i class="bi bi-arrow-left me-2">\</i>
+            Back to Payments
+        \</a>
+
+    \</div>
+
+\</div>
+
+
+\<!-- =========================================
+     PAYMENT STATUS
+\========================================== -->
+
+\<div class="card shadow-sm border-0 mb-4">
+
+    \<div class="card-body">
+
+        \<div class="row align-items-center">
+
+            \<div class="col-md-8">
+
+                \<h5 class="mb-1">
+
+                    *<*%= payment.reference %>
+
+                \</h5>
+
+                \<small class="text-light">
+
+                    Created
+                    *<*%= payment.createdAt
+                        ? new Date(payment.createdAt).toLocaleString()
+                        : "N/A"
+                    %>
+
+                \</small>
+
+            \</div>
+
+
+            \<div class="col-md-4 text-md-end mt-3 mt-md-0">
+
+                *<*% if (payment.status === PAYMENT\_STATUS.SUCCESSFUL) { %>
+
+                    \<span class="badge bg-success fs-6">
+                        \<i class="bi bi-check-circle">\</i>
+                        Successful
+                    \</span>
+
+                *<*% } else if (payment.status === PAYMENT\_STATUS.PENDING) { %>
+
+                    \<span class="badge bg-warning text-dark fs-6">
+                        \<i class="bi bi-clock">\</i>
+                        Pending
+                    \</span>
+
+                *<*% } else if (payment.status === PAYMENT\_STATUS.FAILED) { %>
+
+                    \<span class="badge bg-danger fs-6">
+                        \<i class="bi bi-x-circle">\</i>
+                        Failed
+                    \</span>
+
+                *<*% } else if (payment.status === PAYMENT\_STATUS.ABANDONED) { %>
+
+                    \<span class="badge bg-secondary fs-6">
+                        \<i class="bi bi-dash-circle">\</i>
+                        Abandoned
+                    \</span>
+
+                *<*% } else if (payment.status === PAYMENT\_STATUS.REFUNDED) { %>
+
+                    \<span class="badge bg-dark fs-6">
+                        \<i class="bi bi-arrow-counterclockwise">\</i>
+                        Refunded
+                    \</span>
+
+                *<*% } else { %>
+
+                    \<span class="badge bg-secondary fs-6">
+                        *<*%= payment.status %>
+                    \</span>
+
+                *<*% } %>
+
+            \</div>
+
+        \</div>
+
+    \</div>
+
+\</div>
+
+
+\<div class="row g-4">
+
+    \<!-- =====================================
+         PAYMENT INFORMATION
+    ====================================== -->
+
+    \<div class="col-lg-8">
+
+        \<div class="card shadow-sm border-0 mb-4">
+
+            \<div class="card-header bg-transparent">
+
+                \<h5 class="mb-0">
+                    \<i class="bi bi-receipt">\</i>
+                    Payment Information
+                \</h5>
+
+            \</div>
+
+
+            \<div class="card-body">
+
+                \<div class="row g-3">
+
+                    \<div class="col-md-6">
+
+                        \<strong>Payment Reference\</strong>
+
+                        \<div class="text-light">
+                            *<*%= payment.reference %>
+                        \</div>
+
+                    \</div>
+
+
+                    \<div class="col-md-6">
+
+                        \<strong>Receipt Number\</strong>
+
+                        \<div class="text-light">
+
+                            *<*%= payment.receiptNumber || "Not issued" %>
+
+                        \</div>
+
+                    \</div>
+
+
+                    \<div class="col-md-6">
+
+                        \<strong>Amount\</strong>
+
+                        \<div class="fs-5 fw-bold">
+
+                            *<*%= payment.currency || "NGN" %>
+                            *<*%= (
+                                Number(payment.amount || 0) / 100
+                            ).toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            }) %>
+
+                        \</div>
+
+                    \</div>
+
+
+                    \<div class="col-md-6">
+
+                        \<strong>Plan Purchased\</strong>
+
+                        \<div class="text-light">
+
+                            *<*%= payment.planPurchased %>
+
+                        \</div>
+
+                    \</div>
+
+
+                    \<div class="col-md-6">
+
+                        \<strong>Duration\</strong>
+
+                        \<div class="text-light">
+
+                            *<*%= payment.durationPurchased %> days
+
+                        \</div>
+
+                    \</div>
+
+
+                    \<div class="col-md-6">
+
+                        \<strong>Payment Method\</strong>
+
+                        \<div class="text-light">
+
+                            *<*%= payment.paymentMethod || "Other" %>
+
+                        \</div>
+
+                    \</div>
+
+
+                    \<div class="col-md-6">
+
+                        \<strong>Gateway\</strong>
+
+                        \<div class="text-light">
+
+                            *<*%= payment.gateway %>
+
+                        \</div>
+
+                    \</div>
+
+
+                    \<div class="col-md-6">
+
+                        \<strong>Processed\</strong>
+
+                        \<div>
+
+                            *<*% if (payment.isProcessed) { %>
+
+                                \<span class="badge bg-success">
+                                    Yes
+                                \</span>
+
+                            *<*% } else { %>
+
+                                \<span class="badge bg-warning text-dark">
+                                    No
+                                \</span>
+
+                            *<*% } %>
+
+                        \</div>
+
+                    \</div>
+
+                \</div>
+
+            \</div>
+
+        \</div>
+
+
+        \<!-- =====================================
+             GATEWAY INFORMATION
+        ====================================== -->
+
+        \<div class="card shadow-sm border-0 mb-4">
+
+            \<div class="card-header bg-transparent">
+
+                \<h5 class="mb-0">
+                    \<i class="bi bi-bank">\</i>
+                    Gateway Information
+                \</h5>
+
+            \</div>
+
+
+            \<div class="card-body">
+
+                \<div class="row g-3">
+
+                    \<div class="col-md-6">
+
+                        \<strong>Gateway Reference\</strong>
+
+                        \<div class="text-light">
+
+                            *<*%= payment.gatewayReference || "N/A" %>
+
+                        \</div>
+
+                    \</div>
+
+
+                    \<div class="col-md-6">
+
+                        \<strong>Gateway Transaction ID\</strong>
+
+                        \<div class="text-light">
+
+                            *<*%= payment.gatewayTransactionId || "N/A" %>
+
+                        \</div>
+
+                    \</div>
+
+
+                    \<div class="col-md-6">
+
+                        \<strong>Paid At\</strong>
+
+                        \<div class="text-light">
+
+                            *<*%= payment.paidAt
+                                ? new Date(payment.paidAt).toLocaleString()
+                                : "N/A"
+                            %>
+
+                        \</div>
+
+                    \</div>
+
+
+                    \<div class="col-md-6">
+
+                        \<strong>Verified At\</strong>
+
+                        \<div class="text-light">
+
+                            *<*%= payment.verifiedAt
+                                ? new Date(payment.verifiedAt).toLocaleString()
+                                : "N/A"
+                            %>
+
+                        \</div>
+
+                    \</div>
+
+                \</div>
+
+            \</div>
+
+        \</div>
+
+
+        \<!-- =====================================
+             FAILURE / REFUND INFORMATION
+        ====================================== -->
+
+        *<*% if (
+            payment.failureReason ||
+            payment.refundReason
+        ) { %>
+
+            \<div class="card shadow-sm border-0 mb-4">
+
+                \<div class="card-header bg-transparent">
+
+                    \<h5 class="mb-0">
+                        \<i class="bi bi-info-circle">\</i>
+                        Additional Information
+                    \</h5>
+
+                \</div>
+
+
+                \<div class="card-body">
+
+                    *<*% if (payment.failureReason) { %>
+
+                        \<div class="mb-3">
+
+                            \<strong>Failure Reason\</strong>
+
+                            \<div class="text-danger">
+                                *<*%= payment.failureReason %>
+                            \</div>
+
+                        \</div>
+
+                    *<*% } %>
+
+
+                    *<*% if (payment.refundReason) { %>
+
+                        \<div>
+
+                            \<strong>Refund Reason\</strong>
+
+                            \<div class="text-warning">
+                                *<*%= payment.refundReason %>
+                            \</div>
+
+                        \</div>
+
+                    *<*% } %>
+
+                \</div>
+
+            \</div>
+
+        *<*% } %>
+
+    \</div>
+
+
+    \<!-- =====================================
+         CUSTOMER / SUBSCRIPTION
+    ====================================== -->
+
+    \<div class="col-lg-4">
+
+        \<!-- CUSTOMER -->
+
+        \<div class="card shadow-sm border-0 mb-4">
+
+            \<div class="card-header bg-transparent">
+
+                \<h5 class="mb-0">
+                    \<i class="bi bi-person">\</i>
+                    Customer
+                \</h5>
+
+            \</div>
+
+
+            \<div class="card-body">
+
+                *<*% if (payment.user) { %>
+
+                    \<h6 class="mb-1">
+
+                        *<*%= payment.user.username %>
+
+                    \</h6>
+
+                    \<div class="text-light mb-2">
+
+                        *<*%= payment.user.email %>
+
+                    \</div>
+
+                    \<span class="badge bg-secondary">
+
+                        *<*%= payment.user.role %>
+
+                    \</span>
+
+                *<*% } else { %>
+
+                    \<span class="text-light">
+                        User information unavailable.
+                    \</span>
+
+                *<*% } %>
+
+
+                \<hr>
+
+
+                \<strong>Customer Email\</strong>
+
+                \<div class="text-light">
+
+                    *<*%= payment.customerEmail %>
+
+                \</div>
+
+            \</div>
+
+        \</div>
+
+
+        \<!-- SUBSCRIPTION -->
+
+        \<div class="card shadow-sm border-0 mb-4">
+
+            \<div class="card-header bg-transparent">
+
+                \<h5 class="mb-0">
+                    \<i class="bi bi-star">\</i>
+                    Subscription
+                \</h5>
+
+            \</div>
+
+
+            \<div class="card-body">
+
+                *<*% if (payment.subscription) { %>
+
+                    \<div class="mb-2">
+
+                        \<strong>Plan\</strong>
+
+                        \<div>
+                            *<*%= payment.subscription.plan %>
+                        \</div>
+
+                    \</div>
+
+
+                    \<div class="mb-2">
+
+                        \<strong>Status\</strong>
+
+                        \<div>
+
+                            *<*%= payment.subscription.status %>
+
+                        \</div>
+
+                    \</div>
+
+
+                    \<div class="mb-2">
+
+                        \<strong>Started\</strong>
+
+                        \<div class="text-light">
+
+                            *<*%= payment.subscription.startedAt
+                                ? new Date(
+                                    payment.subscription.startedAt
+                                ).toLocaleDateString()
+                                : "N/A"
+                            %>
+
+                        \</div>
+
+                    \</div>
+
+
+                    \<div>
+
+                        \<strong>Expires\</strong>
+
+                        \<div class="text-light">
+
+                            *<*%= payment.subscription.expiresAt
+                                ? new Date(
+                                    payment.subscription.expiresAt
+                                ).toLocaleDateString()
+                                : "N/A"
+                            %>
+
+                        \</div>
+
+                    \</div>
+
+                *<*% } else { %>
+
+                    \<div class="text-light">
+
+                        Subscription has not yet been linked
+                        to this payment.
+
+                    \</div>
+
+                *<*% } %>
+
+            \</div>
+
+        \</div>
+
+
+        \<!-- =====================================
+             ACTIONS
+        ====================================== -->
+
+        \<div class="card shadow-sm border-0">
+
+            \<div class="card-header bg-transparent">
+
+                \<h5 class="mb-0">
+                    \<i class="bi bi-lightning">\</i>
+                    Actions
+                \</h5>
+
+            \</div>
+
+
+            \<div class="card-body d-grid gap-2">
+
+                *<*% if (
+                    payment.status === PAYMENT\_STATUS.PENDING &&
+                    !payment.isProcessed
+                ) { %>
+
+                    \<form
+                        method="POST"
+                        action="/admin/payments/*<*%= payment.\_id %>/complete"
+                    >
+
+                        \<button
+                            type="submit"
+                            class="btn btn-success w-100"
+                        >
+
+                            \<i class="bi bi-check-circle">\</i>
+
+                            Complete Payment
+
+                        \</button>
+
+                    \</form>
+
+
+                    \<form
+                        method="POST"
+                        action="/admin/payments/*<*%= payment.\_id %>/fail"
+                    >
+
+                        \<button
+                            type="submit"
+                            class="btn btn-outline-danger w-100"
+                        >
+
+                            \<i class="bi bi-x-circle">\</i>
+
+                            Mark Failed
+
+                        \</button>
+
+                    \</form>
+
+
+                    \<form
+                        method="POST"
+                        action="/admin/payments/*<*%= payment.\_id %>/abandon"
+                    >
+
+                        \<button
+                            type="submit"
+                            class="btn btn-outline-secondary w-100"
+                        >
+
+                            \<i class="bi bi-dash-circle">\</i>
+
+                            Abandon Payment
+
+                        \</button>
+
+                    \</form>
+
+                *<*% } %>
+
+
+                *<*% if (
+                    payment.status === PAYMENT\_STATUS.SUCCESSFUL &&
+                    payment.isProcessed
+                ) { %>
+
+                    \<form
+                        method="POST"
+                        action="/admin/payments/*<*%= payment.\_id %>/refund"
+                    >
+
+                        \<button
+                            type="submit"
+                            class="btn btn-warning w-100"
+                        >
+
+                            \<i class="bi bi-arrow-counterclockwise">\</i>
+
+                            Refund Payment
+
+                        \</button>
+
+                    \</form>
+
+                *<*% } %>
+
+
+                *<*% if (
+                    payment.status === PAYMENT\_STATUS.REFUNDED
+                ) { %>
+
+                    \<div class="alert alert-secondary mb-0">
+
+                        \<i class="bi bi-info-circle">\</i>
+
+                        This payment has already been refunded.
+
+                    \</div>
+
+                *<*% } %>
+
+            \</div>
+
+        \</div>
+
+    \</div>
+
+\</div>
+
+
+\</section>
+
+*<*% include("../../partials/footer") %>
+
+
+Yes, partner — now that I can see the actual paymentDetails.ejs, the view itself does not contain anything that would generate "Invalid payment ID" when the page initially loads.
+
+There is, however, one thing I want us to verify before changing anything.
+
+What I see
+
+Your action URLs are correctly built from:
+
+<%= payment._id %>
+
+For example:
+
+action="/admin/payments/<%= payment._id %>/complete"
+
+and similarly for:
+
+/fail
+/abandon
+/refund
+
+Those are fine.
+
+Your back button is also fine:
+
+href="/admin/payments"
+
+There is no link in this view that calls:
+
+/admin/payments/<some-invalid-id>
+
+during the initial page load.
+
+But I spotted something important
+
+Your first line is currently:
+
+<% include("../../partials/header") %>
+
+It should be:
+
+<%- include("../../partials/header") %>
+
+And the footer should likewise be:
+
+<%- include("../../partials/footer") %>
+
+That fixes the EJS include rendering, but it is not responsible for the "Invalid payment ID" flash.
+
+Here's what I think is happening
+
+Your controller redirects here only in three situations:
+
+1. Invalid ID
+"Invalid payment ID."
+2. Valid ID, but payment doesn't exist
+"Payment not found."
+3. Something else fails
+"Unable to load payment details."
+
+Your actual message is:
+
+Invalid payment ID
+
+So we need to prove what mongoose.Types.ObjectId.isValid() is actually receiving.
+
+Add this immediately after:
+
+const paymentId = req.params.id;
+console.log(
+    "ObjectId validation:",
+    mongoose.Types.ObjectId.isValid(paymentId)
+);
+
+So your debug section becomes:
+
+const paymentId = req.params.id;
+
+console.log("=================================");
+console.log("PAYMENT DETAILS ROUTE HIT");
+console.log(
+    "req.originalUrl:",
+    req.originalUrl
+);
+console.log(
+    "req.params:",
+    req.params
+);
+console.log(
+    "paymentId:",
+    paymentId
+);
+console.log(
+    "ObjectId validation:",
+    mongoose.Types.ObjectId.isValid(paymentId)
+);
+console.log("=================================");
+
+Then create/open the payment again.
+
+I expect the console to say:
+PAYMENT DETAILS ROUTE HIT
+req.params: { id: '6a7c8e4bd6753dea3e59aec8' }
+paymentId: 6a7c8e4bd6753dea3e59aec8
+ObjectId validation: true
+
+If it says:
+
+ObjectId validation: true
+
+then this controller cannot be producing "Invalid payment ID" on that request.
+
+And that would be a major clue: the flash message is probably left over from an earlier request.
+
+Why that is quite possible
+
+Remember your global flash middleware:
+
+res.locals.error = req.flash("error");
+
+Flash messages are stored in the session until they're read.
+
+So suppose an earlier request produced:
+
+Invalid payment ID.
+
+Then another request successfully renders the payment details page.
+
+If the flash wasn't consumed where expected, you can still see that message in your header.
+
+That would make it look like the payment details page is failing, even though:
+
+Payment created ✅
+Payment found ✅
+Payment details rendered ✅
+One more thing: your EJS syntax
+
+Because the code you pasted has been escaped by the composer, I'm assuming your actual file contains normal EJS syntax such as:
+
+<%= payment.reference %>
+
+and not the literal:
+
+*<*%= ...
+
+If the actual file has normal EJS syntax, we're fine.
+
+So let's do this in the safest order
+
+Don't change the payment controller yet.
+
+Change the header include to:
+<%- include("../../partials/header") %>
+Change the footer include to:
+<%- include("../../partials/footer") %>
+Add:
+console.log(
+    "ObjectId validation:",
+    mongoose.Types.ObjectId.isValid(paymentId)
+);
+Create/open the ₦5,000 payment again.
+
+Then give me the resulting console output.
+
+If it says true and you still see "Invalid payment ID", we'll know with confidence that the ID validation isn't the culprit, and we'll trace the flash message itself rather than damaging working payment code.
+
+And partner, the fact that the payment is now correctly showing ₦5,000.00 is a very good sign — we should preserve that working part.
+
+ooh!!! just because of that little dash....goddamn!!!it's displaying fine now
+
+😂😂😂 YES, PARTNER! That tiny little - had us chasing ghosts!
+
+The difference was:
+
+<% include("../../partials/header") %>
+
+versus:
+
+<%- include("../../partials/header") %>
+
+The - tells EJS to output the included HTML unescaped. Without it, the include wasn't being rendered correctly.
+
+And now we have several things confirmed working:
+
+✅ Manual payment creation
+✅ ₦5,000 minimum enforced
+✅ ₦5,000 → 500,000 kobo internally
+✅ Payment displays as ₦5,000.00
+✅ Payment details route works
+✅ Payment details page renders
+✅ Header/footer partials render correctly
+✅ Payment ID is valid
+✅ Payment record is intact
+
+That is a solid milestone for the payment module. 🚀
+
+Now let's resist the temptation to touch anything that's working. 😄
+
+Next logical step: processing the pending payment — i.e. Complete Payment → mark successful → generate receipt/reference where appropriate → link/update the user's subscription correctly and safely.
+
+That's where the payment module starts talking to the subscription module, so we'll handle that one carefully. 🤝
+
+
+now, i just created a new user,  new manual payment for this new user, and observed upon trying to complete payment request, i got an error stating cardNumber is required...hence the payment was not processed....also...when i did a manual payment for an already subscribed member whose details are already on the subscription table, his subscription was extended.." *<*% include("../../partials/header") %>
+
+\<section class="container-fluid py-4">
+
+
+\<!-- =========================================
+     HEADER
+\========================================== -->
+
+\<div class="d-flex justify-content-between align-items-center mb-4">
+
+    \<div>
+
+        \<h3 class="mb-1">
+            \<i class="bi bi-credit-card">\</i>
+            Payment Details
+        \</h3>
+
+        \<p class="text-light mb-0">
+            View payment information and processing status.
+        \</p>
+
+    \</div>
+
+    \<div class="d-flex gap-2">
+
+        \<a
+            href="/admin/payments"
+            class="btn btn-outline-secondary"
+        >
+            \<i class="bi bi-arrow-left me-2">\</i>
+            Back to Payments
+        \</a>
+
+    \</div>
+
+\</div>
+
+
+\<!-- =========================================
+     PAYMENT STATUS
+\========================================== -->
+
+\<div class="card shadow-sm border-0 mb-4">
+
+    \<div class="card-body">
+
+        \<div class="row align-items-center">
+
+            \<div class="col-md-8">
+
+                \<h5 class="mb-1">
+
+                    *<*%= payment.reference %>
+
+                \</h5>
+
+                \<small class="text-light">
+
+                    Created
+                    *<*%= payment.createdAt
+                        ? new Date(payment.createdAt).toLocaleString()
+                        : "N/A"
+                    %>
+
+                \</small>
+
+            \</div>
+
+
+            \<div class="col-md-4 text-md-end mt-3 mt-md-0">
+
+                *<*% if (payment.status === PAYMENT\_STATUS.SUCCESSFUL) { %>
+
+                    \<span class="badge bg-success fs-6">
+                        \<i class="bi bi-check-circle">\</i>
+                        Successful
+                    \</span>
+
+                *<*% } else if (payment.status === PAYMENT\_STATUS.PENDING) { %>
+
+                    \<span class="badge bg-warning text-dark fs-6">
+                        \<i class="bi bi-clock">\</i>
+                        Pending
+                    \</span>
+
+                *<*% } else if (payment.status === PAYMENT\_STATUS.FAILED) { %>
+
+                    \<span class="badge bg-danger fs-6">
+                        \<i class="bi bi-x-circle">\</i>
+                        Failed
+                    \</span>
+
+                *<*% } else if (payment.status === PAYMENT\_STATUS.ABANDONED) { %>
+
+                    \<span class="badge bg-secondary fs-6">
+                        \<i class="bi bi-dash-circle">\</i>
+                        Abandoned
+                    \</span>
+
+                *<*% } else if (payment.status === PAYMENT\_STATUS.REFUNDED) { %>
+
+                    \<span class="badge bg-dark fs-6">
+                        \<i class="bi bi-arrow-counterclockwise">\</i>
+                        Refunded
+                    \</span>
+
+                *<*% } else { %>
+
+                    \<span class="badge bg-secondary fs-6">
+                        *<*%= payment.status %>
+                    \</span>
+
+                *<*% } %>
+
+            \</div>
+
+        \</div>
+
+    \</div>
+
+\</div>
+
+
+\<div class="row g-4">
+
+    \<!-- =====================================
+         PAYMENT INFORMATION
+    ====================================== -->
+
+    \<div class="col-lg-8">
+
+        \<div class="card shadow-sm border-0 mb-4">
+
+            \<div class="card-header bg-transparent">
+
+                \<h5 class="mb-0">
+                    \<i class="bi bi-receipt">\</i>
+                    Payment Information
+                \</h5>
+
+            \</div>
+
+
+            \<div class="card-body">
+
+                \<div class="row g-3">
+
+                    \<div class="col-md-6">
+
+                        \<strong>Payment Reference\</strong>
+
+                        \<div class="text-light">
+                            *<*%= payment.reference %>
+                        \</div>
+
+                    \</div>
+
+
+                    \<div class="col-md-6">
+
+                        \<strong>Receipt Number\</strong>
+
+                        \<div class="text-light">
+
+                            *<*%= payment.receiptNumber || "Not issued" %>
+
+                        \</div>
+
+                    \</div>
+
+
+                    \<div class="col-md-6">
+
+                        \<strong>Amount\</strong>
+
+                        \<div class="fs-5 fw-bold">
+
+                            *<*%= payment.currency || "NGN" %>
+                            *<*%= (
+                                Number(payment.amount || 0) / 100
+                            ).toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            }) %>
+
+                        \</div>
+
+                    \</div>
+
+
+                    \<div class="col-md-6">
+
+                        \<strong>Plan Purchased\</strong>
+
+                        \<div class="text-light">
+
+                            *<*%= payment.planPurchased %>
+
+                        \</div>
+
+                    \</div>
+
+
+                    \<div class="col-md-6">
+
+                        \<strong>Duration\</strong>
+
+                        \<div class="text-light">
+
+                            *<*%= payment.durationPurchased %> days
+
+                        \</div>
+
+                    \</div>
+
+
+                    \<div class="col-md-6">
+
+                        \<strong>Payment Method\</strong>
+
+                        \<div class="text-light">
+
+                            *<*%= payment.paymentMethod || "Other" %>
+
+                        \</div>
+
+                    \</div>
+
+
+                    \<div class="col-md-6">
+
+                        \<strong>Gateway\</strong>
+
+                        \<div class="text-light">
+
+                            *<*%= payment.gateway %>
+
+                        \</div>
+
+                    \</div>
+
+
+                    \<div class="col-md-6">
+
+                        \<strong>Processed\</strong>
+
+                        \<div>
+
+                            *<*% if (payment.isProcessed) { %>
+
+                                \<span class="badge bg-success">
+                                    Yes
+                                \</span>
+
+                            *<*% } else { %>
+
+                                \<span class="badge bg-warning text-dark">
+                                    No
+                                \</span>
+
+                            *<*% } %>
+
+                        \</div>
+
+                    \</div>
+
+                \</div>
+
+            \</div>
+
+        \</div>
+
+
+        \<!-- =====================================
+             GATEWAY INFORMATION
+        ====================================== -->
+
+        \<div class="card shadow-sm border-0 mb-4">
+
+            \<div class="card-header bg-transparent">
+
+                \<h5 class="mb-0">
+                    \<i class="bi bi-bank">\</i>
+                    Gateway Information
+                \</h5>
+
+            \</div>
+
+
+            \<div class="card-body">
+
+                \<div class="row g-3">
+
+                    \<div class="col-md-6">
+
+                        \<strong>Gateway Reference\</strong>
+
+                        \<div class="text-light">
+
+                            *<*%= payment.gatewayReference || "N/A" %>
+
+                        \</div>
+
+                    \</div>
+
+
+                    \<div class="col-md-6">
+
+                        \<strong>Gateway Transaction ID\</strong>
+
+                        \<div class="text-light">
+
+                            *<*%= payment.gatewayTransactionId || "N/A" %>
+
+                        \</div>
+
+                    \</div>
+
+
+                    \<div class="col-md-6">
+
+                        \<strong>Paid At\</strong>
+
+                        \<div class="text-light">
+
+                            *<*%= payment.paidAt
+                                ? new Date(payment.paidAt).toLocaleString()
+                                : "N/A"
+                            %>
+
+                        \</div>
+
+                    \</div>
+
+
+                    \<div class="col-md-6">
+
+                        \<strong>Verified At\</strong>
+
+                        \<div class="text-light">
+
+                            *<*%= payment.verifiedAt
+                                ? new Date(payment.verifiedAt).toLocaleString()
+                                : "N/A"
+                            %>
+
+                        \</div>
+
+                    \</div>
+
+                \</div>
+
+            \</div>
+
+        \</div>
+
+
+        \<!-- =====================================
+             FAILURE / REFUND INFORMATION
+        ====================================== -->
+
+        *<*% if (
+            payment.failureReason ||
+            payment.refundReason
+        ) { %>
+
+            \<div class="card shadow-sm border-0 mb-4">
+
+                \<div class="card-header bg-transparent">
+
+                    \<h5 class="mb-0">
+                        \<i class="bi bi-info-circle">\</i>
+                        Additional Information
+                    \</h5>
+
+                \</div>
+
+
+                \<div class="card-body">
+
+                    *<*% if (payment.failureReason) { %>
+
+                        \<div class="mb-3">
+
+                            \<strong>Failure Reason\</strong>
+
+                            \<div class="text-danger">
+                                *<*%= payment.failureReason %>
+                            \</div>
+
+                        \</div>
+
+                    *<*% } %>
+
+
+                    *<*% if (payment.refundReason) { %>
+
+                        \<div>
+
+                            \<strong>Refund Reason\</strong>
+
+                            \<div class="text-warning">
+                                *<*%= payment.refundReason %>
+                            \</div>
+
+                        \</div>
+
+                    *<*% } %>
+
+                \</div>
+
+            \</div>
+
+        *<*% } %>
+
+    \</div>
+
+
+    \<!-- =====================================
+         CUSTOMER / SUBSCRIPTION
+    ====================================== -->
+
+    \<div class="col-lg-4">
+
+        \<!-- CUSTOMER -->
+
+        \<div class="card shadow-sm border-0 mb-4">
+
+            \<div class="card-header bg-transparent">
+
+                \<h5 class="mb-0">
+                    \<i class="bi bi-person">\</i>
+                    Customer
+                \</h5>
+
+            \</div>
+
+
+            \<div class="card-body">
+
+                *<*% if (payment.user) { %>
+
+                    \<h6 class="mb-1">
+
+                        *<*%= payment.user.username %>
+
+                    \</h6>
+
+                    \<div class="text-light mb-2">
+
+                        *<*%= payment.user.email %>
+
+                    \</div>
+
+                    \<span class="badge bg-secondary">
+
+                        *<*%= payment.user.role %>
+
+                    \</span>
+
+                *<*% } else { %>
+
+                    \<span class="text-light">
+                        User information unavailable.
+                    \</span>
+
+                *<*% } %>
+
+
+                \<hr>
+
+
+                \<strong>Customer Email\</strong>
+
+                \<div class="text-light">
+
+                    *<*%= payment.customerEmail %>
+
+                \</div>
+
+            \</div>
+
+        \</div>
+
+
+        \<!-- SUBSCRIPTION -->
+
+        \<div class="card shadow-sm border-0 mb-4">
+
+            \<div class="card-header bg-transparent">
+
+                \<h5 class="mb-0">
+                    \<i class="bi bi-star">\</i>
+                    Subscription
+                \</h5>
+
+            \</div>
+
+
+            \<div class="card-body">
+
+                *<*% if (payment.subscription) { %>
+
+                    \<div class="mb-2">
+
+                        \<strong>Plan\</strong>
+
+                        \<div>
+                            *<*%= payment.subscription.plan %>
+                        \</div>
+
+                    \</div>
+
+
+                    \<div class="mb-2">
+
+                        \<strong>Status\</strong>
+
+                        \<div>
+
+                            *<*%= payment.subscription.status %>
+
+                        \</div>
+
+                    \</div>
+
+
+                    \<div class="mb-2">
+
+                        \<strong>Started\</strong>
+
+                        \<div class="text-light">
+
+                            *<*%= payment.subscription.startedAt
+                                ? new Date(
+                                    payment.subscription.startedAt
+                                ).toLocaleDateString()
+                                : "N/A"
+                            %>
+
+                        \</div>
+
+                    \</div>
+
+
+                    \<div>
+
+                        \<strong>Expires\</strong>
+
+                        \<div class="text-light">
+
+                            *<*%= payment.subscription.expiresAt
+                                ? new Date(
+                                    payment.subscription.expiresAt
+                                ).toLocaleDateString()
+                                : "N/A"
+                            %>
+
+                        \</div>
+
+                    \</div>
+
+                *<*% } else { %>
+
+                    \<div class="text-light">
+
+                        Subscription has not yet been linked
+                        to this payment.
+
+                    \</div>
+
+                *<*% } %>
+
+            \</div>
+
+        \</div>
+
+
+        \<!-- =====================================
+             ACTIONS
+        ====================================== -->
+
+        \<div class="card shadow-sm border-0">
+
+            \<div class="card-header bg-transparent">
+
+                \<h5 class="mb-0">
+                    \<i class="bi bi-lightning">\</i>
+                    Actions
+                \</h5>
+
+            \</div>
+
+
+            \<div class="card-body d-grid gap-2">
+
+                *<*% if (
+                    payment.status === PAYMENT\_STATUS.PENDING &&
+                    !payment.isProcessed
+                ) { %>
+
+                    \<form
+                        method="POST"
+                        action="/admin/payments/*<*%= payment.\_id %>/complete"
+                    >
+
+                        \<button
+                            type="submit"
+                            class="btn btn-success w-100"
+                        >
+
+                            \<i class="bi bi-check-circle">\</i>
+
+                            Complete Payment
+
+                        \</button>
+
+                    \</form>
+
+
+                    \<form
+                        method="POST"
+                        action="/admin/payments/*<*%= payment.\_id %>/fail"
+                    >
+
+                        \<button
+                            type="submit"
+                            class="btn btn-outline-danger w-100"
+                        >
+
+                            \<i class="bi bi-x-circle">\</i>
+
+                            Mark Failed
+
+                        \</button>
+
+                    \</form>
+
+
+                    \<form
+                        method="POST"
+                        action="/admin/payments/*<*%= payment.\_id %>/abandon"
+                    >
+
+                        \<button
+                            type="submit"
+                            class="btn btn-outline-secondary w-100"
+                        >
+
+                            \<i class="bi bi-dash-circle">\</i>
+
+                            Abandon Payment
+
+                        \</button>
+
+                    \</form>
+
+                *<*% } %>
+
+
+                *<*% if (
+                    payment.status === PAYMENT\_STATUS.SUCCESSFUL &&
+                    payment.isProcessed
+                ) { %>
+
+                    \<form
+                        method="POST"
+                        action="/admin/payments/*<*%= payment.\_id %>/refund"
+                    >
+
+                        \<button
+                            type="submit"
+                            class="btn btn-warning w-100"
+                        >
+
+                            \<i class="bi bi-arrow-counterclockwise">\</i>
+
+                            Refund Payment
+
+                        \</button>
+
+                    \</form>
+
+                *<*% } %>
+
+
+                *<*% if (
+                    payment.status === PAYMENT\_STATUS.REFUNDED
+                ) { %>
+
+                    \<div class="alert alert-secondary mb-0">
+
+                        \<i class="bi bi-info-circle">\</i>
+
+                        This payment has already been refunded.
+
+                    \</div>
+
+                *<*% } %>
+
+            \</div>
+
+        \</div>
+
+    \</div>
+
+\</div>
+
+
+\</section>
+
+*<*% include("../../partials/footer") %>
+
+ 
+Yes partner — we have found the issue, and it is not coming from the payment details EJS you just posted.
+
+There are actually two separate things happening, and the second one is working exactly as we designed it.
+
+1. The cardNumber is required error
+
+The problem is in the payment → subscription processing flow.
+
+When you complete the manual payment, paymentService.processSuccessfulPayment() checks whether the user already has a subscription:
+
+No existing subscription → calls activateSubscription()
+Existing active subscription → calls renewSubscription()
+Expired/suspended/inactive → calls activateSubscription() again.
+
+The important part is this:
+
+result =
+    await subscriptionService.activateSubscription({
+        user: payment.user,
+        plan: payment.planPurchased,
+        duration: payment.durationPurchased,
+        activatedBy: processedBy,
+        source: payment.gateway,
+        notes: `Payment ${payment.reference}`
+    });
+
+Notice what is missing:
+
+cardNumber
+
+Your activateSubscription() currently expects/uses cardNumber when creating a new subscription. Your existing manual subscription controller explicitly passes it into activateSubscription().
+
+So when the payment belongs to a brand-new user, payment processing reaches activateSubscription() without a card number, and the subscription creation fails with:
+
+cardNumber is required
+
+2. Why the already-subscribed member worked
+
+This part is actually correct.
+
+For an existing active subscriber, the payment processor executes:
+
+subscriptionService.renewSubscription(...)
+
+and that function extends the existing expiresAt by the purchased duration.
+
+So your observation:
+
+manual payment → existing subscriber → subscription extended
+
+is exactly the behaviour we wanted.
+
+The important design decision
+
+I do not recommend making cardNumber mandatory for payments.
+
+A manual payment is not necessarily tied to a subscription card number.
+
+For example:
+
+New user
+
+User
+ ↓
+Manual payment ₦5,000
+ ↓
+Complete payment
+ ↓
+Create subscription
+ ↓
+ACTIVE
+
+There may be no card number at all.
+
+Therefore, the payment-processing path should be able to create the subscription without requiring cardNumber.
+
+Your existing subscription model appears to have been designed around cardNumber, which is why the error is surfacing.
+
+Recommended fix
+
+We should make cardNumber optional in the payment-driven activation flow.
+
+In paymentService.processSuccessfulPayment(), change the new-subscription section from:
+
+result =
+    await subscriptionService
+        .activateSubscription({
+            user: payment.user,
+            plan: payment.planPurchased,
+            duration: payment.durationPurchased,
+            activatedBy: processedBy,
+            source: payment.gateway,
+            notes: `Payment ${payment.reference}`
+        });
+
+to:
+
+result =
+    await subscriptionService
+        .activateSubscription({
+            user: payment.user,
+            plan: payment.planPurchased,
+            duration: payment.durationPurchased,
+            activatedBy: processedBy,
+            source: payment.gateway,
+            notes: `Payment ${payment.reference}`,
+            cardNumber: ""
+        });
+
+And do the same thing in the expired/suspended/inactive branch:
+
+result =
+    await subscriptionService
+        .activateSubscription({
+            user: payment.user,
+            plan: payment.planPurchased,
+            duration: payment.durationPurchased,
+            activatedBy: processedBy,
+            source: payment.gateway,
+            notes: `Payment ${payment.reference}`,
+            cardNumber: ""
+        });
+But there's one more thing
+
+Before we make that change, I want to verify the actual subscriptionModel.js definition of cardNumber.
+
+Because if the schema literally says:
+
+cardNumber: {
+    type: String,
+    required: true
+}
+
+then passing:
+
+cardNumber: ""
+
+will still fail.
+
+In that case, the correct production solution is to change the schema so cardNumber is optional, e.g.:
+
+cardNumber: {
+    type: String,
+    trim: true,
+    default: ""
+}
+
+That would make much more sense for Prof Predict:
+
+Manual payment doesn't require a subscription card.
+Gateway payment doesn't require a subscription card.
+Existing users can still retain their card number if one exists.
+Old subscriptions with card numbers remain intact.
+New payment-created subscriptions can simply have an empty card number.
+
+Your archive/restore logic already treats cardNumber as ordinary subscription data and preserves it when available.
+
+So, partner, I would not touch the payment details EJS.
+
+The flow itself is working:
+
+₦5,000 payment created → complete payment → existing subscriber renewed successfully. ✅
+
+We only need to fix:
+
+₦5,000 payment → brand-new subscriber → activation fails because cardNumber is being treated as mandatory. ❌
+
+Send me your current subscriptionModel.js, particularly the cardNumber field, and I'll give you the exact production-ready change without disturbing the working renewal behaviour.
+
+
+
+
+exports.activateSubscription = async ({
+
+```
+user,
+
+plan = SUBSCRIPTION_PLANS.PREMIUM,
+
+duration = 30,
+
+// Optional custom dates
+startedAt = null,
+
+expiresAt = null,
+
+activatedBy,
+
+notes = "",
+
+source = SUBSCRIPTION_SOURCES.MANUAL,
+
+cardNumber
+```
+
+}) => {
+
+```
+// =====================================
+// Validate User
+// =====================================
+
+const existingUser =
+    await User.findById(user);
+
+if (!existingUser) {
+
+    throw new Error(
+        "User not found."
+    );
+
+}
+
+
+// =====================================
+// Validate Custom Dates
+// =====================================
+
+if (
+    (startedAt && !expiresAt) ||
+    (!startedAt && expiresAt)
+) {
+
+    throw new Error(
+        "Both startedAt and expiresAt must be provided together."
+    );
+
+}
+
+
+// =====================================
+// Find Existing Subscription
+// =====================================
+
+let subscription =
+    await Subscription.findOne({ user });
+
+
+// =====================================
+// Already Active
+// =====================================
+
+if (
+    subscription &&
+    subscription.isActive()
+) {
+
+    return {
+
+        success: true,
+
+        action: "already_active",
+
+        subscription
+
+    };
+
+}
+
+
+// =====================================
+// CREATE NEW SUBSCRIPTION
+// =====================================
+
+if (!subscription) {
+
+    let subscriptionStartedAt;
+    let subscriptionExpiresAt;
+
+
+    // =====================================
+    // Custom Dates
+    // =====================================
+
+    if (startedAt && expiresAt) {
+
+        subscriptionStartedAt =
+            new Date(startedAt);
+
+        subscriptionExpiresAt =
+            new Date(expiresAt);
+
+
+        if (
+            Number.isNaN(
+                subscriptionStartedAt.getTime()
+            ) ||
+            Number.isNaN(
+                subscriptionExpiresAt.getTime()
+            )
+        ) {
+
+            throw new Error(
+                "Invalid subscription dates."
+            );
+
+        }
+
+
+        if (
+            subscriptionExpiresAt <=
+            subscriptionStartedAt
+        ) {
+
+            throw new Error(
+                "Expiry date must be after the start date."
+            );
+
+        }
+
+    }
+
+
+    // =====================================
+    // Default Duration
+    // =====================================
+
+    else {
+
+        const dates =
+            calculateExpiryDate(duration);
+
+        subscriptionStartedAt =
+            dates.startedAt;
+
+        subscriptionExpiresAt =
+            dates.expiresAt;
+
+    }
+
+
+    // =====================================
+    // Validate Card Number
+    // =====================================
+
+    if (!cardNumber) {
+
+        throw new Error(
+            "Subscription card number is required."
+        );
+
+    }
+
+
+    // =====================================
+    // Create Subscription
+    // =====================================
+
+    subscription =
+        await Subscription.create({
+
+            user,
+
+            plan,
+
+            status:
+                SUBSCRIPTION_STATUS.ACTIVE,
+
+            source,
+
+            startedAt:
+                subscriptionStartedAt,
+
+            expiresAt:
+                subscriptionExpiresAt,
+
+            activatedBy,
+
+            notes,
+
+            cardNumber
+
+        });
+
+
+    // =====================================
+    // Synchronize User Snapshot
+    // =====================================
+
+    await exports.syncUserSubscription(
+        subscription
+    );
+
+
+    return {
+
+        success: true,
+
+        action: "created",
+
+        subscription
+
+    };
+
+}
+
+
+// =====================================
+// Existing Subscription Card
+// =====================================
+
+const effectiveCardNumber =
+    cardNumber ||
+    subscription.cardNumber;
+
+
+if (!effectiveCardNumber) {
+
+    throw new Error(
+        "Subscription card number is required."
+    );
+
+}
+
+
+// =====================================
+// Existing Subscription State
+// =====================================
+
+const now = new Date();
+
+
+const hasValidExistingDates =
+    subscription.startedAt &&
+    subscription.expiresAt &&
+    new Date(subscription.expiresAt) > now;
+
+
+const isSuspended =
+    subscription.status ===
+    SUBSCRIPTION_STATUS.SUSPENDED;
+
+
+// =====================================
+// Determine Activation Dates
+// =====================================
+
+let subscriptionStartedAt;
+
+let subscriptionExpiresAt;
+
+
+// =====================================
+// Suspended + Still Valid
+// =====================================
+
+if (
+    isSuspended &&
+    hasValidExistingDates &&
+    !startedAt &&
+    !expiresAt
+) {
+
+    // Preserve the existing subscription period.
+
+    subscriptionStartedAt =
+        subscription.startedAt;
+
+    subscriptionExpiresAt =
+        subscription.expiresAt;
+
+}
+
+
+// =====================================
+// Custom Dates Supplied
+// =====================================
+
+else if (
+    startedAt &&
+    expiresAt
+) {
+
+    subscriptionStartedAt =
+        new Date(startedAt);
+
+    subscriptionExpiresAt =
+        new Date(expiresAt);
+
+
+    if (
+        Number.isNaN(
+            subscriptionStartedAt.getTime()
+        ) ||
+        Number.isNaN(
+            subscriptionExpiresAt.getTime()
+        )
+    ) {
+
+        throw new Error(
+            "Invalid subscription dates."
+        );
+
+    }
+
+
+    if (
+        subscriptionExpiresAt <=
+        subscriptionStartedAt
+    ) {
+
+        throw new Error(
+            "Expiry date must be after the start date."
+        );
+
+    }
+
+}
+
+
+// =====================================
+// Expired / Suspended-Expired / Inactive
+// =====================================
+
+else {
+
+    const dates =
+        calculateExpiryDate(duration);
+
+    subscriptionStartedAt =
+        dates.startedAt;
+
+    subscriptionExpiresAt =
+        dates.expiresAt;
+
+}
+
+
+// =====================================
+// Reactivate Existing Subscription
+// =====================================
+
+Object.assign(subscription, {
+
+    plan,
+
+    status:
+        SUBSCRIPTION_STATUS.ACTIVE,
+
+    source,
+
+    startedAt:
+        subscriptionStartedAt,
+
+    expiresAt:
+        subscriptionExpiresAt,
+
+    activatedBy,
+
+    notes,
+
+    cardNumber:
+        effectiveCardNumber
+
+});
+
+
+// =====================================
+// Save Subscription
+// =====================================
+
+await subscription.save();
+
+
+// =====================================
+// Synchronize User Snapshot
+// =====================================
+
+await exports.syncUserSubscription(
+    subscription
+);
+
+
+// =====================================
+// Return Result
+// =====================================
+
+return {
+
+    success: true,
+
+    action: "activated",
+
+    subscription
+
+};
+```
+
+};
+
+
+Yes partner — we've found the exact reason, and your observation is very important.
+
+The behavior is actually consistent with the code you just showed.
+
+What is happening
+
+For the existing subscriber, the flow works because this section finds the existing subscription:
+
+let subscription =
+    await Subscription.findOne({ user });
+
+Then:
+
+const effectiveCardNumber =
+    cardNumber ||
+    subscription.cardNumber;
+
+So the existing subscriber already has a cardNumber, and activation succeeds.
+
+But for the new user
+
+The new user has no subscription record:
+
+if (!subscription) {
+
+Your code eventually reaches:
+
+if (!cardNumber) {
+
+    throw new Error(
+        "Subscription card number is required."
+    );
+
+}
+
+Therefore, when your Complete Payment controller calls activateSubscription(), it is apparently not supplying cardNumber.
+
+So the sequence is:
+
+Manual Payment
+      ↓
+Payment created successfully
+      ↓
+Complete Payment
+      ↓
+activateSubscription()
+      ↓
+No existing subscription
+      ↓
+cardNumber = undefined
+      ↓
+"Subscription card number is required."
+      ↓
+Subscription NOT created
+      ↓
+Payment completion fails
+
+While for the existing subscriber:
+
+Manual Payment
+      ↓
+Complete Payment
+      ↓
+activateSubscription()
+      ↓
+Existing subscription found
+      ↓
+subscription.cardNumber exists
+      ↓
+effectiveCardNumber = existing card number
+      ↓
+Subscription extended
+      ↓
+SUCCESS
+
+So the payment module itself isn't the problem. The integration between payment completion → subscription activation needs to handle a first-time subscriber.
+
+The important design decision
+
+I recommend we do NOT make the admin manually type a subscription card number when completing every payment.
+
+For Prof Predict, the better flow is:
+
+New subscriber
+Payment completed
+        ↓
+No subscription exists
+        ↓
+Create subscription
+        ↓
+Generate subscription card number
+        ↓
+Activate subscription
+        ↓
+Synchronize User
+Existing subscriber
+Payment completed
+        ↓
+Subscription exists
+        ↓
+Use existing card number
+        ↓
+Extend subscription
+        ↓
+Synchronize User
+
+That gives us a clean payment-driven subscription system.
+
+But there is one thing I need to see before we modify it
+
+Please send me your current:
+
+exports.completePayment = async (req, res) => {
+    ...
+}
+
+from:
+
+controllers/admin/paymentController.js
+
+That is the next piece we should inspect.
+
+I don't want to change activateSubscription() blindly because the error tells us that completePayment() is almost certainly calling it without a cardNumber.
+
+Once you paste completePayment, I'll wire the flow properly so that:
+
+✅ New user + successful manual payment → subscription created
+✅ Existing active subscriber + payment → subscription extended
+✅ Existing expired subscriber + payment → subscription reactivated
+✅ Existing suspended subscriber + payment → subscription handled correctly
+✅ Existing card number is preserved
+✅ New card number is generated automatically
+✅ Payment becomes SUCCESSFUL
+✅ isProcessed becomes true
+✅ processedAt is populated
+✅ Subscription is linked back to the payment
+✅ User subscription snapshot is synchronized
+✅ No payment is marked successful if subscription processing fails
+
+And importantly, we'll preserve the renewal behavior you just confirmed is already working for existing subscribers.
+
+
+
+exports.completePayment = async (
+req,
+res
+) => {
+
+```
+try {
+
+    const {
+
+        gatewayReference = "",
+        gatewayTransactionId = ""
+
+    } = req.body;
+
+
+    const result =
+        await paymentService.completePayment({
+
+            paymentId:
+                req.params.id,
+
+            gatewayReference,
+
+            gatewayTransactionId,
+
+            providerResponse:
+                req.body.providerResponse || {},
+
+            processedBy:
+                req.session.user._id
+
+        });
+
+
+    // =============================================
+    // Activity Log
+    // =============================================
+
+    await logActivity({
+
+        action:
+            "Payment Completed",
+
+        description:
+            `Payment ${result.payment.reference} completed successfully.`,
+
+        icon:
+            "bi-check-circle-fill",
+
+        color:
+            "success",
+
+        createdBy:
+            req.session.user._id
+
+    });
+
+
+    req.flash(
+        "success",
+        "Payment completed and subscription processed successfully."
+    );
+
+
+    return res.redirect(
+        `/admin/payments/${result.payment._id}`
+    );
+
+} catch (err) {
+
+    console.error(
+        "Complete Payment Error:",
+        err
+    );
+
+    req.flash(
+        "error",
+        err.message ||
+        "Unable to complete payment."
+    );
+
+    return res.redirect(
+        `/admin/payments/${req.params.id}`
+    );
+
+}
+```
+
+};
+
+
+Exactly, partner. This confirms it.
+
+Your completePayment controller is not the problem. It delegates everything to:
+
+paymentService.completePayment({
+    paymentId: req.params.id,
+    ...
+});
+
+So the missing cardNumber is happening inside paymentService.completePayment(), where it eventually calls activateSubscription().
+
+What we need to inspect next
+
+Please paste the complete:
+
+exports.completePayment = async ({
+    ...
+}) => {
+    ...
+};
+
+from:
+
+services/paymentService.js
+
+That's where I expect we'll find something similar to:
+
+await subscriptionService.activateSubscription({
+    user: payment.user,
+    plan: payment.planPurchased,
+    duration: payment.durationPurchased,
+    activatedBy: processedBy
+});
+
+Notice the problem: no cardNumber is being supplied.
+
+Because your activateSubscription() currently requires one when creating a brand-new subscription:
+
+if (!cardNumber) {
+    throw new Error(
+        "Subscription card number is required."
+    );
+}
+And I don't want us to simply do this
+cardNumber: "..."
+
+inside completePayment() just to make the error disappear.
+
+We need to decide where the card number should originate for a first-time subscriber.
+
+Given the behavior you've already established, I recommend:
+
+Existing subscription:
+
+existing cardNumber
+        ↓
+preserve it
+        ↓
+extend subscription
+
+Brand-new subscription:
+
+no subscription
+        ↓
+generate a new unique subscription card number
+        ↓
+create subscription
+        ↓
+link subscription to payment
+
+That is much cleaner than making an administrator manually enter a card number during payment completion.
+
+So, don't change activateSubscription() yet.
+
+Send me your current paymentService.completePayment() and we'll fix the integration at the correct layer.
+
+
+
+
+exports.completePayment =
+async ({
+
+```
+    paymentId,
+
+    gatewayReference = "",
+
+    gatewayTransactionId = "",
+
+    providerResponse = {},
+
+    processedBy = null
+
+}) => {
+
+    const successful =
+        await exports.markPaymentSuccessful({
+
+            paymentId,
+
+            gatewayReference,
+
+            gatewayTransactionId,
+
+            providerResponse
+
+        });
+
+
+    return exports.processSuccessfulPayment({
+
+        paymentId:
+            successful.payment._id,
+
+        processedBy
+
+    });
+
+};
+```
+
+Yes, partner. Now we've narrowed it down another level.
+
+Your completePayment() is only an orchestrator:
+
+markPaymentSuccessful()
+        ↓
+processSuccessfulPayment()
+
+So completePayment() itself is fine.
+
+The cardNumber is required error must be coming from:
+
+exports.processSuccessfulPayment()
+
+because that's the function that should take the successful payment and actually activate/process the subscription.
+
+The flow currently is
+completePayment()
+      │
+      ├── markPaymentSuccessful()
+      │       └── Payment → SUCCESSFUL
+      │
+      └── processSuccessfulPayment()
+              │
+              └── activateSubscription()
+                       │
+                       └── NEW user has no cardNumber
+                              ↓
+                       ERROR
+
+This also explains your two tests perfectly:
+
+Existing subscriber
+
+Payment
+  ↓
+Existing subscription found
+  ↓
+Existing cardNumber available
+  ↓
+Subscription extended
+  ↓
+SUCCESS
+
+New subscriber
+
+Payment
+  ↓
+No subscription found
+  ↓
+activateSubscription()
+  ↓
+cardNumber missing
+  ↓
+ERROR: Subscription card number is required
+So don't change the controller or completePayment() yet.
+
+Please send me the complete:
+
+exports.processSuccessfulPayment = async ({
+    ...
+}) => {
+    ...
+};
+
+from paymentService.js.
+
+That is the exact function we need to fix next.
+
+And I want to preserve what is already working: the existing subscriber's payment extending his subscription is a good sign that our renewal logic is functioning. We should fix only the new-subscriber path rather than disturbing that behavior.
+
+exports.processSuccessfulPayment =
+async ({
+
+```
+    paymentId,
+
+    processedBy = null
+
+}) => {
+
+    // =================================================
+    // Find Payment
+    // =================================================
+
+    const payment =
+        await Payment.findById(
+            paymentId
+        );
+
+    if (!payment) {
+
+        throw new Error(
+            "Payment not found."
+        );
+
+    }
+
+
+    // =================================================
+    // Prevent Duplicate Processing
+    // =================================================
+
+    if (payment.isProcessed) {
+
+        return {
+
+            success: true,
+
+            action:
+                "already_processed",
+
+            payment,
+
+            subscription:
+                payment.subscription || null
+
+        };
+
+    }
+
+
+    // =================================================
+    // Payment Must Be Successful
+    // =================================================
+
+    if (
+        payment.status !==
+        PAYMENT_STATUS.SUCCESSFUL
+    ) {
+
+        throw new Error(
+            "Only successful payments can be processed."
+        );
+
+    }
+
+
+    // =================================================
+    // Find Existing Subscription
+    // =================================================
+
+    const existingSubscription =
+        await Subscription.findOne({
+
+            user:
+                payment.user
+
+        });
+
+
+    let result;
+
+
+    // =================================================
+    // No Existing Subscription
+    // =================================================
+
+    if (!existingSubscription) {
+
+        result =
+            await subscriptionService
+                .activateSubscription({
+
+                    user:
+                        payment.user,
+
+                    plan:
+                        payment.planPurchased,
+
+                    duration:
+                        payment.durationPurchased,
+
+                    activatedBy:
+                        processedBy,
+
+                    source:
+                        payment.gateway,
+
+                    notes:
+                        `Payment ${payment.reference}`
+
+                });
+
+    }
+
+
+    // =================================================
+    // Existing Active Subscription
+    // =================================================
+
+    else if (
+        existingSubscription.isActive()
+    ) {
+
+        result =
+            await subscriptionService
+                .renewSubscription({
+
+                    user:
+                        payment.user,
+
+                    plan:
+                        payment.planPurchased,
+
+                    duration:
+                        payment.durationPurchased,
+
+                    renewedBy:
+                        processedBy,
+
+                    source:
+                        payment.gateway,
+
+                    paymentReference:
+                        payment.reference
+
+                });
+
+    }
+
+
+    // =================================================
+    // Suspended / Expired / Inactive
+    // =================================================
+
+    else {
+
+        result =
+            await subscriptionService
+                .activateSubscription({
+
+                    user:
+                        payment.user,
+
+                    plan:
+                        payment.planPurchased,
+
+                    duration:
+                        payment.durationPurchased,
+
+                    activatedBy:
+                        processedBy,
+
+                    source:
+                        payment.gateway,
+
+                    notes:
+                        `Payment ${payment.reference}`
+
+                });
+
+    }
+
+
+    // =================================================
+    // Validate Subscription Result
+    // =================================================
+
+    if (
+        !result ||
+        !result.subscription
+    ) {
+
+        throw new Error(
+            "Subscription could not be created or updated."
+        );
+
+    }
+
+
+    // =================================================
+    // Link Payment → Subscription
+    // =================================================
+
+    payment.subscription =
+        result.subscription._id;
+
+
+    // =================================================
+    // Mark Payment Processed
+    // =================================================
+
+    payment.isProcessed =
+        true;
+
+    payment.processedAt =
+        new Date();
+
+
+    await payment.save();
+
+
+    // =================================================
+    // Return Result
+    // =================================================
+
+    return {
+
+        success: true,
+
+        action:
+            result.action,
+
+        payment,
+
+        subscription:
+            result.subscription
+
+    };
+
+};
+```
+
+Ah, partner — that changes the picture. If cardNumber is simply coming from subscription.cardNumber, then we have an important gap:
+
+For an existing subscription, this works:
+
+const effectiveCardNumber =
+    cardNumber ||
+    subscription.cardNumber;
+
+But for a new subscriber, there is no subscription yet:
+
+if (!subscription) {
+    // subscription.cardNumber does not exist yet
+}
+
+So activateSubscription() cannot magically obtain a card number from subscription.cardNumber before the subscription is created.
+
+Therefore, we have two possibilities
+
+If your Subscription model has something like:
+
+cardNumber: {
+    type: String,
+    required: true
+}
+
+then something must generate that value before Subscription.create().
+
+If there is currently no generator anywhere, then the current design is incomplete for first-time subscribers.
+
+And I don't want to invent a card-number format without checking your actual subscriptionModel.js.
+
+What I recommend
+
+We should make the subscription service generate the card number only when creating a brand-new subscription.
+
+Conceptually:
+
+if (!subscription) {
+
+    const cardNumber = generateSubscriptionCardNumber();
+
+    subscription = await Subscription.create({
+        user,
+        plan,
+        status: SUBSCRIPTION_STATUS.ACTIVE,
+        source,
+        startedAt: subscriptionStartedAt,
+        expiresAt: subscriptionExpiresAt,
+        activatedBy,
+        notes,
+        cardNumber
+    });
+}
+
+Then existing subscriptions continue using:
+
+const effectiveCardNumber =
+    cardNumber || subscription.cardNumber;
+
+That means:
+
+New customer → new card number generated.
+Existing customer → existing card number preserved.
+Renewal → card number unchanged.
+Reactivation → card number unchanged.
+Payment completion → no need for the admin to enter a card number.
+One thing before we touch it
+
+Please show me the Subscription model, specifically the cardNumber field and any surrounding schema code.
+
+I want to make sure we follow the card-number structure you have already established rather than introducing a competing format.
+
+Because your existing subscriber renewal is working, we should preserve that behavior exactly and only solve the missing-card-number path for new subscribers.
+
+const mongoose = require("mongoose");
+
+const {
+SUBSCRIPTION\_PLANS,
+SUBSCRIPTION\_STATUS,
+SUBSCRIPTION\_SOURCES,
+SUBSCRIPTION\_CARDS
+} = require("../config/constants");
+
+const subscriptionSchema = new mongoose.Schema(
+{
+user: {
+type: mongoose.Schema.Types.ObjectId,
+ref: "User",
+required: true
+},
+
+```
+    plan: {
+        type: String,
+        enum: Object.values(SUBSCRIPTION_PLANS),
+        default: SUBSCRIPTION_PLANS.FREE,
+        required: true
+    },
+
+    status: {
+        type: String,
+        enum: Object.values(SUBSCRIPTION_STATUS),
+        default: SUBSCRIPTION_STATUS.INACTIVE,
+        required: true
+    },
+
+    source: {
+        type: String,
+        enum: Object.values(SUBSCRIPTION_SOURCES),
+        default: SUBSCRIPTION_SOURCES.MANUAL,
+        required: true
+    },
+
+    startedAt: {
+        type: Date,
+        required: true
+    },
+
+    expiresAt: {
+        type: Date,
+        required: true,
+        validate: {
+            validator(value) {
+                return value > this.startedAt;
+            },
+            message: "Expiry date must be after the subscription start date."
+        }
+    },
+
+    activatedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true
+    },
+
+    notes: {
+        type: String,
+        trim: true,
+        default: ""
+    },
+
+    cardNumber: {
+        type: String,
+        enum: Object.values(SUBSCRIPTION_CARDS),
+        default: SUBSCRIPTION_CARDS.CARD_ONE,
+        required: true,
+        trim: true
+    }
+},
+{
+    timestamps: true
+}
+```
+
+);
+
+/\*\*
+
+- \=====================================================
+- Indexes
+- \=====================================================
+  \*/
+
+// One subscription per user
+subscriptionSchema.index(
+{ user: 1 },
+{ unique: true }
+);
+
+// Useful for admin filtering
+subscriptionSchema.index({
+status: 1,
+expiresAt: 1
+});
+
+/\*\*
+
+- \=====================================================
+- Instance Methods
+- \=====================================================
+  \*/
+
+// Returns true if the subscription has expired
+subscriptionSchema.methods.isExpired = function () {
+return new Date() >= this.expiresAt;
+};
+
+// Returns true if subscription is active and not expired
+subscriptionSchema.methods.isActive = function () {
+return (
+this.status === SUBSCRIPTION\_STATUS.ACTIVE &&
+!this.isExpired()
+);
+};
+
+// Returns remaining days before expiry
+subscriptionSchema.methods.remainingDays = function () {
+return Math.max(
+0,
+Math.ceil(
+(this.expiresAt - new Date()) /
+(1000 \* 60 \* 60 \* 24)
+)
+);
+};
+
+/\*\*
+
+- \=====================================================
+- JSON Transformation
+- \=====================================================
+  \*/
+
+subscriptionSchema.set("toJSON", {
+virtuals: true,
+versionKey: false,
+transform(doc, ret) {
+delete ret.\_\_v;
+return ret;
+}
+});
+
+module.exports = mongoose.model(
+"Subscription",
+subscriptionSchema
+);
+
+Ahhh, partner — now we have the missing piece. And this is actually good news.
+
+Your Subscription model already has a built-in default:
+
+cardNumber: {
+    type: String,
+    enum: Object.values(SUBSCRIPTION_CARDS),
+    default: SUBSCRIPTION_CARDS.CARD_ONE,
+    required: true,
+    trim: true
+}
+
+So we do NOT need to generate a card number at all.
+
+Mongoose will automatically assign:
+
+SUBSCRIPTION_CARDS.CARD_ONE
+
+when a new subscription is created without cardNumber.
+
+The actual bug
+
+Your activateSubscription() is fighting against the model default.
+
+You currently have:
+
+if (!cardNumber) {
+
+    throw new Error(
+        "Subscription card number is required."
+    );
+
+}
+
+That check happens before:
+
+subscription = await Subscription.create({
+    ...
+    cardNumber
+});
+
+Therefore Mongoose never gets the opportunity to apply its default.
+
+The clean fix
+
+For a new subscription, remove this validation:
+
+if (!cardNumber) {
+
+    throw new Error(
+        "Subscription card number is required."
+    );
+
+}
+
+And change the creation section from:
+
+cardNumber
+
+to either simply omit it:
+
+subscription =
+    await Subscription.create({
+
+        user,
+
+        plan,
+
+        status:
+            SUBSCRIPTION_STATUS.ACTIVE,
+
+        source,
+
+        startedAt:
+            subscriptionStartedAt,
+
+        expiresAt:
+            subscriptionExpiresAt,
+
+        activatedBy,
+
+        notes
+
+    });
+
+Mongoose will then automatically apply:
+
+SUBSCRIPTION_CARDS.CARD_ONE
+For an existing subscription
+
+Keep this:
+
+const effectiveCardNumber =
+    cardNumber ||
+    subscription.cardNumber;
+
+and:
+
+cardNumber:
+    effectiveCardNumber
+
+That preserves the existing subscriber's card.
+
+But there's an even cleaner approach
+
+Because your model already defines the default, I would make the new-subscription portion explicit:
+
+cardNumber:
+    cardNumber ||
+    SUBSCRIPTION_CARDS.CARD_ONE
+
+provided SUBSCRIPTION_CARDS is imported into subscriptionService.js.
+
+That gives us:
+
+NEW USER
+   ↓
+Payment completed
+   ↓
+No subscription
+   ↓
+activateSubscription()
+   ↓
+cardNumber supplied?
+   ├── YES → use it
+   └── NO  → CARD_ONE
+   ↓
+Subscription created
+
+And for an existing subscriber:
+
+EXISTING USER
+   ↓
+Payment completed
+   ↓
+Subscription exists
+   ↓
+renewSubscription()
+   ↓
+Existing cardNumber preserved
+One important observation
+
+Your current Subscription schema says:
+
+default: SUBSCRIPTION_CARDS.CARD_ONE
+
+So the system currently has a single default subscription card, not a card-number generator.
+
+That means I would not introduce a generator now. It would unnecessarily change your existing design.
+
+Therefore, the next modification is very small
+
+In activateSubscription(), in the CREATE NEW SUBSCRIPTION section:
+
+Remove:
+if (!cardNumber) {
+    throw new Error(
+        "Subscription card number is required."
+    );
+}
+And use:
+cardNumber:
+    cardNumber ||
+    SUBSCRIPTION_CARDS.CARD_ONE
+
+You'll need to add:
+
+SUBSCRIPTION_CARDS
+
+to the constants destructuring at the top of subscriptionService.js.
+
+That should resolve your exact scenario:
+
+new user → manual payment → complete payment → subscription created → CARD_ONE assigned automatically.
+
+And we leave the existing subscriber renewal logic untouched, since you've already confirmed that part is working.
+
+is this correct " 
+
+if (!cardNumber) {
+
+```
+        cardNumber:
+        
+        cardNumber ||
+        SUBSCRIPTION_CARDS.CARD_ONE
+
+    }
+```
+
+Exactly, partner. 🎯 The subscription path is now working.
+
+The “Not issued” receipt is a separate issue, and I can already see why from the Payment model you showed earlier:
+
+receiptNumber: {
+    type: String,
+    unique: true,
+    sparse: true,
+    trim: true,
+    index: true
+}
+
+The field is optional, and your createPayment() service doesn't generate one. So the payment is successfully created and processed, but receiptNumber remains null/undefined.
+
+Where we should generate it
+
+I recommend generating the receipt when the payment is successfully completed, not when the pending payment is initially created.
+
+That gives us the proper lifecycle:
+
+Manual Payment Created
+        ↓
+PENDING
+receiptNumber = not issued
+        ↓
+Complete Payment
+        ↓
+SUCCESSFUL
+        ↓
+Generate Receipt Number
+        ↓
+Process Subscription
+        ↓
+Payment linked to Subscription
+
+This is preferable because a pending, failed, or abandoned payment shouldn't normally receive an official receipt.
+
+We need to inspect one thing
+
+Your paymentService already has:
+
+exports.generateReference()
+
+for the payment reference.
+
+I want to see whether you already have a receipt generator such as:
+
+generateReceiptNumber()
+
+or anything similar.
+
+Search paymentService.js for receiptNumber and generateReceipt. If you find anything, paste that section.
+
+If there isn't one, we'll add a proper generator such as:
+
+PP-RCP-20260812-000001
+
+and have processSuccessfulPayment() assign it automatically when the payment becomes processed.
+
+That way the payment details page will change from:
+
+Receipt Number: Not issued
+
+to something like:
+
+Receipt Number: PP-RCP-20260812-000001
+
+and it will happen automatically for both manual payments and future gateway payments when they're successfully processed.
+
+wonderful, i just observed the subscription recorded was updated as well
+
+Exactly, partner. 🎯
+
+That confirms the payment → subscription processing chain is now working correctly:
+
+Manual payment created → ₦5,000 stored correctly in the smallest currency unit.
+Payment completed → payment marked SUCCESSFUL.
+New user with no subscription → subscription created.
+Existing subscribed user → subscription renewed/extended instead of creating a duplicate.
+Existing subscription record → updated correctly.
+User subscription snapshot → synchronized through syncUserSubscription().
+Card number → defaults correctly to SUBSCRIPTION_CARDS.CARD_ONE when none is supplied.
+One thing still outstanding: Receipt Number
+
+Your observation that:
+
+Receipt Number: Not issued
+
+is expected with the code we currently have, because although receiptNumber exists in the Payment schema, we haven't generated one when the payment is successfully completed.
+
+That's actually the right place to fix it.
+
+I recommend that when markPaymentSuccessful() runs, it should generate the receipt number once, rather than generating it when the payment is initially created.
+
+That gives us this lifecycle:
+
+Payment Created
+      ↓
+PENDING
+      ↓
+Complete Payment
+      ↓
+SUCCESSFUL
+      ↓
+Generate Receipt Number
+      ↓
+Process Subscription
+      ↓
+Link Payment → Subscription
+      ↓
+isProcessed = true
+
+And importantly, we should make it idempotent:
+
+if (!payment.receiptNumber) {
+    payment.receiptNumber = generateReceiptNumber();
+}
+
+So if somebody accidentally processes the same payment again, the receipt number doesn't change.
+
+One more important improvement
+
+Since this is a manual payment, the receipt should ideally be generated after successful completion, not at payment creation.
+
+That means your payment details will eventually show:
+
+Payment Reference
+PP-PAY-20260812-000001
+
+Receipt Number
+PP-RCP-20260812-000001
+
+Amount
+NGN 5,000.00
+
+Status
+Successful
+
+Processed
+Yes
+
+We're very close now. The core payment/subscription relationship is behaving exactly as we intended.
+
+
+exports.generateReference = () => {
+
+```
+const date =
+    new Date()
+        .toISOString()
+        .slice(0, 10)
+        .replace(/-/g, "");
+
+const random =
+    crypto
+        .randomBytes(4)
+        .toString("hex")
+        .toUpperCase();
+
+return `PP-PAY-${date}-${random}`;
+```
+
+};
+
+
+Yes partner — this generateReference() is good for your payment reference:
+
+exports.generateReference = () => {
+
+    const date =
+        new Date()
+            .toISOString()
+            .slice(0, 10)
+            .replace(/-/g, "");
+
+    const random =
+        crypto
+            .randomBytes(4)
+            .toString("hex")
+            .toUpperCase();
+
+    return `PP-PAY-${date}-${random}`;
+};
+
+It produces references such as:
+
+PP-PAY-20260812-A7F39C21
+One important distinction
+
+This function generates:
+
+PP-PAY-20260812-A7F39C21
+
+which is your Payment Reference.
+
+It does not generate the:
+
+PP-RCP-20260812-000001
+
+which is your Receipt Number.
+
+That's exactly why your payment details page currently says:
+
+Receipt Number: Not issued
+
+Your Payment model has:
+
+receiptNumber: {
+    type: String,
+    unique: true,
+    sparse: true,
+    trim: true,
+    index: true
+},
+
+but your createPayment() currently doesn't assign one, which is actually reasonable: a receipt should normally be issued when the payment is successfully completed/verified, not merely when a pending manual payment is created.
+
+So our payment lifecycle should be
+Create Manual Payment
+        ↓
+PENDING
+        ↓
+Complete Payment
+        ↓
+SUCCESSFUL
+        ↓
+Generate Receipt Number
+        ↓
+Process Subscription
+        ↓
+Link Payment → Subscription
+        ↓
+isProcessed = true
+
+For example:
+
+Payment Reference:
+PP-PAY-20260812-A7F39C21
+
+Receipt Number:
+PP-RCP-20260812-000001
+
+And importantly, the receipt number should be generated during completePayment / successful processing, not during createPayment.
+
+That will also give us a clean audit trail: every successful payment gets a receipt, while abandoned/failed/pending payments don't unnecessarily consume receipt numbers.
+
+Your current generateReference() therefore doesn't need changing. The next piece we should implement is a separate generateReceiptNumber() and call it at the correct point in processSuccessfulPayment().
+

@@ -1,0 +1,366 @@
+<%- include("../partials/header") -%>
+
+<section class="py-5">
+
+    <%- include("../partials/flash") -%>
+
+    <div class="container">
+
+        <div class="row justify-content-center">
+
+            <div class="col-lg-7">
+
+                <div class="card shadow border-0">
+
+                    <div class="card-header bg-white">
+
+                        <h3 class="mb-0 text-dark">
+
+                            <i class="bi bi-award-fill text-primary me-2"></i>
+
+                            <%= subscription ? "Edit Subscription" : "Add Subscription" %>
+
+                        </h3>
+
+                    </div>
+
+                    <div class="card-body">
+
+                        <form
+                            action="<%= subscription ? '/subscriptions/' + subscription._id : '/subscriptions' %>"
+                            method="POST">
+
+                            <!-- =======================
+                                 USER
+                            ======================== -->
+
+                            <div class="mb-3">
+
+                                <label class="form-label">
+
+                                    User
+
+                                </label>
+
+                                <select
+                                    class="form-select"
+                                    name="user"
+                                    required>
+
+                                    <option value="">
+
+                                        Select User
+
+                                    </option>
+
+                                    <% users.forEach(user => { %>
+
+                                        <option
+                                            value="<%= user._id %>"
+
+                                            <%= subscription &&
+                                                subscription.user &&
+                                                subscription.user.toString() === user._id.toString()
+
+                                                ? "selected"
+
+                                                : "" %>>
+
+                                            <%= user.username %> (<%= user.email %>)
+
+                                        </option>
+
+                                    <% }) %>
+
+                                </select>
+
+                            </div>
+
+
+                            <!-- =======================
+                                 PLAN
+                            ======================== -->
+
+                            <div class="mb-3">
+
+                                <label class="form-label">
+
+                                    Subscription Plan
+
+                                </label>
+
+                                <select
+                                    class="form-select"
+                                    name="plan"
+                                    required>
+
+                                    <% plans.forEach(plan => { %>
+
+                                        <option
+                                            value="<%= plan %>"
+
+                                            <%= subscription &&
+                                                subscription.plan === plan
+
+                                                ? "selected"
+
+                                                : "" %>>
+
+                                            <%= plan === "vip" ? "VIP" : plan.charAt(0).toUpperCase() + plan.slice(1) %>
+
+                                        </option>
+
+                                    <% }) %>
+
+                                </select>
+
+                            </div>
+
+
+                            <!-- =======================
+                                 STATUS
+                            ======================== -->
+
+                            <div class="mb-3">
+
+                                <label class="form-label">
+
+                                    Subscription Status
+
+                                </label>
+
+                                <select
+                                    class="form-select"
+                                    name="status"
+                                    required>
+
+                                    <% statuses.forEach(status => { %>
+
+                                        <option
+                                            value="<%= status %>"
+
+                                            <%= subscription &&
+                                                subscription.status === status
+
+                                                ? "selected"
+
+                                                : "" %>>
+
+                                            <%= status.charAt(0).toUpperCase() + status.slice(1) %>
+
+                                        </option>
+
+                                    <% }) %>
+
+                                </select>
+
+                            </div>
+
+
+                            <!-- =======================
+                                 SOURCE
+                            ======================== -->
+
+                            <div class="mb-3">
+
+                                <label class="form-label">
+
+                                    Subscription Source
+
+                                </label>
+
+                                <select
+                                    class="form-select"
+                                    name="source">
+
+                                    <option
+                                        value="manual"
+                                        <%= subscription && subscription.source === "manual" ? "selected" : "" %>>
+
+                                        Manual
+
+                                    </option>
+
+                                    <option
+                                        value="paystack"
+                                        <%= subscription && subscription.source === "paystack" ? "selected" : "" %>>
+
+                                        Paystack
+
+                                    </option>
+
+                                    <option
+                                        value="flutterwave"
+                                        <%= subscription && subscription.source === "flutterwave" ? "selected" : "" %>>
+
+                                        Flutterwave
+
+                                    </option>
+
+                                    <option
+                                        value="stripe"
+                                        <%= subscription && subscription.source === "stripe" ? "selected" : "" %>>
+
+                                        Stripe
+
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+
+                            <!-- =======================
+                                 START DATE
+                            ======================== -->
+
+                            <div class="mb-3">
+
+                                <label class="form-label">
+
+                                    Started At
+
+                                </label>
+
+                                <input
+                                    class="form-control"
+                                    type="datetime-local"
+                                    name="startedAt"
+
+                                    value="<%= subscription
+
+                                        ? new Date(
+
+                                            new Date(subscription.startedAt).getTime()
+
+                                            - new Date(subscription.startedAt).getTimezoneOffset() * 60000
+
+                                        ).toISOString().slice(0,16)
+
+                                        : '' %>"
+
+                                    required>
+
+                            </div>
+
+
+                            <!-- =======================
+                                 EXPIRY DATE
+                            ======================== -->
+
+                            <div class="mb-3">
+
+                                <label class="form-label">
+
+                                    Expires At
+
+                                </label>
+
+                                <input
+                                    class="form-control"
+                                    type="datetime-local"
+                                    name="expiresAt"
+
+                                    value="<%= subscription
+
+                                        ? new Date(
+
+                                            new Date(subscription.expiresAt).getTime()
+
+                                            - new Date(subscription.expiresAt).getTimezoneOffset() * 60000
+
+                                        ).toISOString().slice(0,16)
+
+                                        : '' %>"
+
+                                    required>
+
+                            </div>
+
+
+                            <!-- =======================
+                                 CARD NUMBER
+                            ======================== -->
+
+                            <div class="mb-3">
+
+                                <label class="form-label">
+
+                                    Prediction Card
+
+                                </label>
+
+                                <select
+                                    class="form-select"
+                                    name="cardNumber"
+                                    required>
+
+                                    <option value="cardOne" <%= subscription && subscription.cardNumber === "cardOne" ? "selected" : "" %>>Card One</option>
+
+                                    <option value="cardTwo" <%= subscription && subscription.cardNumber === "cardTwo" ? "selected" : "" %>>Card Two</option>
+
+                                    <option value="cardThree" <%= subscription && subscription.cardNumber === "cardThree" ? "selected" : "" %>>Card Three</option>
+
+                                    <option value="cardFour" <%= subscription && subscription.cardNumber === "cardFour" ? "selected" : "" %>>Card Four</option>
+
+                                    <option value="cardFive" <%= subscription && subscription.cardNumber === "cardFive" ? "selected" : "" %>>Card Five</option>
+
+                                    <option value="cardSix" <%= subscription && subscription.cardNumber === "cardSix" ? "selected" : "" %>>Card Six</option>
+
+                                </select>
+
+                            </div>
+
+
+                            <!-- =======================
+                                 NOTES
+                            ======================== -->
+
+                            <div class="mb-3">
+
+                                <label class="form-label">
+
+                                    Notes
+
+                                </label>
+
+                                <textarea
+                                    class="form-control"
+                                    name="notes"
+                                    rows="5"
+                                    placeholder="Subscription notes..."><%= subscription ? subscription.notes : "" %></textarea>
+
+                            </div>
+
+
+                            <input
+                                type="hidden"
+                                name="redirectTo"
+                                value="<%= redirectTo || '/admin/subscriptions' %>">
+
+
+                            <button
+                                type="submit"
+                                class="btn btn-success w-100">
+
+                                <i class="bi bi-check-circle me-2"></i>
+
+                                <%= subscription ? "Update Subscription" : "Create Subscription" %>
+
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+<%- include("../partials/footer") -%>

@@ -18,6 +18,18 @@ const adminRoutes = require("./routes/adminRoutes");
 
 const predictionRoutes = require("./routes/predictionRoutes");
 
+const subscriptionRoutes = require("./routes/subscriptionRoutes");
+
+
+const paymentRoutes = require("./routes/paymentRoutes");
+
+
+const paymentWebhookRoutes = require("./routes/paymentWebhookRoutes");
+
+
+const { ROLES } = require("./config/constants");
+
+const {SUBSCRIPTION_PLANS} = require("./config/constants");
 
 
 // creating a local module to send email
@@ -26,6 +38,9 @@ const sendTheEmail = require(path.join(__dirname, "/email.js"));
 const app = express();
 
 app.set("view engine", "ejs");
+
+
+app.use("/payments",paymentWebhookRoutes);
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -71,6 +86,14 @@ app.use((req, res, next) => {
 });
 
 
+app.use((req, res, next) => {
+
+    res.locals.roles = ROLES;
+
+    next();
+
+});
+
 app.use("/auth", authRoutes);
 
 app.use("/", homeRoutes);
@@ -79,6 +102,9 @@ app.use("/admin", adminRoutes);
 
 app.use("/predictions", predictionRoutes);
 
+app.use("/subscriptions", subscriptionRoutes);
+
+app.use("/payments", paymentRoutes);
 
 
 //404 middleware

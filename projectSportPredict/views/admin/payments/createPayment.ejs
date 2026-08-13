@@ -1,0 +1,370 @@
+
+<%- include("../../partials/header") -%>
+
+<section class="container-fluid py-4">
+
+    <!-- ==========================================
+         PAGE HEADER
+    =========================================== -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <h3 class="mb-1">
+                Create Manual Payment
+            </h3>
+
+            <p class="text-muted mb-0">
+                Record a manual payment for a user.
+            </p>
+
+        </div>
+
+        <a
+            href="/admin/payments"
+            class="btn btn-outline-secondary">
+
+            <i class="bi bi-arrow-left"></i>
+            Back to Payments
+
+        </a>
+
+    </div>
+
+
+    <!-- ==========================================
+         PAYMENT FORM
+    =========================================== -->
+
+    <div class="card shadow-sm border-0">
+
+        <div class="card-body">
+
+            <form
+                action="/admin/payments"
+                method="POST">
+
+                <input
+                    type="hidden"
+                    name="redirectTo"
+                    value="/admin/payments">
+
+
+                <!-- ==================================
+                     USER
+                =================================== -->
+
+                <div class="mb-3">
+
+                    <label
+                        for="user"
+                        class="form-label">
+
+                        User
+
+                    </label>
+
+                    <select
+                        id="user"
+                        name="user"
+                        class="form-select"
+                        required>
+
+                        <option value="">
+                            Select User
+                        </option>
+
+                        <% users.forEach(user => { %>
+
+                            <option
+                                value="<%= user._id %>">
+
+                                <%= user.username %>
+                                -
+                                <%= user.email %>
+
+                            </option>
+
+                        <% }) %>
+
+                    </select>
+
+                </div>
+
+
+                <!-- ==================================
+                     AMOUNT
+                =================================== -->
+
+                <div class="mb-3">
+
+                    <label for="amount" class="form-label">
+                        Amount
+                    </label>
+
+                    <input
+                        type="number"
+                        class="form-control"
+                        id="amount"
+                        name="amount"
+                        min="5000"
+                        step="0.01"
+                        required
+                    >
+
+                    <div class="form-text text-light">
+                        Minimum payment: ₦5,000.00
+                    </div>
+
+                </div>
+
+
+                <!-- ==================================
+                     PLAN
+                =================================== -->
+
+                <div class="mb-3">
+
+                    <label
+                        for="plan"
+                        class="form-label">
+
+                        Subscription Plan
+
+                    </label>
+
+                    <select
+                        id="plan"
+                        name="plan"
+                        class="form-select"
+                        required>
+
+                        <% Object.values(SUBSCRIPTION_PLANS)
+                            .forEach(plan => { %>
+
+                            <option
+                                value="<%= plan %>"
+                                <%= plan === SUBSCRIPTION_PLANS.PREMIUM
+                                    ? "selected"
+                                    : "" %>>
+
+                                <%= plan %>
+
+                            </option>
+
+                        <% }) %>
+
+                    </select>
+
+                </div>
+
+
+                <!-- ==================================
+                     DURATION
+                =================================== -->
+
+                <div class="mb-3">
+
+                    <label
+                        for="duration"
+                        class="form-label">
+
+                        Duration
+
+                    </label>
+
+                    <div class="input-group">
+
+                        <input
+                            type="number"
+                            id="duration"
+                            name="duration"
+                            class="form-control"
+                            value="30"
+                            min="1"
+                            required>
+
+                        <span class="input-group-text">
+                            Days
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ==================================
+                     PAYMENT METHOD
+                =================================== -->
+
+                <div class="mb-3">
+
+                    <label
+                        for="paymentMethod"
+                        class="form-label">
+
+                        Payment Method
+
+                    </label>
+
+                    <select
+                        id="paymentMethod"
+                        name="paymentMethod"
+                        class="form-select"
+                        required>
+
+                        <% Object.values(PAYMENT_METHODS)
+                            .forEach(method => { %>
+
+                            <option
+                                value="<%= method %>"
+                                <%= method === PAYMENT_METHODS.BANK_TRANSFER
+                                    ? "selected"
+                                    : "" %>>
+
+                                <%= method
+                                    .replace(/_/g, " ")
+                                    .replace(/\b\w/g, c => c.toUpperCase()) %>
+
+                            </option>
+
+                        <% }) %>
+
+                    </select>
+
+                </div>
+
+
+                <!-- ==================================
+                     GATEWAY
+                =================================== -->
+
+                <div class="mb-3">
+
+                    <label
+                        for="gateway"
+                        class="form-label">
+
+                        Payment Gateway
+
+                    </label>
+
+                    <select
+                        id="gateway"
+                        name="gateway"
+                        class="form-select"
+                        required>
+
+                        <% Object.values(PAYMENT_GATEWAYS)
+                            .forEach(gateway => { %>
+
+                            <option
+                                value="<%= gateway %>"
+                                <%= gateway === PAYMENT_GATEWAYS.MANUAL
+                                    ? "selected"
+                                    : "" %>>
+
+                                <%= gateway
+                                    .replace(/_/g, " ")
+                                    .replace(/\b\w/g, c => c.toUpperCase()) %>
+
+                            </option>
+
+                        <% }) %>
+
+                    </select>
+
+                </div>
+
+
+                <!-- ==================================
+                     CURRENCY
+                =================================== -->
+
+                <div class="mb-3">
+
+                    <label
+                        for="currency"
+                        class="form-label">
+
+                        Currency
+
+                    </label>
+
+                    <input
+                        type="text"
+                        id="currency"
+                        name="currency"
+                        class="form-control"
+                        value="NGN"
+                        maxlength="3"
+                        required>
+
+                </div>
+
+
+                <!-- ==================================
+                     CUSTOMER EMAIL
+                =================================== -->
+
+                <div class="mb-3">
+
+                    <label
+                        for="customerEmail"
+                        class="form-label">
+
+                        Customer Email
+
+                    </label>
+
+                    <input
+                        type="email"
+                        id="customerEmail"
+                        name="customerEmail"
+                        class="form-control"
+                        placeholder="customer@example.com">
+
+                    <small class="text-muted">
+                        Leave blank to use the selected user's email.
+                    </small>
+
+                </div>
+
+
+                <!-- ==================================
+                     ACTIONS
+                =================================== -->
+
+                <div class="d-flex gap-2 mt-4">
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary">
+
+                        <i class="bi bi-credit-card"></i>
+
+                        Create Payment
+
+                    </button>
+
+                    <a
+                        href="/admin/payments"
+                        class="btn btn-outline-secondary">
+
+                        Cancel
+
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</section>
+
+<%- include("../../partials/footer") -%>
+

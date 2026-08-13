@@ -1,5 +1,6 @@
 const Prediction = require("../models/predictionModel");
 const User = require("../models/userModel");
+const Subscription = require("../models/subscriptionModel");
 const expirePredictions = require("../utils/expirePredictions");
 
 

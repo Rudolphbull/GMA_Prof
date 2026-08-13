@@ -1,0 +1,1008 @@
+<%- include("../partials/header") -%>
+
+<!-- ========================= -->
+<!-- Breadcrumb -->
+<!-- ========================= -->
+
+<nav aria-label="breadcrumb" class="mb-3">
+
+    <ol class="breadcrumb">
+
+        <li class="breadcrumb-item">
+            <a href="/admin/dashboard">
+                Dashboard
+            </a>
+        </li>
+
+        <li class="breadcrumb-item">
+            <a href="/admin/subscriptions">
+                Subscriptions
+            </a>
+        </li>
+
+        <li class="breadcrumb-item text-light active">
+            Subscription Archive
+        </li>
+
+    </ol>
+
+</nav>
+
+
+<!-- ========================= -->
+<!-- Page Header -->
+<!-- ========================= -->
+
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+
+    <div>
+
+        <h2 class="fw-bold mb-1">
+
+            <i class="bi bi-archive-fill text-secondary me-2"></i>
+
+            Subscription Archive
+
+        </h2>
+
+        <p class="text-light mb-0">
+
+            View, restore or permanently remove archived subscriptions.
+
+        </p>
+
+    </div>
+
+    <a
+        href="/admin/subscriptions"
+        class="btn btn-outline-primary">
+
+        <i class="bi bi-arrow-left me-2"></i>
+
+        Back to Subscriptions
+
+    </a>
+
+</div>
+
+
+<!-- ========================= -->
+<!-- Statistics -->
+<!-- ========================= -->
+
+<div class="row g-4 mb-4">
+
+    <div class="col-lg-3 col-md-6">
+
+        <div class="card shadow-sm border-0">
+
+            <div class="card-body">
+
+                <small class="text-light">
+                    Total Archived
+                </small>
+
+                <h2 class="fw-bold mt-2">
+                    <%= totalArchives %>
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="col-lg-3 col-md-6">
+
+        <div class="card shadow-sm border-0">
+
+            <div class="card-body">
+
+                <small class="text-light">
+                    Deleted Today
+                </small>
+
+                <h2 class="fw-bold mt-2 text-danger">
+                    <%= deletedToday %>
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="col-lg-3 col-md-6">
+
+        <div class="card shadow-sm border-0">
+
+            <div class="card-body">
+
+                <small class="text-light">
+                    Deleted This Month
+                </small>
+
+                <h2 class="fw-bold mt-2 text-warning">
+                    <%= deletedThisMonth %>
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="col-lg-3 col-md-6">
+
+        <div class="card shadow-sm border-0">
+
+            <div class="card-body">
+
+                <small class="text-light">
+                    Restorable
+                </small>
+
+                <h2 class="fw-bold mt-2 text-success">
+                    <%= restorableCount %>
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ========================= -->
+<!-- Search & Filters -->
+<!-- ========================= -->
+
+<div class="card shadow-sm border-0 mb-4">
+
+    <div class="card-header bg-white">
+
+        <h5 class="mb-0 text-dark">
+
+            <i class="bi bi-funnel-fill me-2 text-primary"></i>
+
+            Search & Filters
+
+        </h5>
+
+    </div>
+
+
+    <div class="card-body">
+
+        <form
+            method="GET"
+            action="/admin/subscriptions/archive">
+
+            <div class="row g-3">
+
+                <div class="col-lg-3">
+
+                    <label class="form-label">
+                        Search
+                    </label>
+
+                    <input
+                        type="text"
+                        name="search"
+                        class="form-control"
+                        placeholder="Username or Email"
+                        value="<%= search %>">
+
+                </div>
+
+
+                <div class="col-lg-2">
+
+                    <label class="form-label">
+                        Plan
+                    </label>
+
+                    <select
+                        name="plan"
+                        class="form-select">
+
+                        <option value="">
+                            All Plans
+                        </option>
+
+                        <% Object.values(SUBSCRIPTION_PLANS).forEach(planOption => { %>
+
+                            <option
+                                value="<%= planOption %>"
+                                <%= plan === planOption ? "selected" : "" %>>
+
+                                <%= planOption %>
+
+                            </option>
+
+                        <% }) %>
+
+                    </select>
+
+                </div>
+
+
+                <div class="col-lg-2">
+
+                    <label class="form-label">
+                        Reason
+                    </label>
+
+                    <select
+                        name="reason"
+                        class="form-select">
+
+                        <option value="">
+                            All Reasons
+                        </option>
+
+                        <option
+                            value="Deleted"
+                            <%= reason === "Deleted" ? "selected" : "" %>>
+
+                            Deleted
+
+                        </option>
+
+                        <option
+                            value="Bulk Deleted"
+                            <%= reason === "Bulk Deleted" ? "selected" : "" %>>
+
+                            Bulk Deleted
+
+                        </option>
+
+                        <option
+                            value="Expired"
+                            <%= reason === "Expired" ? "selected" : "" %>>
+
+                            Expired
+
+                        </option>
+
+                        <option
+                            value="Suspended"
+                            <%= reason === "Suspended" ? "selected" : "" %>>
+
+                            Suspended
+
+                        </option>
+
+                        <option
+                            value="Restored"
+                            <%= reason === "Restored" ? "selected" : "" %>>
+
+                            Restored
+
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="col-lg-2">
+
+                    <label class="form-label">
+                        Archived From
+                    </label>
+
+                    <input
+                        type="date"
+                        class="form-control"
+                        name="dateFrom"
+                        value="<%= dateFrom %>">
+
+                </div>
+
+
+                <div class="col-lg-2">
+
+                    <label class="form-label">
+                        Archived To
+                    </label>
+
+                    <input
+                        type="date"
+                        class="form-control"
+                        name="dateTo"
+                        value="<%= dateTo %>">
+
+                </div>
+
+
+                <div class="col-lg-1">
+
+                    <label class="form-label">
+                        Sort
+                    </label>
+
+                    <select
+                        name="sort"
+                        class="form-select">
+
+                        <option
+                            value="newest"
+                            <%= sort === "newest" ? "selected" : "" %>>
+                            ↓
+                        </option>
+
+                        <option
+                            value="oldest"
+                            <%= sort === "oldest" ? "selected" : "" %>>
+                            ↑
+                        </option>
+
+                        <option
+                            value="plan"
+                            <%= sort === "plan" ? "selected" : "" %>>
+                            Plan
+                        </option>
+
+                        <option
+                            value="user"
+                            <%= sort === "user" ? "selected" : "" %>>
+                            User
+                        </option>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+
+            <div class="mt-4 d-flex gap-2">
+
+                <button
+                    type="submit"
+                    class="btn btn-primary">
+
+                    <i class="bi bi-search me-2"></i>
+
+                    Search
+
+                </button>
+
+
+                <a
+                    href="/admin/subscriptions/archive"
+                    class="btn btn-outline-secondary">
+
+                    <i class="bi bi-arrow-counterclockwise me-2"></i>
+
+                    Reset
+
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- ========================= -->
+<!-- Archived Subscriptions -->
+<!-- ========================= -->
+
+<div class="card shadow-sm border-0">
+
+    <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+
+        <h5 class="mb-0 text-dark">
+
+            <i class="bi bi-table me-2 text-primary"></i>
+
+            Archived Subscriptions
+
+        </h5>
+
+
+        <div class="d-flex align-items-center gap-2">
+
+            <span
+                id="selectedArchiveCount"
+                class="badge bg-primary d-none">
+
+                0 Selected
+
+            </span>
+
+
+            <span class="badge bg-secondary">
+
+                <%= total %>
+                Record<%= total === 1 ? "" : "s" %>
+
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <% if (archives.length > 0) { %>
+
+
+        
+<!-- ========================================= -->
+<!-- Archive Bulk Actions -->
+<!-- ========================================= -->
+
+<form
+    id="archiveBulkActionForm"
+    method="POST"
+    action="/admin/subscriptions/archive/bulk-delete">
+
+
+    <!-- ========================================= -->
+    <!-- Bulk Action Toolbar -->
+    <!-- ========================================= -->
+
+    <div class="card-body border-bottom">
+
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+
+            <!-- Select All -->
+
+            <div class="form-check">
+
+                <input
+                    type="checkbox"
+                    class="form-check-input"
+                    id="selectAllArchives">
+
+                <label
+                    class="form-check-label fw-semibold"
+                    for="selectAllArchives">
+
+                    Select All
+
+                </label>
+
+            </div>
+
+
+            <!-- Bulk Actions -->
+
+            <div class="d-flex align-items-center gap-2">
+
+                <span
+                    id="selectedArchiveCount"
+                    class="badge bg-secondary d-none">
+
+                    0 Selected
+
+                </span>
+
+
+                <!-- Bulk Restore -->
+
+                <button
+                    type="button"
+                    id="bulkRestoreArchivesBtn"
+                    class="btn btn-sm btn-success"
+                    disabled>
+
+                    <i class="bi bi-arrow-clockwise me-2"></i>
+
+                    Restore Selected
+
+                </button>
+
+
+                <!-- Bulk Delete -->
+
+                <button
+                    type="submit"
+                    id="bulkDeleteArchivesBtn"
+                    class="btn btn-sm btn-danger"
+                    disabled>
+
+                    <i class="bi bi-trash-fill me-2"></i>
+
+                    Permanently Delete Selected
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================= -->
+    <!-- Archive Table -->
+    <!-- ========================================= -->
+
+    <div class="card-body p-0">
+
+        <div class="table-responsive">
+
+            <table class="table table-hover align-middle mb-0">
+
+                <thead class="table-light">
+
+                    <tr>
+
+                        <th
+                            class="text-center"
+                            style="width: 50px;">
+
+                            <input
+                                type="checkbox"
+                                class="form-check-input"
+                                id="selectAllArchivesHeader">
+
+                        </th>
+
+                        <th>User</th>
+
+                        <th>Plan</th>
+
+                        <th>Status</th>
+
+                        <th>Card</th>
+
+                        <th>Reason</th>
+
+                        <th>Started</th>
+
+                        <th>Expires</th>
+
+                        <th>Archived By</th>
+
+                        <th>Archived At</th>
+
+                        <th class="text-center">
+
+                            Actions
+
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    <% archives.forEach(archive => { %>
+
+                        <tr>
+
+                            <!-- ================================= -->
+                            <!-- Selection -->
+                            <!-- ================================= -->
+
+                            <td class="text-center">
+
+                                <input
+                                    type="checkbox"
+                                    class="form-check-input archive-checkbox"
+                                    name="archiveIds"
+                                    value="<%= archive._id %>"
+                                    data-bulk-checkbox
+                                    data-status="<%= archive.status %>"
+                                >
+
+                            </td>
+
+
+                            <!-- ================================= -->
+                            <!-- User -->
+                            <!-- ================================= -->
+
+                            <td>
+
+                                <div class="fw-semibold">
+
+                                    <%= archive.user?.username || "Unknown User" %>
+
+                                </div>
+
+                                <small class="text-light">
+
+                                    <%= archive.user?.email || "-" %>
+
+                                </small>
+
+                            </td>
+
+
+                            <!-- ================================= -->
+                            <!-- Plan -->
+                            <!-- ================================= -->
+
+                            <td>
+
+                                <% if (archive.plan === "Premium") { %>
+
+                                    <span class="badge bg-primary">
+                                        Premium
+                                    </span>
+
+                                <% } else if (archive.plan === "VIP") { %>
+
+                                    <span class="badge bg-warning text-dark">
+                                        VIP
+                                    </span>
+
+                                <% } else { %>
+
+                                    <span class="badge bg-secondary">
+                                        Free
+                                    </span>
+
+                                <% } %>
+
+                            </td>
+
+
+                            <!-- ================================= -->
+                            <!-- Status -->
+                            <!-- ================================= -->
+
+                            <td>
+
+                                <% switch (archive.status) {
+
+                                    case "active": %>
+
+                                        <span class="badge bg-success">
+                                            Active
+                                        </span>
+
+                                        <% break;
+
+                                    case "expired": %>
+
+                                        <span class="badge bg-secondary">
+                                            Expired
+                                        </span>
+
+                                        <% break;
+
+                                    case "suspended": %>
+
+                                        <span class="badge bg-warning text-dark">
+                                            Suspended
+                                        </span>
+
+                                        <% break;
+
+                                    default: %>
+
+                                        <span class="badge bg-dark">
+                                            Inactive
+                                        </span>
+
+                                <% } %>
+
+                            </td>
+
+
+                            <!-- ================================= -->
+                            <!-- Card -->
+                            <!-- ================================= -->
+
+                            <td>
+
+                                <span class="badge bg-info text-dark">
+
+                                    <%= archive.cardNumber || "-" %>
+
+                                </span>
+
+                            </td>
+
+
+                            <!-- ================================= -->
+                            <!-- Reason -->
+                            <!-- ================================= -->
+
+                            <td>
+
+                                <% if (archive.reason === "Deleted") { %>
+
+                                    <span class="badge bg-danger">
+                                        Deleted
+                                    </span>
+
+                                <% } else if (archive.reason === "Bulk Deleted") { %>
+
+                                    <span class="badge bg-dark">
+                                        Bulk Deleted
+                                    </span>
+
+                                <% } else if (archive.reason === "Expired") { %>
+
+                                    <span class="badge bg-secondary">
+                                        Expired
+                                    </span>
+
+                                <% } else if (archive.reason === "Suspended") { %>
+
+                                    <span class="badge bg-warning text-dark">
+                                        Suspended
+                                    </span>
+
+                                <% } else { %>
+
+                                    <span class="badge bg-success">
+                                        Restored
+                                    </span>
+
+                                <% } %>
+
+                            </td>
+
+
+                            <!-- ================================= -->
+                            <!-- Started -->
+                            <!-- ================================= -->
+
+                            <td>
+
+                                <%= archive.startedAt
+                                    ? new Date(archive.startedAt).toLocaleDateString()
+                                    : "-" %>
+
+                            </td>
+
+
+                            <!-- ================================= -->
+                            <!-- Expires -->
+                            <!-- ================================= -->
+
+                            <td>
+
+                                <%= archive.expiresAt
+                                    ? new Date(archive.expiresAt).toLocaleDateString()
+                                    : "-" %>
+
+                            </td>
+
+
+                            <!-- ================================= -->
+                            <!-- Archived By -->
+                            <!-- ================================= -->
+
+                            <td>
+
+                                <%= archive.archivedBy?.username || "-" %>
+
+                            </td>
+
+
+                            <!-- ================================= -->
+                            <!-- Archived At -->
+                            <!-- ================================= -->
+
+                            <td>
+
+                                <%= archive.archivedAt
+                                    ? new Date(archive.archivedAt).toLocaleString()
+                                    : "-" %>
+
+                            </td>
+
+
+                            <!-- ================================= -->
+                            <!-- Individual Actions -->
+                            <!-- ================================= -->
+
+                            <td class="text-center">
+
+                                <div class="d-flex justify-content-center gap-2">
+
+
+                                    <!-- ============================= -->
+                                    <!-- Restore -->
+                                    <!-- ============================= -->
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-sm btn-success archive-restore-btn"
+
+                                        data-action="/admin/subscriptions/archive/<%= archive._id %>/restore"
+
+                                        data-title="Restore Subscription"
+
+                                        data-message="Restore this archived subscription? The subscription will be returned to the active subscriptions list."
+
+                                        data-button="Restore"
+
+                                        data-button-class="btn-success">
+
+                                        <i class="bi bi-arrow-clockwise me-1"></i>
+
+                                        Restore
+
+                                    </button>
+
+
+                                    <!-- ============================= -->
+                                    <!-- Permanent Delete -->
+                                    <!-- ============================= -->
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-sm btn-danger archive-delete-btn"
+
+                                        data-action="/admin/subscriptions/archive/<%= archive._id %>/delete"
+
+                                        data-title="Permanently Delete Archive"
+
+                                        data-message="Permanently delete this archived subscription? This action cannot be undone."
+
+                                        data-button="Delete Permanently"
+
+                                        data-button-class="btn-danger">
+
+                                        <i class="bi bi-trash-fill me-1"></i>
+
+                                        Delete
+
+                                    </button>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                    <% }) %>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</form>
+
+
+
+    <% } else { %>
+
+
+        <!-- ========================= -->
+        <!-- Empty State -->
+        <!-- ========================= -->
+
+        <div class="card-body">
+
+            <div class="text-center py-5">
+
+                <i class="bi bi-archive display-1 text-secondary"></i>
+
+                <h4 class="mt-3">
+                    No Archived Subscriptions
+                </h4>
+
+                <p class="text-light">
+                    Deleted subscriptions will appear here.
+                </p>
+
+                <a
+                    href="/admin/subscriptions"
+                    class="btn btn-primary">
+
+                    <i class="bi bi-arrow-left me-2"></i>
+
+                    Back to Subscriptions
+
+                </a>
+
+            </div>
+
+        </div>
+
+
+    <% } %>
+
+</div>
+
+
+<!-- ========================= -->
+<!-- Pagination -->
+<!-- ========================= -->
+
+<% if (totalPages > 1) { %>
+
+    <div class="card border-0 shadow-sm mt-4">
+
+        <div class="card-body">
+
+            <nav aria-label="Archive Pagination">
+
+                <ul class="pagination justify-content-center mb-0">
+
+                    <!-- Previous -->
+
+                    <li
+                        class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
+
+                        <a
+                            class="page-link"
+                            href="?page=<%= currentPage - 1 %>&limit=<%= limit %>&search=<%= encodeURIComponent(search || '') %>&plan=<%= encodeURIComponent(plan || '') %>&reason=<%= encodeURIComponent(reason || '') %>&sort=<%= encodeURIComponent(sort || '') %>&dateFrom=<%= encodeURIComponent(dateFrom || '') %>&dateTo=<%= encodeURIComponent(dateTo || '') %>">
+
+                            <i class="bi bi-chevron-left"></i>
+
+                        </a>
+
+                    </li>
+
+
+                    <!-- Pages -->
+
+                    <% for (let i = 1; i <= totalPages; i++) { %>
+
+                        <li
+                            class="page-item <%= currentPage === i ? 'active' : '' %>">
+
+                            <a
+                                class="page-link"
+                                href="?page=<%= i %>&limit=<%= limit %>&search=<%= encodeURIComponent(search || '') %>&plan=<%= encodeURIComponent(plan || '') %>&reason=<%= encodeURIComponent(reason || '') %>&sort=<%= encodeURIComponent(sort || '') %>&dateFrom=<%= encodeURIComponent(dateFrom || '') %>&dateTo=<%= encodeURIComponent(dateTo || '') %>">
+
+                                <%= i %>
+
+                            </a>
+
+                        </li>
+
+                    <% } %>
+
+
+                    <!-- Next -->
+
+                    <li
+                        class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
+
+                        <a
+                            class="page-link"
+                            href="?page=<%= currentPage + 1 %>&limit=<%= limit %>&search=<%= encodeURIComponent(search || '') %>&plan=<%= encodeURIComponent(plan || '') %>&reason=<%= encodeURIComponent(reason || '') %>&sort=<%= encodeURIComponent(sort || '') %>&dateFrom=<%= encodeURIComponent(dateFrom || '') %>&dateTo=<%= encodeURIComponent(dateTo || '') %>">
+
+                            <i class="bi bi-chevron-right"></i>
+
+                        </a>
+
+                    </li>
+
+                </ul>
+
+            </nav>
+
+        </div>
+
+    </div>
+
+<% } %>
+
+
+<!-- ========================= -->
+<!-- Delete Confirmation Modal -->
+<!-- ========================= -->
+
+<%- include("../partials/deleteModal") %>
+
+
+
+<%- include("../partials/footer") -%>

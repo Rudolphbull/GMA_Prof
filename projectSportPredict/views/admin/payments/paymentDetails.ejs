@@ -1,0 +1,787 @@
+<%- include("../../partials/header") %>
+
+<section class="container-fluid py-4">
+
+
+<!-- =========================================
+     HEADER
+========================================== -->
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+
+        <h3 class="mb-1">
+            <i class="bi bi-credit-card"></i>
+            Payment Details
+        </h3>
+
+        <p class="text-light mb-0">
+            View payment information and processing status.
+        </p>
+
+    </div>
+
+    <div class="d-flex gap-2">
+
+        <a
+            href="/admin/payments"
+            class="btn btn-outline-primary"
+        >
+            <i class="bi bi-arrow-left me-2"></i>
+            Back to Payments
+        </a>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================
+     PAYMENT STATUS
+========================================== -->
+
+<div class="card shadow-sm border-0 mb-4">
+
+    <div class="card-body">
+
+        <div class="row align-items-center">
+
+            <div class="col-md-8">
+
+                <h5 class="mb-1">
+
+                    <%= payment.reference %>
+
+                </h5>
+
+                <small class="text-light">
+
+                    Created
+                    <%= payment.createdAt
+                        ? new Date(payment.createdAt).toLocaleString()
+                        : "N/A"
+                    %>
+
+                </small>
+
+            </div>
+
+
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+
+                <% if (payment.status === PAYMENT_STATUS.SUCCESSFUL) { %>
+
+                    <span class="badge bg-success fs-6">
+                        <i class="bi bi-check-circle"></i>
+                        Successful
+                    </span>
+
+                <% } else if (payment.status === PAYMENT_STATUS.PENDING) { %>
+
+                    <span class="badge bg-warning text-dark fs-6">
+                        <i class="bi bi-clock"></i>
+                        Pending
+                    </span>
+
+                <% } else if (payment.status === PAYMENT_STATUS.FAILED) { %>
+
+                    <span class="badge bg-danger fs-6">
+                        <i class="bi bi-x-circle"></i>
+                        Failed
+                    </span>
+
+                <% } else if (payment.status === PAYMENT_STATUS.ABANDONED) { %>
+
+                    <span class="badge bg-secondary fs-6">
+                        <i class="bi bi-dash-circle"></i>
+                        Abandoned
+                    </span>
+
+                <% } else if (payment.status === PAYMENT_STATUS.REFUNDED) { %>
+
+                    <span class="badge bg-dark fs-6">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                        Refunded
+                    </span>
+
+                <% } else { %>
+
+                    <span class="badge bg-secondary fs-6">
+                        <%= payment.status %>
+                    </span>
+
+                <% } %>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<div class="row g-4">
+
+    <!-- =====================================
+         PAYMENT INFORMATION
+    ====================================== -->
+
+    <div class="col-lg-8">
+
+        <div class="card shadow-sm border-0 mb-4">
+
+            <div class="card-header bg-transparent">
+
+                <h5 class="mb-0">
+                    <i class="bi bi-receipt"></i>
+                    Payment Information
+                </h5>
+
+            </div>
+
+
+            <div class="card-body">
+
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+
+                        <strong>Payment Reference</strong>
+
+                        <div class="text-light">
+                            <%= payment.reference %>
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-6">
+
+                        <strong>Receipt Number</strong>
+
+                        <div class="text-light">
+
+                            <%= payment.receiptNumber || "Not issued" %>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-6">
+
+                        <strong>Amount</strong>
+
+                        <div class="fs-5 fw-bold">
+
+                            <%= payment.currency || "NGN" %>
+                            <%= (
+                                Number(payment.amount || 0) / 100
+                            ).toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            }) %>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-6">
+
+                        <strong>Plan Purchased</strong>
+
+                        <div class="text-light">
+
+                            <%= payment.planPurchased %>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-6">
+
+                        <strong>Duration</strong>
+
+                        <div class="text-light">
+
+                            <%= payment.durationPurchased %> days
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-6">
+
+                        <strong>Payment Method</strong>
+
+                        <div class="text-light">
+
+                            <%= payment.paymentMethod || "Other" %>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-6">
+
+                        <strong>Gateway</strong>
+
+                        <div class="text-light">
+
+                            <%= payment.gateway %>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-6">
+
+                        <strong>Processed</strong>
+
+                        <div>
+
+                            <% if (payment.isProcessed) { %>
+
+                                <span class="badge bg-success">
+                                    Yes
+                                </span>
+
+                            <% } else { %>
+
+                                <span class="badge bg-warning text-dark">
+                                    No
+                                </span>
+
+                            <% } %>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================
+             GATEWAY INFORMATION
+        ====================================== -->
+
+        <div class="card shadow-sm border-0 mb-4">
+
+            <div class="card-header bg-transparent">
+
+                <h5 class="mb-0">
+                    <i class="bi bi-bank"></i>
+                    Gateway Information
+                </h5>
+
+            </div>
+
+
+            <div class="card-body">
+
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+
+                        <strong>Gateway Reference</strong>
+
+                        <div class="text-light">
+
+                            <%= payment.gatewayReference || "N/A" %>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-6">
+
+                        <strong>Gateway Transaction ID</strong>
+
+                        <div class="text-light">
+
+                            <%= payment.gatewayTransactionId || "N/A" %>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-6">
+
+                        <strong>Paid At</strong>
+
+                        <div class="text-light">
+
+                            <%= payment.paidAt
+                                ? new Date(payment.paidAt).toLocaleString()
+                                : "N/A"
+                            %>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-6">
+
+                        <strong>Verified At</strong>
+
+                        <div class="text-light">
+
+                            <%= payment.verifiedAt
+                                ? new Date(payment.verifiedAt).toLocaleString()
+                                : "N/A"
+                            %>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================
+             FAILURE / REFUND INFORMATION
+        ====================================== -->
+
+        <% if (
+            payment.failureReason ||
+            payment.refundReason
+        ) { %>
+
+            <div class="card shadow-sm border-0 mb-4">
+
+                <div class="card-header bg-transparent">
+
+                    <h5 class="mb-0">
+                        <i class="bi bi-info-circle"></i>
+                        Additional Information
+                    </h5>
+
+                </div>
+
+
+                <div class="card-body">
+
+                    <% if (payment.failureReason) { %>
+
+                        <div class="mb-3">
+
+                            <strong>Failure Reason</strong>
+
+                            <div class="text-danger">
+                                <%= payment.failureReason %>
+                            </div>
+
+                        </div>
+
+                    <% } %>
+
+
+                    <% if (payment.refundReason) { %>
+
+                        <div>
+
+                            <strong>Refund Reason</strong>
+
+                            <div class="text-warning">
+                                <%= payment.refundReason %>
+                            </div>
+
+                        </div>
+
+                    <% } %>
+
+                </div>
+
+            </div>
+
+        <% } %>
+
+    </div>
+
+
+    <!-- =====================================
+         CUSTOMER / SUBSCRIPTION
+    ====================================== -->
+
+    <div class="col-lg-4">
+
+        <!-- CUSTOMER -->
+
+        <div class="card shadow-sm border-0 mb-4">
+
+            <div class="card-header bg-transparent">
+
+                <h5 class="mb-0">
+                    <i class="bi bi-person"></i>
+                    Customer
+                </h5>
+
+            </div>
+
+
+            <div class="card-body">
+
+                <% if (payment.user) { %>
+
+                    <h6 class="mb-1">
+
+                        <%= payment.user.username %>
+
+                    </h6>
+
+                    <div class="text-light mb-2">
+
+                        <%= payment.user.email %>
+
+                    </div>
+
+                    <span class="badge bg-secondary">
+
+                        <%= payment.user.role %>
+
+                    </span>
+
+                <% } else { %>
+
+                    <span class="text-light">
+                        User information unavailable.
+                    </span>
+
+                <% } %>
+
+
+                <hr>
+
+
+                <strong>Customer Email</strong>
+
+                <div class="text-light">
+
+                    <%= payment.customerEmail %>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- SUBSCRIPTION -->
+
+        <div class="card shadow-sm border-0 mb-4">
+
+            <div class="card-header bg-transparent">
+
+                <h5 class="mb-0">
+                    <i class="bi bi-star"></i>
+                    Subscription
+                </h5>
+
+            </div>
+
+
+            <div class="card-body">
+
+                <% if (payment.subscription) { %>
+
+                    <div class="mb-2">
+
+                        <strong>Plan</strong>
+
+                        <div>
+                            <%= payment.subscription.plan %>
+                        </div>
+
+                    </div>
+
+
+                    <div class="mb-2">
+
+                        <strong>Status</strong>
+
+                        <div>
+
+                            <%= payment.subscription.status %>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="mb-2">
+
+                        <strong>Started</strong>
+
+                        <div class="text-light">
+
+                            <%= payment.subscription.startedAt
+                                ? new Date(
+                                    payment.subscription.startedAt
+                                ).toLocaleDateString()
+                                : "N/A"
+                            %>
+
+                        </div>
+
+                    </div>
+
+
+                    <div>
+
+                        <strong>Expires</strong>
+
+                        <div class="text-light">
+
+                            <%= payment.subscription.expiresAt
+                                ? new Date(
+                                    payment.subscription.expiresAt
+                                ).toLocaleDateString()
+                                : "N/A"
+                            %>
+
+                        </div>
+
+                    </div>
+
+                <% } else { %>
+
+                    <div class="text-light">
+
+                        Subscription has not yet been linked
+                        to this payment.
+
+                    </div>
+
+                <% } %>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================
+             ACTIONS
+        ====================================== -->
+
+        <div class="card shadow-sm border-0">
+
+            <div class="card-header bg-transparent">
+
+                <h5 class="mb-0">
+                    <i class="bi bi-lightning"></i>
+                    Actions
+                </h5>
+
+            </div>
+
+
+            <div class="card-body d-grid gap-2">
+
+                <% if (
+                    payment.status === PAYMENT_STATUS.PENDING &&
+                    !payment.isProcessed
+                ) { %>
+
+
+                    <!-- =====================================
+                        PAYSTACK PAYMENT
+                    ====================================== -->
+
+                    <% if (payment.gateway === "paystack") { %>
+
+                        <form
+                            method="POST"
+                            action="/admin/payments/<%= payment._id %>/paystack/initialize"
+                        >
+
+                            <button
+                                type="submit"
+                                class="btn btn-success w-100"
+                            >
+
+                                <i class="bi bi-credit-card me-2"></i>
+
+                                Pay with Paystack
+
+                            </button>
+
+                        </form>
+
+                    <% } %>
+
+
+                    <!-- =====================================
+                        MANUAL PAYMENT
+                    ====================================== -->
+
+                    <% if (payment.gateway === "manual") { %>
+
+                        <form
+                            method="POST"
+                            action="/admin/payments/<%= payment._id %>/complete"
+                        >
+
+                            <button
+                                type="submit"
+                                class="btn btn-success w-100"
+                            >
+
+                                <i class="bi bi-check-circle me-2"></i>
+
+                                Complete Payment
+
+                            </button>
+
+                        </form>
+
+                    <% } %>
+
+
+                    <!-- =====================================
+                        MARK FAILED
+                    ====================================== -->
+
+                    <form
+                        method="POST"
+                        action="/admin/payments/<%= payment._id %>/fail"
+                    >
+
+                        <button
+                            type="submit"
+                            class="btn btn-outline-danger w-100"
+                        >
+
+                            <i class="bi bi-x-circle me-2"></i>
+
+                            Mark Failed
+
+                        </button>
+
+                    </form>
+
+
+                    <!-- =====================================
+                        ABANDON PAYMENT
+                    ====================================== -->
+
+                    <form
+                        method="POST"
+                        action="/admin/payments/<%= payment._id %>/abandon"
+                    >
+
+                        <button
+                            type="submit"
+                            class="btn btn-outline-secondary w-100"
+                        >
+
+                            <i class="bi bi-dash-circle me-2"></i>
+
+                            Abandon Payment
+
+                        </button>
+
+                    </form>
+
+
+                <% } %>
+
+
+                <% if (
+                    payment.status === PAYMENT_STATUS.SUCCESSFUL &&
+                    !payment.isProcessed
+                ) { %>
+
+                    <form
+                        method="POST"
+                        action="/admin/payments/<%= payment._id %>/process"
+                    >
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary w-100"
+                        >
+
+                            <i class="bi bi-arrow-repeat"></i>
+
+                            Process Successful Payment
+
+                        </button>
+
+                    </form>
+
+                <% } %>
+
+
+                <% if (
+                    payment.status === PAYMENT_STATUS.SUCCESSFUL &&
+                    payment.isProcessed
+                ) { %>
+
+                    <form
+                        method="POST"
+                        action="/admin/payments/<%= payment._id %>/refund"
+                    >
+
+                        <button
+                            type="submit"
+                            class="btn btn-warning w-100"
+                        >
+
+                            <i class="bi bi-arrow-counterclockwise"></i>
+
+                            Refund Payment
+
+                        </button>
+
+                    </form>
+
+                <% } %>
+
+
+                <% if (
+                    payment.status === PAYMENT_STATUS.REFUNDED
+                ) { %>
+
+                    <div class="alert alert-secondary mb-0">
+
+                        <i class="bi bi-info-circle"></i>
+
+                        This payment has already been refunded.
+
+                    </div>
+
+                <% } %>
+
+
+                
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+</section>
+
+<%- include("../../partials/footer") %>

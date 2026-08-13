@@ -1,0 +1,1004 @@
+<%- include("../partials/header") -%>
+
+<section class="container-fluid py-4">
+
+    <!-- ==========================
+         SUMMARY CARDS
+    =========================== -->
+
+    <div class="row g-3 mb-4">
+
+        <div class="col-lg-3 col-md-6">
+
+            <div class="card shadow-sm border-0">
+
+                <div class="card-body">
+
+                    <h6 class="text-light">
+
+                        Total Subscriptions
+
+                    </h6>
+
+                    <h2 class="fw-bold">
+
+                        <!-- <%= subscriptions.length %> -->
+                        <%= totalSubscriptions %>
+
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-lg-2 col-md-6">
+
+            <a href="/admin/subscriptions?search=&plan=&status=active&source=" class="text-decoration-none">
+
+                <div class="card shadow-sm border-0">
+
+                    <div class="card-body">
+
+                        <h6 class="text-success ">
+
+                            Active
+
+                        </h6>
+
+                        <h2 class="text-success fw-bold">
+
+                            <!-- <%= subscriptions.filter(s => s.status === "active").length %> -->
+                            <%= activeSubscriptions %>
+
+                        </h2>
+
+                    </div>
+
+                </div>
+
+            </a>
+
+        </div>
+
+        <div class="col-lg-2 col-md-6">
+
+            <div class="card shadow-sm border-0">
+
+                <div class="card-body">
+
+                    <h6 class="text-danger">
+
+                        Expired
+
+                    </h6>
+
+                    <h2 class="text-danger fw-bold">
+
+                        <!-- <%= subscriptions.filter(s => s.status === "expired").length %> -->
+
+                        <%= expiredSubscriptions %>
+
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-lg-2 col-md-6">
+
+            <div class="card shadow-sm border-0">
+
+                <div class="card-body">
+
+                    <h6 class="text-light">
+
+                        Suspended
+
+                    </h6>
+
+                    <h2 class="text-warning fw-bold">
+
+                        <%= subscriptions.filter(s => s.status === "suspended").length %>
+
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-md-3">
+
+            <a href="/admin/subscriptions?Premium=true" class="text-decoration-none">
+
+                <div class="card border-0 shadow-sm">
+
+                    <div class="card-body text-center">
+
+                        <h6 class="text-warning">
+
+                            Premium / VIP
+
+                        </h6>
+
+                        <h2 class="fw-bold text-warning">
+
+                            <%= premiumSubscriptions %>
+
+                        </h2>
+
+                    </div>
+
+                </div>
+
+            </a>
+
+        </div>
+
+
+    </div>
+
+
+
+    <!-- ==========================
+         PAGE HEADER
+    =========================== -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <h2 class="fw-bold mb-1">
+
+                <i class="bi bi-award-fill text-warning me-2"></i>
+
+                Manage Subscription
+
+            </h2>
+
+            
+            <p class="mb-0">
+
+                Showing
+
+                <strong>
+                    <%= subscriptions.length ? ((currentPage - 1) * limit) + 1 : 0 %>
+                </strong>
+
+                -
+
+                <strong>
+                    <%= ((currentPage - 1) * limit) + subscriptions.length %>
+                </strong>
+
+                of
+
+                <strong>
+                    <%= totalSubscriptions %>
+                </strong>
+
+                subscriptions
+
+            </p>
+
+        </div>
+
+        <div>
+
+            <a
+                href="/subscriptions/new"
+                class="btn btn-success">
+
+                <i class="bi bi-plus-circle me-2"></i>
+
+                New Subscription
+
+            </a>
+
+        </div>
+
+    </div>
+
+    
+    
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-header bg-primary text-white">
+
+            <h5 class="mb-0 text-white">
+
+                <i class="bi bi-funnel"></i>
+
+                Filter Subscriptions
+
+            </h5>
+
+        </div>
+
+
+        <div class="card-body">
+
+             <!-- ==========================
+                SEARCH & FILTERS
+            =========================== -->
+                <form
+                    action="/admin/subscriptions"
+                    method="GET"
+                    class="row g-3 mb-4">
+
+                    <div class="col-md-2">
+
+                        <label for="search" class="form-label text-light fw-semibold">
+                            <i class="bi bi-search"></i>
+
+                            Search
+
+                        </label>
+
+                        <input
+                            type="text"
+                            name="search"
+                            class="form-control"
+                            placeholder="Search user..."
+                            value="<%= search || '' %>">
+
+                    </div>
+
+                    <div class="col-md-2">
+
+                        <label for="plan" class="form-label text-light fw-semibold">
+                            <i class="bi bi-clipboard-check"></i>
+
+                            Subscription Plan
+                        </label>
+
+                        <select
+                            name="plan"
+                            class="form-select"
+                            id="plan"
+                        >
+
+                            <option value="">All Plans</option>
+
+                            <option
+                                value="Free"
+                                <%= plan === "Free" ? "selected" : "" %>>
+
+                                Free
+
+                            </option>
+
+                            <option
+                                value="Premium"
+                                <%= plan === "Premium" ? "selected" : "" %>>
+
+                                Premium
+
+                            </option>
+
+                            <option
+                                value="Vip"
+                                <%= plan === "Vip" ? "selected" : "" %>>
+
+                                VIP
+
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-2">
+
+                        <label for="status" class="form-label text-light fw-semibold">
+                            <i class="bi bi-calendar-check"></i>
+
+                            Subscription Status
+                        </label>
+
+                        <select
+                            name="status"
+                            class="form-select"
+                            id="status"
+                            >
+
+                            <option value="">All Status</option>
+
+                            <option
+                                value="active"
+                                <%= status === "active" ? "selected" : "" %>>
+
+                                Active
+
+                            </option>
+
+                            <option
+                                value="expired"
+                                <%= status === "expired" ? "selected" : "" %>>
+
+                                Expired
+
+                            </option>
+
+                            <option
+                                value="inactive"
+                                <%= status === "inactive" ? "selected" : "" %>>
+
+                                Inactive
+
+                            </option>
+
+                            <option
+                                value="suspended"
+                                <%= status === "suspended" ? "selected" : "" %>>
+
+                                Suspended
+
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-2">
+
+                        <label for="plan" class="form-label text-light fw-semibold">
+                            <i class="bi bi-wallet"></i>
+
+                            Subscription Source
+                        </label>
+
+                        <select
+                            name="source"
+                            class="form-select"
+                            id="source"
+                        >
+
+                            <option value="">All Sources</option>
+
+                            <option
+                                value="manual"
+                                <%= source === "manual" ? "selected" : "" %>>
+
+                                Manual
+
+                            </option>
+
+                            <option
+                                value="paystack"
+                                <%= source === "paystack" ? "selected" : "" %>>
+
+                                Paystack
+
+                            </option>
+
+                            <option
+                                value="flutterwave"
+                                <%= source === "flutterwave" ? "selected" : "" %>>
+
+                                Flutterwave
+
+                            </option>
+
+                            <option
+                                value="stripe"
+                                <%= source === "stripe" ? "selected" : "" %>>
+
+                                Stripe
+
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-4 d-flex gap-2">
+
+                        <button
+                            class="btn btn-primary w-100">
+
+                            
+                            <i class="bi bi-search"></i>
+
+                            Search
+
+                        </button>
+
+                        <a
+                            href="/admin/subscriptions"
+                            class="btn btn-outline-secondary">
+
+                            Reset
+
+                        </a>
+
+                    </div>
+
+                </form>
+
+
+
+        </div>
+    
+
+   
+
+
+    <!-- ==========================
+         BULK ACTION TOOLBAR
+    =========================== -->
+
+        <div class="card shadow-sm mb-4"> 
+
+            <div class="card-header bg-primary text-white">
+
+                <h5 class="mb-0">
+
+                    <i class="bi bi-check2-square me-2"></i>
+
+                    Bulk Actions
+
+                </h5>
+
+            </div>
+
+            <div class="card-body">
+
+                <form
+                    id="bulkActionForm"
+                    data-module="subscriptions"
+                    data-id-field="subscriptionIds"
+                    method="POST"
+                    action="/admin/subscriptions/bulk"
+                >
+
+                <div class="row align-items-end mb-4">
+
+                    <div class="col-md-8">
+
+                        <label 
+                                for="bulkAction" 
+                                class="text-light fw-semibold"
+                            >
+
+                                
+                                <i class="bi bi-lightning-charge"></i>
+
+                                Action
+
+
+                            </label>
+
+                            <select
+                                id="bulkAction"
+                                class="form-select"
+                                name="action"
+                                required
+                            >
+
+                                <option value="">
+
+                                    Select Action
+
+                                </option>
+
+                                <option value="activate">
+
+                                    Activate
+
+                                </option>
+
+                                <option value="suspend">
+
+                                    Suspend
+
+                                </option>
+
+                                <option value="delete">
+
+                                    Delete
+
+                                </option>
+
+                            </select>
+
+
+                    </div>
+
+                    
+                    <div class="col-md-4 text-end">
+
+                        <button
+                            class="btn btn-success px-4"
+                            type="submit"
+                        >
+
+                            <i class="bi bi-check-circle"></i>
+                            Apply
+
+                        </button>
+
+                    </div>
+                    
+
+            </div>
+            
+    
+
+
+            <div class="col-lg-6">
+
+                <div class="d-flex gap-2 ">
+
+                    <h5 class="mb-2 text-light">
+
+                        Subscription Records
+
+                    </h5>
+                    
+                </div>
+
+            </div>
+
+                
+
+
+            <div class="card-body p-0">
+                                <% if (subscriptions.length > 0) { %>
+
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead class="table-light">
+
+                            <tr>
+
+                                <th width="50">
+
+                                    <input
+                                        id="selectAll"
+                                        type="checkbox"
+                                        class="form-check-input">
+
+                                </th>
+
+                                <th>User</th>
+
+                                <th>Plan</th>
+
+                                <th>Status</th>
+
+                                <th>Source</th>
+
+                                <th>Started</th>
+
+                                <th>Expires</th>
+
+                                <th>Activated By</th>
+
+                                <th class="text-center">
+
+                                    Actions
+
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            <% subscriptions.forEach(subscription => { %>
+
+                            <tr>
+
+                                <td>
+
+                                    <input
+                                        name="subscriptionIds"
+                                        class="form-check-input bulk-checkbox"
+                                        type="checkbox"
+                                        value="<%= subscription._id %>"
+                                        data-bulk-checkbox>
+
+                                </td>
+
+                                <td>
+
+                                    <div class="fw-semibold">
+
+                                        <%= subscription.user
+                                            ? subscription.user.username
+                                            : "Unknown User" %>
+
+                                    </div>
+
+                                    <small class="text-dark">
+
+                                        <%= subscription.user
+                                            ? subscription.user.email
+                                            : "-" %>
+
+                                    </small>
+
+                                </td>
+
+                                <td>
+
+                                    <% if (subscription.plan === "Vip") { %>
+
+                                        <span class="badge bg-success">
+
+                                            VIP
+
+                                        </span>
+
+                                    <% } else if (subscription.plan === "Premium") { %>
+
+                                        <span class="badge bg-primary">
+
+                                            Premium
+
+                                        </span>
+
+                                    <% } else { %>
+
+                                        <span class="badge bg-secondary">
+
+                                            Free
+
+                                        </span>
+
+                                    <% } %>
+
+                                </td>
+
+                                <td>
+
+                                    <% if (subscription.status === "active") { %>
+
+                                        <span class="badge bg-success">
+
+                                            Active
+
+                                        </span>
+
+                                    <% } else if (subscription.status === "inactive") { %>
+
+                                        <span class="badge bg-secondary">
+
+                                            Inactive
+
+                                        </span>
+
+                                    <% } else if (subscription.status === "expired") { %>
+
+                                        <span class="badge bg-danger">
+
+                                            Expired
+
+                                        </span>
+
+                                    <% } else { %>
+
+                                        <span class="badge bg-warning text-dark">
+
+                                            Suspended
+
+                                        </span>
+
+                                    <% } %>
+
+                                </td>
+
+                                <td>
+
+                                    <% if (subscription.source === "paystack") { %>
+
+                                        <span class="badge bg-primary">
+
+                                            Paystack
+
+                                        </span>
+
+                                    <% } else if (subscription.source === "flutterwave") { %>
+
+                                        <span class="badge bg-info text-dark">
+
+                                            Flutterwave
+
+                                        </span>
+
+                                    <% } else if (subscription.source === "stripe") { %>
+
+                                        <span class="badge bg-dark">
+
+                                            Stripe
+
+                                        </span>
+
+                                    <% } else { %>
+
+                                        <span class="badge bg-secondary">
+
+                                            Manual
+
+                                        </span>
+
+                                    <% } %>
+
+                                </td>
+
+                                <td>
+
+                                    <small>
+
+                                        <%= subscription.startedAt
+                                            ? new Date(subscription.startedAt).toLocaleDateString()
+                                            : "-" %>
+
+                                    </small>
+
+                                </td>
+
+                                <td>
+
+                                    <small>
+
+                                        <%= subscription.expiresAt
+                                            ? new Date(subscription.expiresAt).toLocaleDateString()
+                                            : "-" %>
+
+                                    </small>
+
+                                </td>
+
+                                <td>
+
+                                    <% if (subscription.activatedBy) { %>
+
+                                        <%= subscription.activatedBy.username || "-" %>
+
+                                    <% } else { %>
+
+                                        -
+
+                                    <% } %>
+
+                                </td>
+
+                                <td>
+
+                                    <div
+                                        class="d-flex justify-content-center gap-2">
+
+                                    
+                                        <a
+                                            href="/admin/subscriptions/<%= subscription._id %>"
+                                            class="btn btn-sm btn-outline-primary"
+                                            title="View Subscription"
+                                        >
+
+                                            <i class="bi bi-eye me-1"></i>
+
+                                            View
+
+                                        </a>
+
+
+                                        <a
+                                            href="/subscriptions/<%= subscription._id %>/edit"
+                                            class="btn btn-sm btn-outline-warning"
+                                            title="Edit">
+
+                                            <i class="bi bi-pencil"></i>
+
+                                            Edit
+
+                                        </a>
+
+                                        <% if (subscription.subscriptionStatus !== "active") { %>
+
+                                            <form
+                                                action="/admin/users/<%= subscription.user._id %>/activate-subscription"
+                                                method="POST">
+
+                                                <button
+                                                    class="btn btn-sm btn-outline-success"
+                                                    title="Activate">
+
+                                                    <i class="bi bi-check-circle"></i>
+
+                                                    Activate
+
+                                                </button>
+
+                                            </form>
+
+                                        <% } %>
+                                            <form
+                                                action="/admin/subscriptions/delete/user/<%= subscription.user ? subscription.user._id : '' %>"
+                                                method="POST"
+                                                class="delete-form"
+                                                data-title="Delete User Subscriptions"
+                                                data-message="Are you sure you want to archive and delete all subscription records for <%= subscription.user ? subscription.user.username : 'this user' %>?"
+                                                data-item="<%= subscription.user ? subscription.user.username : 'this user' %>"
+                                                data-button="Delete All"
+                                                data-button-class="btn btn-danger"
+                                            >
+
+                                                <button
+                                                    type="submit"
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#deleteModal"
+                                                    data-delete-url="/admin/subscriptions/delete/user/<%= subscription.user ? subscription.user._id : '' %>"
+                                                    data-delete-message="Are you sure you want to archive and delete all subscription records for <%= subscription.user ? subscription.user.username : 'this user' %>"
+                                                >
+                                                    <i class="bi bi-trash"></i>
+                                                    Delete
+                                                </button>
+
+                                            </form>
+
+                                        <form
+                                            action="/subscriptions/<%= subscription._id %>/renew"
+                                            method="POST"
+                                            class="d-inline">
+
+
+                                            <button
+                                                class="btn btn-outline-primary btn-sm"
+                                                title="Renew Subscription">
+
+                                                <i class="bi bi-arrow-repeat"></i>
+
+                                                Renew
+
+                                            </button>
+
+                                        </form>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+                            <% }) %>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+                <% } else { %>
+
+                <div class="text-center py-5">
+
+                    <i
+                        class="bi bi-award display-1 text-light"></i>
+
+                    <h4 class="mt-4">
+
+                        No subscriptions found
+
+                    </h4>
+
+                    <p class="text-light">
+
+                        Create your first subscription to get started.
+
+                    </p>
+
+                    <a
+                        href="/subscriptions/new"
+                        class="btn btn-success">
+
+                        <i class="bi bi-plus-circle me-2"></i>
+
+                        Create Subscription
+
+                    </a>
+
+                </div>
+
+                <% } %>
+
+            </div>
+                        <!-- ==========================
+                 PAGINATION
+            =========================== -->
+
+            <% if (typeof totalPages !== "undefined" && totalPages > 1) { %>
+
+            <div class="card-footer bg-white">
+
+                <nav>
+
+                    <ul class="pagination justify-content-center mb-0">
+
+                        <% if(currentPage > 1){ %>
+
+                        <li class="page-item">
+
+                            <a
+                                class="page-link"
+                                href="?page=<%= currentPage - 1 %>">
+
+                                Previous
+
+                            </a>
+
+                        </li>
+
+                        <% } %>
+
+                        <% for(let i = 1; i <= totalPages; i++){ %>
+
+                        <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+
+                            <a
+                                class="page-link"
+                                href="?page=<%= i %>">
+
+                                <%= i %>
+
+                            </a>
+
+                        </li>
+
+                        <% } %>
+
+                        <% if(currentPage < totalPages){ %>
+
+                        <li class="page-item">
+
+                            <a
+                                class="page-link"
+                                href="?page=<%= currentPage + 1 %>">
+
+                                Next
+
+                            </a>
+
+                        </li>
+
+                        <% } %>
+
+                    </ul>
+
+                </nav>
+
+            </div>
+
+            <% } %>
+
+        </div>
+
+    </form>
+
+</div>
+
+</div>
+
+</section>
+
+
+
+<!-- ==========================
+     DELETE MODAL
+========================== -->
+
+<%- include("../partials/deleteModal") -%>
+
+
+<%- include("../partials/footer") -%>

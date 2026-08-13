@@ -1,3 +1,5 @@
+const { ROLES } = require("../config/constants");
+
 exports.allowRoles = (...roles) => {
 
     return (req, res, next) => {

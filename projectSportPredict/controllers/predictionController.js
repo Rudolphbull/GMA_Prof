@@ -194,11 +194,11 @@ exports.updatePrediction = async (req, res, next) => {
 };
 
 
-exports.deletedPrediction = async (req, res, next) => {
+exports.deletePrediction = async (req, res, next) => {
     const { redirectTo } = req.body;
     try {
 
-        await Prediction.findByIdAndDelete(req.params.id);
+        const deletedPrediction = await Prediction.findByIdAndDelete(req.params.id);
 
         await logActivity({
             action: "Prediction Deleted",

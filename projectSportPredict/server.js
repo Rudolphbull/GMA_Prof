@@ -3,13 +3,38 @@ require("dotenv").config();
 const app = require("./app");
 const connectDB = require("./config/db");
 
+require("./utils/paymentCleanupScheduler");
+
 const PORT = process.env.PORT || 4000;
+
+const {
+    expirePendingPayments
+} = require("./utils/expirePendingPayments");
 
 // const predictionEnquiry = require("./jobs/predictionExpiry");
 
 const startServer = async () => {
     try {
         await connectDB();
+
+        expirePendingPayments()
+
+        .then(result => {
+
+            console.log(
+                "Pending Payment Cleanup:",
+                result
+            );
+
+        })
+        .catch(err => {
+
+            console.error(
+                "Pending Payment Cleanup Error:",
+                err
+            );
+
+        });
 
         app.listen(PORT, () => {
             console.log("🚀 Application Server started on port:", PORT);

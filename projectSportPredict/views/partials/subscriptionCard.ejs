@@ -1,0 +1,119 @@
+<div class="col-md-6 col-lg-4">
+    <div class="card h-100">
+        <div class="card-body text-center">
+
+            <h5 class="fw-bold mb-3">
+                Subscription Plan: <%= subscription.subscriptionPlan %>
+            </h5>
+
+            <p>Subscription Status: <%= subscription.subscriptionStatus %></p>
+
+
+            <p>
+                <strong>Subscription Source:</strong>
+                <%= subscription.subscriptionSource %>
+            </p>
+
+            <p>
+                <strong>Started At:</strong>
+
+                <i class="bi bi-clock"></i>
+
+                <%= new Date(subscription.startedAt).toLocaleString("en-NG", {
+                    timeZone: "Africa/Lagos",
+                    dateStyle: "medium",
+                    timeStyle: "short"
+                }) %>
+                
+
+            </p>
+
+
+            <p>
+                <strong>Expires At:</strong>
+
+                <i class="bi bi-clock"></i>
+
+                <%= new Date(subscription.expiresAt).toLocaleString("en-NG", {
+                    timeZone: "Africa/Lagos",
+                    dateStyle: "medium",
+                    timeStyle: "short"
+                }) %>
+                
+
+            </p>
+
+
+            <p>
+                <strong>Activated By:</strong>
+
+                <i class="bi bi-person-fill"></i>
+
+                <%= subscription.ActivatedBy ? subscription.ActivatedBy.username : "Unknown" %>
+
+            </p>
+
+
+            <p>
+                <strong>Subscription Notes:</strong>
+                <%= subscription.notes %>
+            </p>
+
+
+            <p>
+
+                <strong>Status:</strong>
+
+                <%- include("statusBadge", { subscription }) %>
+
+            </p>
+
+            
+
+            <% if (user && (user.role === roles.ADMIN || user.role === roles.SUPERUSER)) { %>
+
+                <a
+                    href="/subscriptions/<%= subscription._id %>/edit?redirectTo=<%= redirectTo %>"
+                    class="btn btn-warning btn-sm me-2">
+
+                    Edit
+
+                </a>
+
+                <form
+                    action="/subscriptions/<%= subscription._id %>/delete"
+                    method="POST"
+                    class="delete-form d-inline"
+
+                    data-title="Delete Subscription"
+
+                    data-message="Are you sure you want to permanently delete this subscription?"
+
+                    data-item="<%= subscription.username %>"
+
+                    data-button="Delete"
+
+                    data-button-class="btn-danger">
+
+                    <input
+                        type="hidden"
+                        name="redirectTo"
+                        value="<%= redirectTo %>">
+
+                    <button
+                        type="submit"
+                        class="btn btn-danger btn-sm">
+
+                        <i class="bi bi-trash"></i>
+
+                        Delete
+
+                    </button>
+
+                </form>
+
+            <% } %>
+
+        </div>
+    </div>
+</div>

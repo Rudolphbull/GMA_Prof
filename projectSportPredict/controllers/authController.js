@@ -6,6 +6,10 @@ const User = require("../models/userModel");
 
 const logActivity = require("../utils/activityLogger");
 
+const {
+    ROLES
+} = require("../config/constants");
+
 exports.newLogin = (req, res) => {
     res.render("login", {pageTitle: "Login"});
 };
@@ -23,8 +27,10 @@ exports.login = async (req, res) => {
 
             req.flash(
                 "error",
-                "Invalid username/email or password."
+                "Invalid Login Credentials."
             );
+
+            return res.redirect("/auth/login");
 
         }
 
@@ -41,8 +47,10 @@ exports.login = async (req, res) => {
 
             req.flash(
                 "error",
-                "user not found."
+                "Invalid Login Credentials."
             );
+
+            return res.redirect("/auth/login");
 
         }
 
@@ -56,8 +64,10 @@ exports.login = async (req, res) => {
 
             req.flash(
                 "error",
-                "password mismatch."
+                "Invalid Login Credentials."
             );
+
+            return res.redirect("/auth/login");
 
         }
 
@@ -66,7 +76,7 @@ exports.login = async (req, res) => {
             _id: user._id,
             username: user.username.toLowerCase().trim(),
             email: user.email.toLowerCase().trim(),
-            role: user.role || "user"
+            role: user.role || ROLES.USER
         };
 
         await logActivity({
@@ -82,8 +92,15 @@ exports.login = async (req, res) => {
             "Login Successful."
         );
 
-        // Redirect to the dashboard
-        res.redirect("/predictions/premium");
+        if (user.subscriptionPlan === "Premium" || user.subscriptionPlan === "Vip") {
+
+            // Redirect to the dashboard
+            res.redirect("/predictions/premium");
+
+        } else {
+            res.redirect("/");
+        }
+
 
     } catch (err) {
 
@@ -91,8 +108,10 @@ exports.login = async (req, res) => {
 
         req.flash(
             "error",
-            "Invalid username/email or password."
+            "Invalid Login Credentials."
         );
+
+        return res.redirect("/auth/login");
 
     }
 
@@ -104,12 +123,22 @@ exports.signup = async (req, res) => {
 
     try {
 
+        // ==========================
+        // Normalize Input
+        // ==========================
+        const username = req.body.username?.toLowerCase().trim();
+        const email = req.body.email?.toLowerCase().trim();
+        const password = req.body.password;
+        const confirmPassword = req.body.confirmPassword;
 
+        // ==========================
+        // Required Fields Validation
+        // ==========================
         if (
-            !req.body.username.toLowerCase().trim() ||
-            !req.body.email.toLowerCase().trim() ||
-            !req.body.password ||
-            !req.body.confirmPassword
+            !username ||
+            !email ||
+            !password ||
+            !confirmPassword
         ) {
 
             req.flash(
@@ -117,72 +146,112 @@ exports.signup = async (req, res) => {
                 "Please complete all required fields."
             );
 
-
+            return res.redirect("/auth/signup");
         }
 
-        const hashedPassword =
-            await bcrypt.hash(req.body.password, 10);
+        // ==========================
+        // Password Confirmation
+        // ==========================
+        if (password !== confirmPassword) {
 
+            req.flash(
+                "error",
+                "Passwords do not match."
+            );
 
+            return res.redirect("/auth/signup");
+        }
+
+        // ==========================
+        // Check Existing User
+        // ==========================
         const existingUser = await User.findOne({
-                
+
             $or: [
-                { username: req.body.username },
-                { email: req.body.email.toLowerCase().trim() }
+                { username },
+                { email }
             ]
+
         });
 
         if (existingUser) {
 
             req.flash(
                 "error",
-                "User already exists"
+                "Username or Email already exists."
             );
 
-
+            return res.redirect("/auth/signup");
         }
 
+        // ==========================
+        // Hash Password
+        // ==========================
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // ==========================
+        // Create User
+        // ==========================
         const user = new User({
 
-            username: req.body.username.toLowerCase().trim(),
-
-            email: req.body.email.toLowerCase().trim(),
-
+            username,
+            email,
             password: hashedPassword,
-
-            role: "user"
+            role: ROLES.USER
 
         });
 
         await user.save();
 
+        // ==========================
+        // Log Activity
+        // ==========================
         await logActivity({
+
             action: "User Registered",
             description: user.username,
             icon: "bi-person-plus-fill",
             color: "primary",
             createdBy: user._id
+
         });
 
+        // ==========================
+        // Success
+        // ==========================
         req.flash(
-            "success", 
-            "Account created successfully. please login."
+            "success",
+            "Account created successfully. Please login."
         );
-        
+
         return res.redirect("/auth/login");
 
-    }
-
-    catch(err){
+    } catch (err) {
 
         console.error(err);
 
+        // ==========================
+        // Mongo Duplicate Key Error
+        // ==========================
+        if (err.code === 11000) {
+
+            req.flash(
+                "error",
+                "Username or Email already exists."
+            );
+
+            return res.redirect("/auth/signup");
+        }
+
+        // ==========================
+        // Unexpected Errors
+        // ==========================
         req.flash(
             "error",
-            "Failed to create user account. Try again."
+            "Failed to create user account. Please try again."
         );
 
-
+        return res.redirect("/auth/signup");
     }
 
 };

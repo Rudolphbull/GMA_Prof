@@ -1,83 +1,35 @@
 
 
-window.addEventListener("scroll", function () {
-    const navbar = document.querySelector(".custom-navbar");
+window.addEventListener("scroll", () => {
 
-    if (window.scrollY > 50) {
-        navbar.classList.add("scrolled");
-    } else {
-        navbar.classList.remove("scrolled");
-    }
+    const navbar =
+        document.querySelector(".custom-navbar");
+
+    if (!navbar) return;
+
+    navbar.classList.toggle(
+
+        "scrolled",
+
+        window.scrollY > 50
+
+    );
+
 });
-
 
 
 // document.getElementById("now").textContent = new Date().getDate();
+const year =
+    document.getElementById("year");
 
-document.getElementById("year").textContent = new Date().getFullYear();
+if (year) {
 
+    year.textContent =
+        new Date().getFullYear();
 
-
-document.addEventListener("DOMContentLoaded", () => {
-
-    const deleteButtons = document.querySelectorAll(".delete-btn");
-
-    if (!deleteButtons.length) return;
-
-    const modalElement = document.getElementById("deleteModal");
-
-    const deleteModal = new bootstrap.Modal(modalElement);
-
-    const confirmDelete = document.getElementById("confirmDelete");
-
-    const deleteItemName = document.getElementById("deleteItemName");
-
-    const bulkAction = document.getElementById("bulkAction");
-
-    const deleteModalTitle = document.getElementById("deleteModalTitle");
-
-    const deleteMessage = document.getElementById("deleteMessage");
+}
 
 
-    let currentForm = null;
-
-
-    deleteButtons.forEach(button => {
-
-        button.addEventListener("click", (e) => {
-
-            e.preventDefault();
-
-            currentForm = button.closest("form");
-
-            document.getElementById("deleteModalTitle").textContent =
-                "Confirm Delete";
-
-            deleteMessage.textContent =
-                "Are you sure you want to delete this record?";
-
-            deleteItemName.textContent =
-                button.dataset.name || "";
-
-            confirmDelete.textContent = "Delete";
-
-            deleteModal.show();
-
-        });
-
-    });
-
-    confirmDelete.addEventListener("click", () => {
-
-        if (currentForm) {
-
-            currentForm.submit();
-
-        }
-
-    });
-
-});
 
 
 
@@ -128,8 +80,8 @@ function showFlash(message, type = "success") {
 
     `;
 
-    const container = document.getElementById("flashContainer")
-    || document.body;
+    const container = document.getElementById("flashContainer") ||
+     document.body;
 
     container.prepend(flash);
 
@@ -144,3 +96,63 @@ function showFlash(message, type = "success") {
 }
 
 window.showFlash = showFlash;
+
+
+// =====================================
+// Reusable Delete Confirmation Modal
+// =====================================
+
+// =====================================
+// Reusable Delete Confirmation Modal
+// =====================================
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const deleteModal =
+        document.getElementById("deleteModal");
+
+    if (!deleteModal) return;
+
+    const form =
+        deleteModal.querySelector("form");
+
+    const message =
+        document.getElementById("deleteMessage");
+
+    if (!form || !message) return;
+
+    deleteModal.addEventListener(
+
+        "show.bs.modal",
+
+        event => {
+
+            const button =
+                event.relatedTarget;
+
+            if (!button) return;
+
+            const deleteUrl =
+                button.dataset.deleteUrl;
+
+            const deleteMessage =
+                button.dataset.deleteMessage;
+
+            if (deleteUrl) {
+
+                form.action = deleteUrl;
+
+            }
+
+            if (deleteMessage) {
+
+                message.textContent =
+                    deleteMessage;
+
+            }
+
+        }
+
+    );
+
+});

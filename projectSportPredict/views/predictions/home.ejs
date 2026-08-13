@@ -38,14 +38,14 @@
         </section>
         
 
-        <section id="network-installation" class="py-5">
+        <section id="#" class="py-5">
             <div class="container">
 
                 <div class="text-center mb-5">
                     <h2 class="fw-bold">Free Prediction Tips</h2>
                     <p class="lead">have a taste of what the Prof is cooking</p>
                 </div>
-                <div class="row g-4">
+                <div class="row g-4 activity-feed">
 
                     <% if (predictions && predictions.length > 0) { %>
 
@@ -111,135 +111,5 @@
             </div>
         </section>
 
-       <section class="py-4 bg-dark text-white text-center">
-            <div class="container">
-                <div class="row">
-
-                <div class="col-md-4">
-                    <div class="feature-card">
-                        <h3 class="fw-bold">50+</h3>
-                        <p class="lead">Systems Delivered</p>
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="feature-card">
-                        <h3 class="fw-bold">99.9%</h3>
-                        <p class="lead">Uptime Reliability</p>
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="feature-card">
-                        <h3 class="fw-bold">24/7</h3>
-                        <p class="lead">Engineering Support</p>
-                    </div>
-                </div>
-
-                </div>
-            </div>
-        </section>
-
-        <section class="who-we-serve bg-light">
-            <div class="container" id="startups">
-
-                <div class="text-center mb-5">
-                    
-                    <h2 class="text-color">Who We Serve</h2>
-                    <p class="text-muted">We support businesses of all sizes</p>
-                </div>
-
-                <div class="row g-4">
-
-                    <div class="col-md-4">
-                        <div class="p-4 bg-white shadow-sm text-center rounded-image">
-                            <img src="/images/startup-team.jpg"
-                                class="img-fluid rounded mb-3 hover-lift"
-                            >
-                            <h5 class="text-color fw-bold">Startups</h5>
-                            <p>Helping new businesses build strong IT foundations.</p>
-                        </div>
-                    </div>
-
-                    <div class="col-md-4">
-                        <div class="p-4 bg-white shadow-sm text-center rounded-image">
-                            <img src="/images/SMEs.jpg"
-                                class="img-fluid rounded mb-3 hover-lift"
-                            >
-                            <h5 class="text-color fw-bold">SMEs</h5>
-                            <p>Scalable IT solutions for growing companies.</p>
-                        </div>
-                    </div>
-
-                    <div class="col-md-4">
-                        <div class="p-4 bg-white shadow-sm text-center rounded-image">
-                            <img src="/images/corporate-hq.jpg"
-                                class="img-fluid rounded mb-3 hover-lift"
-                            >
-                            <h5 class="text-color fw-bold">Enterprises</h5>
-                            <p>Advanced technology solutions for large organizations.</p>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-        </section>
-
-        <section class="py-5">
-                <div class="container text-center">
-
-                    <h2 class="fw-bold mb-5">What Our Clients Say</h2>
-
-                    <div class="row g-4">
-
-                        <div class="col-md-4">
-                            <div class="p-4 shadow-sm rounded-image bg-white">
-
-                                <img src="/images/client1.jpg"
-                                    class="rounded-circle mb-3 hover-lift"
-                                    style="object-fit:cover;">
-
-                                <p class="text-muted">
-                                    “GMA Technologies upgraded our network infrastructure. Highly recommended!”
-                                </p>
-
-                                <h6 class="text-color fw-bold">— Sarah M.</h6>
-                            </div>
-                        </div>
-
-                        <div class="col-md-4">
-                            <div class="p-4 shadow-sm rounded-image bg-white">
-
-                                <img src="/images/client2.jpg"
-                                    class="rounded-circle mb-3 hover-lift"
-                                    style="object-fit:cover;">
-
-                                <p class="text-muted">
-                                    “Very professional IT support. My pc no longer lags.”
-                                </p>
-
-                                <h6 class="text-color fw-bold">— David K.</h6>
-                            </div>
-                        </div>
-
-                        <div class="col-md-4">
-                            <div class="p-4 shadow-sm rounded-image bg-white">
-
-                                <img src="/images/client3.jpg"
-                                    class="rounded-circle mb-3 hover-lift"
-                                    style="object-fit:cover;">
-
-                                <p class="text-muted">
-                                    “Excellent advisory services. They truly understand IT Management Service needs.”
-                                </p>
-
-                                <h6 class="text-color fw-bold">— Anita L.</h6>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-        </section>
-
-
+<%- include("../partials/deleteModal") %>       
 <%- include("../partials/footer") -%>

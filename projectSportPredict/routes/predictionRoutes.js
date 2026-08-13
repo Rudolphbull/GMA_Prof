@@ -6,7 +6,11 @@ const router = express.Router();
 const predictionController = require("../controllers/predictionController");
 const authMiddleware = require("../middleware/authMiddleware");
 const roleMiddleware = require("../middleware/roleMiddleware");
-const ROLES = require("../config/roles");
+const planMiddleware = require("../middleware/planMiddleware");
+const { ROLES } = require("../config/constants");
+const {SUBSCRIPTION_PLANS} = require("../config/constants");
+// const ROLES = require("../config/roles");
+
 
 router.get(
     "/new",
@@ -52,7 +56,7 @@ router.post(
         ROLES.SUPERUSER,
         ROLES.ADMIN
     ),
-    predictionController.deletedPrediction
+    predictionController.deletePrediction
 );
 
 
@@ -64,7 +68,16 @@ router.get(
 );
 
 
-router.get("/premium", authMiddleware.isLoggedIn, predictionController.premium);
+router.get(
+    "/premium", 
+    authMiddleware.isLoggedIn,
+    planMiddleware.allowPlans(
+        SUBSCRIPTION_PLANS.PREMIUM,
+        SUBSCRIPTION_PLANS.VIP
+    ),
+     
+    predictionController.premium
+);
 
 router.post(
     "/premium",

@@ -80,16 +80,16 @@ const predictionSchema = new mongoose.Schema({
     },
 
     cardNumber: {
-    type: String,
-    enum: [
-        "cardOne",
-        "cardTwo",
-        "cardThree",
-        "cardFour",
-        "cardFive",
-        "cardSix"
-    ],
-    required: true
+        type: String,
+        enum: [
+            "cardOne",
+            "cardTwo",
+            "cardThree",
+            "cardFour",
+            "cardFive",
+            "cardSix"
+        ],
+        required: true
     },
 
     result: {

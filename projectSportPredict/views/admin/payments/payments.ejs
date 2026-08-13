@@ -1,0 +1,841 @@
+<%- include("../../partials/header") -%>
+
+<section class="container-fluid py-4">
+
+
+<!-- =========================================
+     PAGE HEADER
+========================================== -->
+
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+
+    <div>
+        <h3 class="mb-1">
+            <i class="bi bi-credit-card me-2"></i>
+            Payments
+        </h3>
+
+        <p class="text-light mb-0">
+            Manage and monitor all payment transactions.
+        </p>
+    </div>
+
+    <div class="ms-auto">
+
+        <a
+            href="/admin/payments/create"
+            class="btn btn-primary">
+
+            <i class="bi bi-plus-circle"></i>
+            Create Manual Payment
+
+        </a>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================
+     SUMMARY
+========================================== -->
+
+<div class="row g-3 mb-4">
+
+    <div class="col-lg-3 col-md-6">
+
+        <a href="/admin/payments" class="text-decoration-none text-white">
+
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <small class="text-light">
+                                Total Payments
+                            </small>
+
+                            <h4 class="mb-0 mt-1">
+                                <%= total || 0 %>
+                            </h4>
+
+                        </div>
+
+                        <i class="bi bi-credit-card fs-2 text-primary"></i>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </a>
+
+    </div>
+
+
+    <div class="col-lg-3 col-md-6">
+
+        <div class="card shadow-sm border-0 h-100">
+
+            <div class="card-body">
+
+                <div class="d-flex justify-content-between align-items-center">
+
+                    <div>
+
+                        <small class="text-light">
+                            Current Page
+                        </small>
+
+                        <h4 class="mb-0 mt-1">
+                            <%= currentPage || 1 %>
+                        </h4>
+
+                    </div>
+
+                    <i class="bi bi-file-earmark-text fs-2 text-success"></i>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="col-lg-3 col-md-6">
+
+        <a href="/admin/payments/?status=successful" class="text-decoration-none text-white">
+
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <small class="text-light">
+                                Successful
+                            </small>
+
+                            <h4 class="mb-0 mt-1">
+
+                                <%= payments.filter(
+                                    payment =>
+                                        payment.status ===
+                                        PAYMENT_STATUS.SUCCESSFUL
+                                ).length %>
+
+                            </h4>
+
+                        </div>
+
+                        <i class="bi bi-check-circle fs-2 text-success"></i>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+        </a>
+
+    </div>
+
+
+    <div class="col-lg-3 col-md-6">
+
+        <a href="/admin/payments?status=pending" class="text-decoration-none text-white">
+
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <small class="text-light">
+                                Pending
+                            </small>
+
+                            <h4 class="mb-0 mt-1">
+
+                                <%= payments.filter(
+                                    payment =>
+                                        payment.status ===
+                                        PAYMENT_STATUS.PENDING
+                                ).length %>
+
+                            </h4>
+
+                        </div>
+
+                        <i class="bi bi-hourglass-split fs-2 text-warning"></i>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </a>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================
+     FILTERS
+========================================== -->
+
+<div class="card shadow-sm border-0 mb-4">
+
+    <div class="card-body">
+
+        <form
+            method="GET"
+            action="/admin/payments"
+            class="row g-3 align-items-end"
+        >
+
+            <!-- Search -->
+
+            <div class="col-lg-4 col-md-6">
+
+                <label class="form-label">
+                    Search
+                </label>
+
+                <input
+                    type="text"
+                    name="search"
+                    class="form-control"
+                    placeholder="Reference, gateway reference or email"
+                    value="<%= search || '' %>"
+                >
+
+            </div>
+
+
+            <!-- Status -->
+
+            <div class="col-lg-3 col-md-6">
+
+                <label class="form-label">
+                    Status
+                </label>
+
+                <select
+                    name="status"
+                    class="form-select"
+                >
+
+                    <option value="">
+                        All Statuses
+                    </option>
+
+                    <% Object.values(PAYMENT_STATUS).forEach(
+                        paymentStatus => {
+                    %>
+
+                        <option
+                            value="<%= paymentStatus %>"
+                            <%= status === paymentStatus ? "selected" : "" %>
+                        >
+                            <%= paymentStatus.charAt(0).toUpperCase() +
+                                paymentStatus.slice(1) %>
+                        </option>
+
+                    <% }) %>
+
+                </select>
+
+            </div>
+
+
+            <!-- Gateway -->
+
+            <div class="col-lg-3 col-md-6">
+
+                <label class="form-label">
+                    Gateway
+                </label>
+
+                <select
+                    name="gateway"
+                    class="form-select"
+                >
+
+                    <option value="">
+                        All Gateways
+                    </option>
+
+                    <% Object.values(PAYMENT_GATEWAYS).forEach(
+                        paymentGateway => {
+                    %>
+
+                        <option
+                            value="<%= paymentGateway %>"
+                            <%= gateway === paymentGateway ? "selected" : "" %>
+                        >
+                            <%= paymentGateway.charAt(0).toUpperCase() +
+                                paymentGateway.slice(1) %>
+                        </option>
+
+                    <% }) %>
+
+                </select>
+
+            </div>
+
+
+            <!-- Submit -->
+
+            <div class="col-lg-2 col-md-6">
+
+                <button
+                    type="submit"
+                    class="btn btn-primary w-100"
+                >
+
+                    <i class="bi bi-search me-1"></i>
+
+                    Filter
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================
+     PAYMENTS TABLE
+========================================== -->
+
+<div class="card shadow-sm border-0">
+
+    <div class="card-header bg-transparent py-3">
+
+        <div class="d-flex justify-content-between align-items-center">
+
+            <h5 class="mb-0">
+                Payment Transactions
+            </h5>
+
+            <span class="badge bg-secondary">
+                <%= payments.length %> shown
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <div class="card-body p-0">
+
+        <% if (payments && payments.length > 0) { %>
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead class="table-light">
+
+                        <tr>
+
+                            <th>
+                                #
+                            </th>
+
+                            <th>
+                                Reference
+                            </th>
+
+                            <th>
+                                Customer
+                            </th>
+
+                            <th>
+                                Gateway
+                            </th>
+
+                            <th>
+                                Method
+                            </th>
+
+                            <th>
+                                Plan
+                            </th>
+
+                            <th>
+                                Amount
+                            </th>
+
+                            <th>
+                                Status
+                            </th>
+
+                            <th>
+                                Subscription
+                            </th>
+
+                            <th>
+                                Date
+                            </th>
+
+                            <th class="text-end">
+                                Action
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        <% payments.forEach(
+                            (payment, index) => {
+                        %>
+
+                            <tr>
+
+                                <!-- Number -->
+
+                                <td>
+
+                                    <%= ((currentPage - 1) * 20) +
+                                        index + 1 %>
+
+                                </td>
+
+
+                                <!-- Reference -->
+
+                                <td>
+
+                                    <div class="fw-semibold">
+
+                                        <%= payment.reference %>
+
+                                    </div>
+
+                                    <% if (payment.receiptNumber) { %>
+
+                                        <small class="text-light">
+
+                                            Receipt:
+                                            <%= payment.receiptNumber %>
+
+                                        </small>
+
+                                    <% } %>
+
+                                </td>
+
+
+                                <!-- Customer -->
+
+                                <td>
+
+                                    <% if (payment.user) { %>
+
+                                        <div class="fw-semibold">
+
+                                            <%= payment.user.username %>
+
+                                        </div>
+
+                                        <small class="text-light">
+
+                                            <%= payment.user.email %>
+
+                                        </small>
+
+                                    <% } else { %>
+
+                                        <span class="text-light">
+                                            User unavailable
+                                        </span>
+
+                                    <% } %>
+
+                                </td>
+
+
+                                <!-- Gateway -->
+
+                                <td>
+
+                                    <span class="badge bg-light text-dark border">
+
+                                        <%= payment.gateway %>
+
+                                    </span>
+
+                                </td>
+
+
+                                <!-- Method -->
+
+                                <td>
+
+                                    <%= (payment.paymentMethod || "other")
+                                        .replace(/_/g, " ")
+                                        .replace(/\b\w/g, char =>
+                                            char.toUpperCase()
+                                        ) %>
+
+                                </td>
+
+
+                                <!-- Plan -->
+
+                                <td>
+
+                                    <span class="fw-semibold">
+
+                                        <%= payment.planPurchased %>
+
+                                    </span>
+
+                                    <br>
+
+                                    <small class="text-light">
+
+                                        <%= payment.durationPurchased %>
+                                        day(s)
+
+                                    </small>
+
+                                </td>
+
+
+                                <!-- Amount -->
+
+                                <td>
+
+                                    <span class="fw-semibold">
+
+                                        <%= payment.currency || "NGN" %>
+                                        <%= (
+                                            Number(payment.amount || 0) /
+                                            100
+                                        ).toLocaleString(
+                                            "en-NG",
+                                            {
+                                                minimumFractionDigits: 2,
+                                                maximumFractionDigits: 2
+                                            }
+                                        ) %>
+
+                                    </span>
+
+                                </td>
+
+
+                                <!-- Payment Status -->
+
+                                <td>
+
+                                    <% if (
+                                        payment.status ===
+                                        PAYMENT_STATUS.SUCCESSFUL
+                                    ) { %>
+
+                                        <span class="badge bg-success">
+                                            Successful
+                                        </span>
+
+                                    <% } else if (
+                                        payment.status ===
+                                        PAYMENT_STATUS.PENDING
+                                    ) { %>
+
+                                        <span class="badge bg-warning text-dark">
+                                            Pending
+                                        </span>
+
+                                    <% } else if (
+                                        payment.status ===
+                                        PAYMENT_STATUS.FAILED
+                                    ) { %>
+
+                                        <span class="badge bg-danger">
+                                            Failed
+                                        </span>
+
+                                    <% } else if (
+                                        payment.status ===
+                                        PAYMENT_STATUS.REFUNDED
+                                    ) { %>
+
+                                        <span class="badge bg-info text-dark">
+                                            Refunded
+                                        </span>
+
+                                    <% } else if (
+                                        payment.status ===
+                                        PAYMENT_STATUS.ABANDONED
+                                    ) { %>
+
+                                        <span class="badge bg-secondary">
+                                            Abandoned
+                                        </span>
+
+                                    <% } else { %>
+
+                                        <span class="badge bg-secondary">
+                                            <%= payment.status %>
+                                        </span>
+
+                                    <% } %>
+
+                                </td>
+
+
+                                <!-- Subscription -->
+
+                                <td>
+
+                                    <% if (payment.subscription) { %>
+
+                                        <% if (
+                                            payment.subscription.status ===
+                                            "active"
+                                        ) { %>
+
+                                            <span class="badge bg-success">
+                                                Active
+                                            </span>
+
+                                        <% } else if (
+                                            payment.subscription.status ===
+                                            "suspended"
+                                        ) { %>
+
+                                            <span class="badge bg-warning text-dark">
+                                                Suspended
+                                            </span>
+
+                                        <% } else if (
+                                            payment.subscription.status ===
+                                            "expired"
+                                        ) { %>
+
+                                            <span class="badge bg-danger">
+                                                Expired
+                                            </span>
+
+                                        <% } else { %>
+
+                                            <span class="badge bg-secondary">
+                                                <%= payment.subscription.status %>
+                                            </span>
+
+                                        <% } %>
+
+                                    <% } else { %>
+
+                                        <span class="text-light">
+                                            —
+                                        </span>
+
+                                    <% } %>
+
+                                </td>
+
+
+                                <!-- Date -->
+
+                                <td>
+
+                                    <%= payment.createdAt
+                                        ? new Date(
+                                            payment.createdAt
+                                        ).toLocaleDateString(
+                                            "en-NG",
+                                            {
+                                                day: "2-digit",
+                                                month: "short",
+                                                year: "numeric"
+                                            }
+                                        )
+                                        : "—"
+                                    %>
+
+                                    <br>
+
+                                    <small class="text-light">
+
+                                        <%= payment.createdAt
+                                            ? new Date(
+                                                payment.createdAt
+                                            ).toLocaleTimeString(
+                                                "en-NG",
+                                                {
+                                                    hour: "2-digit",
+                                                    minute: "2-digit"
+                                                }
+                                            )
+                                            : ""
+                                        %>
+
+                                    </small>
+
+                                </td>
+
+
+                                <!-- Action -->
+
+                                <td class="text-end">
+
+                                    <a
+                                        href="/admin/payments/<%= payment._id %>"
+                                        class="btn btn-sm btn-outline-primary"
+                                        title="View Payment"
+                                    >
+
+                                        <i class="bi bi-eye"></i>
+
+                                        View
+
+                                    </a>
+
+                                </td>
+
+                            </tr>
+
+                        <% }) %>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        <% } else { %>
+
+            <!-- =================================
+                 Empty State
+            ================================== -->
+
+            <div class="text-center py-5">
+
+                <i class="bi bi-credit-card-2-front fs-1 text-light"></i>
+
+                <h5 class="mt-3">
+                    No payments found
+                </h5>
+
+                <p class="text-light mb-0">
+
+                    There are no payment records matching
+                    your current filters.
+
+                </p>
+
+            </div>
+
+        <% } %>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================
+     PAGINATION
+========================================== -->
+
+<% if (totalPages > 1) { %>
+
+    <nav
+        class="mt-4"
+        aria-label="Payments pagination"
+    >
+
+        <ul class="pagination justify-content-center">
+
+            <!-- Previous -->
+
+            <li class="page-item <%= currentPage <= 1 ? 'disabled' : '' %>">
+
+                <a
+                    class="page-link"
+                    href="?page=<%= currentPage - 1 %>&search=<%= encodeURIComponent(search || '') %>&status=<%= encodeURIComponent(status || '') %>&gateway=<%= encodeURIComponent(gateway || '') %>"
+                >
+
+                    Previous
+
+                </a>
+
+            </li>
+
+
+            <!-- Page Numbers -->
+
+            <% for (
+                let pageNumber = 1;
+                pageNumber <= totalPages;
+                pageNumber++
+            ) { %>
+
+                <li
+                    class="page-item <%= pageNumber === currentPage ? 'active' : '' %>"
+                >
+
+                    <a
+                        class="page-link"
+                        href="?page=<%= pageNumber %>&search=<%= encodeURIComponent(search || '') %>&status=<%= encodeURIComponent(status || '') %>&gateway=<%= encodeURIComponent(gateway || '') %>"
+                    >
+
+                        <%= pageNumber %>
+
+                    </a>
+
+                </li>
+
+            <% } %>
+
+
+            <!-- Next -->
+
+            <li
+                class="page-item <%= currentPage >= totalPages ? 'disabled' : '' %>"
+            >
+
+                <a
+                    class="page-link"
+                    href="?page=<%= currentPage + 1 %>&search=<%= encodeURIComponent(search || '') %>&status=<%= encodeURIComponent(status || '') %>&gateway=<%= encodeURIComponent(gateway || '') %>"
+                >
+
+                    Next
+
+                </a>
+
+            </li>
+
+        </ul>
+
+    </nav>
+
+<% } %>
+
+
+</section>
+<%- include("../../partials/footer") -%>

@@ -1,7 +1,9 @@
 
 const User = require("../../models/userModel");
 const logActivity = require("../../utils/activityLogger");
-
+const {
+    ROLES
+} = require("../../config/constants");
 
 exports.users = async (req, res, next) => {
 
@@ -166,11 +168,11 @@ exports.bulkAction = async (req, res, next) => {
             case "user": {
 
                 const selectedAdminCount = selectedUsers.filter(
-                    u => u.role === "admin"
+                    u => u.role === ROLES.ADMIN
                 ).length;
 
                 const totalAdminCount = await User.countDocuments({
-                    role: "admin"
+                    role: ROLES.ADMIN
                 });
 
                 if (selectedAdminCount > 0 &&
@@ -188,11 +190,11 @@ exports.bulkAction = async (req, res, next) => {
                 }
 
                 const selectedSuperuserCount = selectedUsers.filter(
-                    u => u.role === "superuser"
+                    u => u.role === ROLES.SUPERUSER
                 ).length;
 
                 const totalSuperuserCount = await User.countDocuments({
-                    role: "superuser"
+                    role: ROLES.SUPERUSER
                 });
 
                 if (
@@ -233,7 +235,7 @@ exports.bulkAction = async (req, res, next) => {
 
                 await User.updateMany(
                     { _id: { $in: userIds } },
-                    { role: "superuser" }
+                    { role: ROLES.SUPERUSER }
                 );
 
                 await logActivity({
@@ -252,11 +254,11 @@ exports.bulkAction = async (req, res, next) => {
             case "admin": {
 
                 const selectedSuperuserCount = selectedUsers.filter(
-                    u => u.role === "superuser"
+                    u => u.role === ROLES.SUPERUSER
                 ).length;
 
                 const totalSuperuserCount = await User.countDocuments({
-                    role: "superuser"
+                    role: ROLES.SUPERUSER
                 });
 
                 if (
@@ -265,7 +267,7 @@ exports.bulkAction = async (req, res, next) => {
                 ) {
 
                     const err = new Error(
-                        "The last Superuser cannot be demoted."
+                        "The last Superuser cannot be altered."
                     );
 
                     err.status = 403;
@@ -277,7 +279,7 @@ exports.bulkAction = async (req, res, next) => {
 
                 await User.updateMany(
                     { _id: { $in: userIds } },
-                    { role: "admin" }
+                    { role: ROLES.ADMIN }
                 );
 
                 await logActivity({
@@ -356,11 +358,11 @@ exports.bulkAction = async (req, res, next) => {
             case "delete": {
 
                 const selectedAdminCount = selectedUsers.filter(
-                    u => u.role === "admin"
+                    u => u.role === ROLES.ADMIN
                 ).length;
 
                 const totalAdminCount = await User.countDocuments({
-                    role: "admin"
+                    role: ROLES.ADMIN
                 });
 
                 if (
@@ -380,11 +382,11 @@ exports.bulkAction = async (req, res, next) => {
                 }
 
                 const selectedSuperuserCount = selectedUsers.filter(
-                    u => u.role === "superuser"
+                    u => u.role === ROLES.SUPERUSER
                 ).length;
 
                 const totalSuperuserCount = await User.countDocuments({
-                    role: "superuser"
+                    role: ROLES.SUPERUSER
                 });
 
                 if (
@@ -527,11 +529,11 @@ exports.deleteUser = async (req, res, next) => {
         }
 
 
-        if (user.role === "superuser") {
+        if (user.role === ROLES.SUPERUSER) {
 
             const superUserCount = await User.countDocuments({
 
-                role: "superuser"
+                role: ROLES.SUPERUSER
 
             });
 

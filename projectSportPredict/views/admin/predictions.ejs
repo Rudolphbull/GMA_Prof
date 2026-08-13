@@ -53,312 +53,312 @@
 
     <div class="card shadow-sm mb-4">
 
-    <div class="card-header bg-primary text-white">
+        <div class="card-header bg-primary text-white">
 
-        <h5 class="mb-0 text-white">
+            <h5 class="mb-0 text-white">
 
-            <i class="bi bi-funnel"></i>
+                <i class="bi bi-funnel"></i>
 
-            Filter Predictions
+                Filter Predictions
 
-        </h5>
+            </h5>
 
-    </div>
+        </div>
 
-    <div class="card-body">
+        <div class="card-body">
 
-    
+        
 
-        <form
-            method="GET"
-            action="/admin/predictions"
-        >
+            <form
+                method="GET"
+                action="/admin/predictions"
+            >
 
-            <!-- Row 1 -->
-            <div class="row g-3 mb-3">
+                <!-- Row 1 -->
+                <div class="row g-3 mb-3">
 
-                <div class="col-md-5">
-                    
-                    
-                    <label for="search" class="form-label text-light fw-semibold">
-                        <i class="bi bi-search"></i>
-                        Search
-                    </label>
+                    <div class="col-md-5">
+                        
+                        
+                        <label for="search" class="form-label text-light fw-semibold">
+                            <i class="bi bi-search"></i>
+                            Search
+                        </label>
 
-                    <input
-                        type="text"
-                        name="search"
-                        id="search"
-                        class="form-control"
-                        placeholder="Search teams, league or country..."
-                        value="<%= search %>"
-                    >
+                        <input
+                            type="text"
+                            name="search"
+                            id="search"
+                            class="form-control"
+                            placeholder="Search teams, league or country..."
+                            value="<%= search %>"
+                        >
+
+                    </div>
+
+                    <div class="col-md-3">
+
+                        <label for="country" class="form-label text-light fw-semibold">
+                            <i class="bi bi-globe"></i>
+                            Country
+                        </label>
+
+                        <select
+                            name="country"
+                            class="form-select"
+                            id="country"
+                        >
+
+                            <option value="">All Countries</option>
+
+                            <% countries.forEach(item => { %>
+
+                                <option
+                                    value="<%= item %>"
+                                    <%= country === item ? "selected" : "" %>
+                                >
+
+                                    <%= item %>
+
+                                </option>
+
+                            <% }) %>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-4">
+
+                        <label for="league" class="form-label text-light fw-semibold">
+                            <i class="bi bi-trophy"></i>
+                            League
+                        </label>
+
+                        <select
+                            name="league"
+                            class="form-select"
+                            id="league"
+                        >
+
+                            <option value="">All Leagues</option>
+
+                            <% leagues.forEach(item => { %>
+
+                                <option
+                                    value="<%= item %>"
+                                    <%= league === item ? "selected" : "" %>
+                                >
+
+                                    <%= item %>
+
+                                </option>
+
+                            <% }) %>
+
+                        </select>
+
+                    </div>
 
                 </div>
 
-                <div class="col-md-3">
+                    <!-- Row 2 -->
+                    <div class="row g-3 mb-3">
 
-                    <label for="country" class="form-label text-light fw-semibold">
-                        <i class="bi bi-globe"></i>
-                        Country
-                    </label>
+                        <div class="col-md-4">
 
-                    <select
-                        name="country"
-                        class="form-select"
-                        id="country"
-                    >
+                            <label for="status" class="form-label text-light fw-semibold">
+                                <i class="bi bi-clipboard-check"></i>
 
-                        <option value="">All Countries</option>
+                                Status
+                            </label>
 
-                        <% countries.forEach(item => { %>
-
-                            <option
-                                value="<%= item %>"
-                                <%= country === item ? "selected" : "" %>
+                            <select
+                                name="status"
+                                class="form-select"
+                                id="status"
                             >
 
-                                <%= item %>
+                                <option value="">All Status</option>
 
-                            </option>
+                                <option value="Pending" <%= status === "Pending" ? "selected" : "" %>>
+                                    Pending
+                                </option>
 
-                        <% }) %>
+                                <option value="Won" <%= status === "Won" ? "selected" : "" %>>
+                                    Won
+                                </option>
 
-                    </select>
+                                <option value="Lost" <%= status === "Lost" ? "selected" : "" %>>
+                                    Lost
+                                </option>
 
-                </div>
+                                <option value="Void" <%= status === "Void" ? "selected" : "" %>>
+                                    Void
+                                </option>
 
-                <div class="col-md-4">
+                                <option value="Expired" <%= status === "Expired" ? "selected" : "" %>>
+                                    Expired
+                                </option>
 
-                    <label for="league" class="form-label text-light fw-semibold">
-                        <i class="bi bi-trophy"></i>
-                        League
-                    </label>
+                            </select>
 
-                    <select
-                        name="league"
-                        class="form-select"
-                        id="league"
-                    >
+                        </div>
 
-                        <option value="">All Leagues</option>
+                        <div class="col-md-4">
 
-                        <% leagues.forEach(item => { %>
+                            <label for="premium" class="form-label text-light fw-semibold">
+                                <i class="bi bi-gem"></i>
+                                Prediction Type
+                            </label>
 
-                            <option
-                                value="<%= item %>"
-                                <%= league === item ? "selected" : "" %>
+                            <select
+                                name="premium"
+                                class="form-select"
+                                id="premium"
                             >
 
-                                <%= item %>
+                                <option value="">All Predictions</option>
 
-                            </option>
+                                <option value="true" <%= premium === "true" ? "selected" : "" %>>
+                                    Premium
+                                </option>
 
-                        <% }) %>
+                                <option value="false" <%= premium === "false" ? "selected" : "" %>>
+                                    Free
+                                </option>
 
-                    </select>
+                            </select>
 
-                </div>
+                        </div>
 
-            </div>
+                        <div class="col-md-4">
 
-            <!-- Row 2 -->
-            <div class="row g-3 mb-3">
+                            <label for="sort" class="form-label text-light fw-semibold">
+                                <i class="bi bi-arrow-down-up"></i>
+                                Sort By
+                            </label>
 
-                    <div class="col-md-4">
+                            <select
+                                name="sort"
+                                class="form-select"
+                                id="sort"
+                            >
 
-                        <label for="status" class="form-label text-light fw-semibold">
-                            <i class="bi bi-clipboard-check"></i>
+                                <option value="kickoff-desc" <%= sort === "kickoff-desc" ? "selected" : "" %>>
+                                    Newest Kickoff
+                                </option>
 
-                            Status
-                        </label>
+                                <option value="kickoff-asc" <%= sort === "kickoff-asc" ? "selected" : "" %>>
+                                    Oldest Kickoff
+                                </option>
 
-                        <select
-                            name="status"
-                            class="form-select"
-                            id="status"
-                        >
+                                <option value="odds-desc" <%= sort === "odds-desc" ? "selected" : "" %>>
+                                    Highest Odds
+                                </option>
 
-                            <option value="">All Status</option>
+                                <option value="odds-asc" <%= sort === "odds-asc" ? "selected" : "" %>>
+                                    Lowest Odds
+                                </option>
 
-                            <option value="Pending" <%= status === "Pending" ? "selected" : "" %>>
-                                Pending
-                            </option>
+                                <option value="confidence-desc" <%= sort === "confidence-desc" ? "selected" : "" %>>
+                                    Highest Confidence
+                                </option>
 
-                            <option value="Won" <%= status === "Won" ? "selected" : "" %>>
-                                Won
-                            </option>
+                                <option value="confidence-asc" <%= sort === "confidence-asc" ? "selected" : "" %>>
+                                    Lowest Confidence
+                                </option>
 
-                            <option value="Lost" <%= status === "Lost" ? "selected" : "" %>>
-                                Lost
-                            </option>
+                                <option value="created-desc" <%= sort === "created-desc" ? "selected" : "" %>>
+                                    Recently Added
+                                </option>
 
-                            <option value="Void" <%= status === "Void" ? "selected" : "" %>>
-                                Void
-                            </option>
+                                <option value="created-asc" <%= sort === "created-asc" ? "selected" : "" %>>
+                                    Oldest Added
+                                </option>
 
-                            <option value="Expired" <%= status === "Expired" ? "selected" : "" %>>
-                                Expired
-                            </option>
+                            </select>
 
-                        </select>
-
-                    </div>
-
-                    <div class="col-md-4">
-
-                        <label for="premium" class="form-label text-light fw-semibold">
-                            <i class="bi bi-gem"></i>
-                            Prediction Type
-                        </label>
-
-                        <select
-                            name="premium"
-                            class="form-select"
-                            id="premium"
-                        >
-
-                            <option value="">All Predictions</option>
-
-                            <option value="true" <%= premium === "true" ? "selected" : "" %>>
-                                Premium
-                            </option>
-
-                            <option value="false" <%= premium === "false" ? "selected" : "" %>>
-                                Free
-                            </option>
-
-                        </select>
+                        </div>
 
                     </div>
 
-                    <div class="col-md-4">
+                    <!-- Row 3 -->
+                    <div class="row g-3 mb-4">
 
-                        <label for="sort" class="form-label text-light fw-semibold">
-                            <i class="bi bi-arrow-down-up"></i>
-                            Sort By
-                        </label>
+                            <div class="col-md-3">
 
-                        <select
-                            name="sort"
-                            class="form-select"
-                            id="sort"
-                        >
+                                <label for="minOdds" class="form-label text-light fw-semibold">
+                                    <i class="bi bi-graph-down-arrow"></i>
+                                    Min Odds
+                                </label>
 
-                            <option value="kickoff-desc" <%= sort === "kickoff-desc" ? "selected" : "" %>>
-                                Newest Kickoff
-                            </option>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    name="minOdds"
+                                    id="minOdds"
+                                    class="form-control"
+                                    placeholder="Min Odds"
+                                    value="<%= minOdds %>"
+                                >
 
-                            <option value="kickoff-asc" <%= sort === "kickoff-asc" ? "selected" : "" %>>
-                                Oldest Kickoff
-                            </option>
+                            </div>
 
-                            <option value="odds-desc" <%= sort === "odds-desc" ? "selected" : "" %>>
-                                Highest Odds
-                            </option>
+                            <div class="col-md-3">
 
-                            <option value="odds-asc" <%= sort === "odds-asc" ? "selected" : "" %>>
-                                Lowest Odds
-                            </option>
+                                <label for="maxOdds" class="form-label text-light fw-semibold">
+                                    <i class="bi bi-graph-up-arrow"></i>
+                                    Max Odds
+                                </label>
 
-                            <option value="confidence-desc" <%= sort === "confidence-desc" ? "selected" : "" %>>
-                                Highest Confidence
-                            </option>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    name="maxOdds"
+                                    id="maxOdds"
+                                    class="form-control"
+                                    placeholder="Max Odds"
+                                    value="<%= maxOdds %>"
+                                >
 
-                            <option value="confidence-asc" <%= sort === "confidence-asc" ? "selected" : "" %>>
-                                Lowest Confidence
-                            </option>
+                            </div>
 
-                            <option value="created-desc" <%= sort === "created-desc" ? "selected" : "" %>>
-                                Recently Added
-                            </option>
+                            <div class="col-md-3">
 
-                            <option value="created-asc" <%= sort === "created-asc" ? "selected" : "" %>>
-                                Oldest Added
-                            </option>
+                                <label for="dateFrom" class="form-label text-light fw-semibold">
+                                    <i class="bi bi-calendar-event"></i>
+                                    Date From
+                                </label>
 
-                        </select>
+                                <input
+                                    type="date"
+                                    name="dateFrom"
+                                    id="dateFrom"
+                                    class="form-control"
+                                    value="<%= dateFrom %>"
+                                >
 
-                    </div>
+                            </div>
 
-                </div>
+                            <div class="col-md-3">
 
-                <!-- Row 3 -->
-                <div class="row g-3 mb-4">
+                                <label for="dateTo" class="form-label text-light fw-semibold">
+                                    <i class="bi bi-calendar-check"></i>
+                                    Date To
+                                </label>
 
-                    <div class="col-md-3">
+                                <input
+                                    type="date"
+                                    name="dateTo"
+                                    id="dateTo"
+                                    class="form-control"
+                                    value="<%= dateTo %>"
+                                >
 
-                        <label for="minOdds" class="form-label text-light fw-semibold">
-                            <i class="bi bi-graph-down-arrow"></i>
-                            Min Odds
-                        </label>
-
-                        <input
-                            type="number"
-                            step="0.01"
-                            name="minOdds"
-                            id="minOdds"
-                            class="form-control"
-                            placeholder="Min Odds"
-                            value="<%= minOdds %>"
-                        >
-
-                    </div>
-
-                    <div class="col-md-3">
-
-                        <label for="maxOdds" class="form-label text-light fw-semibold">
-                            <i class="bi bi-graph-up-arrow"></i>
-                            Max Odds
-                        </label>
-
-                        <input
-                            type="number"
-                            step="0.01"
-                            name="maxOdds"
-                            id="maxOdds"
-                            class="form-control"
-                            placeholder="Max Odds"
-                            value="<%= maxOdds %>"
-                        >
+                            </div>
 
                     </div>
-
-                    <div class="col-md-3">
-
-                        <label for="dateFrom" class="form-label text-light fw-semibold">
-                            <i class="bi bi-calendar-event"></i>
-                            Date From
-                        </label>
-
-                        <input
-                            type="date"
-                            name="dateFrom"
-                            id="dateFrom"
-                            class="form-control"
-                            value="<%= dateFrom %>"
-                        >
-
-                    </div>
-
-                    <div class="col-md-3">
-
-                        <label for="dateTo" class="form-label text-light fw-semibold">
-                            <i class="bi bi-calendar-check"></i>
-                            Date To
-                        </label>
-
-                        <input
-                            type="date"
-                            name="dateTo"
-                            id="dateTo"
-                            class="form-control"
-                            value="<%= dateTo %>"
-                        >
-
-                    </div>
-
-                </div>
 
                 <!-- Buttons -->
                 <div class="row">
@@ -372,7 +372,7 @@
 
                             <i class="bi bi-search"></i>
 
-                            Filter
+                            Search
 
                         </button>
 
@@ -399,7 +399,7 @@
 
     </div>
 
-        <div class="card shadow-sm mb-4">
+    <div class="card shadow-sm mb-4">
 
         <div class="card-header bg-primary text-white">
 
@@ -413,333 +413,356 @@
 
         </div>
 
-        <div class="card-body">
+            <div class="card-body">
 
-            <form
-                id="bulkActionForm"
-                method="POST"
-                action="/admin/predictions/bulk"
-            >
+                <form
+                    id="bulkActionForm"
+                    data-module="predictions"
+                    data-id-field="predictionIds"
+                    method="POST"
+                    action="/admin/predictions/bulk"
+                >
 
-                <div class="row align-items-end">
+                    <div class="row align-items-end">
 
-                    <div class="col-md-8">
+                        <div class="col-md-8">
 
-                        <label
-                            for="bulkAction"
-                            class="form-label text-light fw-semibold"
-                        >
+                            <label
+                                for="bulkAction"
+                                class="form-label text-light fw-semibold"
+                            >
 
-                            <i class="bi bi-lightning-charge"></i>
+                                <i class="bi bi-lightning-charge"></i>
 
-                            Action
+                                Action
 
-                        </label>
+                            </label>
 
-                        <select
-                            class="form-select"
-                            id="bulkAction"
-                            name="action"
-                            required
-                        >
+                            <select
+                                class="form-select"
+                                id="bulkAction"
+                                name="action"
+                                required
+                            >
 
-                            <option value="">
+                                <option value="">
 
-                                Select Action
+                                    Select Action
 
-                            </option>
+                                </option>
 
-                            <option value="won">
+                                <option value="won">
 
-                                Mark as Won
+                                    Mark as Won
 
-                            </option>
+                                </option>
 
-                            <option value="lost">
+                                <option value="lost">
 
-                                Mark as Lost
+                                    Mark as Lost
 
-                            </option>
+                                </option>
 
-                            <option value="void">
+                                <option value="void">
 
-                                Mark as Void
+                                    Mark as Void
 
-                            </option>
+                                </option>
 
-                            <option value="premium">
+                                <option value="premium">
 
-                                Make Premium
+                                    Make Premium
 
-                            </option>
+                                </option>
 
-                              <option value="free">
+                                <option value="free">
 
-                                Make Free
+                                    Make Free
 
-                            </option>
+                                </option>
 
-                            <option value="delete">
+                                <option value="delete">
 
-                                Delete Selected
+                                    Delete Selected
 
-                            </option>
+                                </option>
 
-                        </select>
+                            </select>
+
+                        </div>
+
+                        <div class="col-md-4 text-end">
+
+                            <button
+                                type="submit"
+                                class="btn btn-success px-4"
+                            >
+
+                                <i class="bi bi-check-circle"></i>
+
+                                Apply
+
+                            </button>
+
+                        </div>
 
                     </div>
 
-                    <div class="col-md-4 text-end">
+                
 
-                        <button
-                            type="submit"
-                            class="btn btn-success px-4"
-                        >
+            </div>
+<!-- 
+        </div> -->
 
-                            <i class="bi bi-check-circle"></i>
+        <div class="col-lg-6">
 
-                            Apply
+            <div class="d-flex gap-2">
 
-                        </button>
+                <h5 class="mb-4 text-light">
 
-                    </div>
+                    Prediction Records
 
-                </div>
-
-            
+                </h5>
+                
+            </div>
 
         </div>
 
-    </div>
+        <div class="card shadow">
 
-    <div class="card shadow">
+            <div class="card-body">
 
-        <div class="card-body">
+                <div class="table-responsive">
 
-            <div class="table-responsive">
+                    <table class="table table-hover align-middle">
 
-                <table class="table table-hover align-middle">
-
-                    <thead>
-
-                        <tr>
-
-                            <th style="width:40px;">
-
-                                <input
-                                    type="checkbox"
-                                    id="selectAll"
-                                    class="form-check-input"
-                                >
-
-                            </th>
-                            <th>Match</th>
-                            <th>Prediction</th>
-                            <th>Odds</th>
-                            <th>Status</th>
-                            <th>Premium</th>
-                            <th>Kickoff</th>
-                            <th>Actions</th>
-
-                        </tr>
-
-                    </thead>
-
-                    <tbody>
-
-                        <% if(predictions.length === 0){ %>
+                        <thead>
 
                             <tr>
 
-                                <td colspan="8" class="text-center py-5">
+                                <th style="width:40px;">
 
-                                    <h5>No predictions found.</h5>
+                                    <input
+                                        type="checkbox"
+                                        id="selectAll"
+                                        class="form-check-input"
+                                    >
 
-                                    <p class="text-muted mb-0">
-
-                                        Try adjusting your search or filters.
-
-                                    </p>
-
-                                </td>
+                                </th>
+                                <th>Match</th>
+                                <th>Prediction</th>
+                                <th>Odds</th>
+                                <th>Result</th>
+                                <th>Status</th>
+                                <th>Premium</th>
+                                <th>Kickoff</th>
+                                <th>Actions</th>
 
                             </tr>
 
-                        <% } else { %>
+                        </thead>
 
-                            <% predictions.forEach(prediction => { %>
+                        <tbody>
+
+                            <% if(predictions.length === 0){ %>
 
                                 <tr>
 
-                                    <td>
+                                    <td colspan="9" class="text-center py-5">
 
-                                        <input
-                                            type="checkbox"
-                                            name="predictionIds"
-                                            class="form-check-input bulk-checkbox"
-                                            data-bulk-checkbox
-                                            value="<%= prediction._id %>"
-                                        >
+                                        <h5>No predictions found.</h5>
 
+                                        <p class="text-muted mb-0">
 
-                                    </td>
+                                            Try adjusting your search or filters.
 
-                                    <td>
+                                        </p>
 
-                                        <strong>
-
-                                            <%= prediction.homeTeam %>
-
-                                        </strong>
-
-                                        <br>
-
-                                        <small class="text-muted">
-
-                                            vs
-
-                                            <%= prediction.awayTeam %>
-
-                                        </small>
-
-                                        <br>
-
-                                        <small class="text-secondary">
-
-                                            <%= prediction.league %>
-
-                                        </small>
-
-                                    </td>
-
-                                    <td>
-
-                                        <%= prediction.prediction %>
-
-                                    </td>
-
-                                    <td>
-
-                                        <%= prediction.odds %>
-
-                                    </td>
-
-                                    <td>
-
-                                        <% if(prediction.status === "Won"){ %>
-
-                                            <span class="badge bg-success">
-
-                                                Won
-
-                                            </span>
-
-                                        <% } else if(prediction.status === "Lost"){ %>
-
-                                            <span class="badge bg-danger">
-
-                                                Lost
-
-                                            </span>
-
-                                        <% } else if(prediction.status === "Void"){ %>
-
-                                            <span class="badge bg-secondary">
-
-                                                Void
-
-                                            </span>
-
-                                        <% } else if(prediction.status === "Expired"){ %>
-
-                                            <span class="badge bg-dark">
-
-                                                Expired
-
-                                            </span>
-
-                                        <% } else { %>
-
-                                            <span class="badge bg-warning text-dark">
-
-                                                Pending
-
-                                            </span>
-
-                                        <% } %>
-
-                                    </td>
-
-                                    <td>
-
-                                        <% if(prediction.isPremium){ %>
-
-                                            <span class="badge bg-success">
-
-                                                Premium
-
-                                            </span>
-
-                                        <% } else { %>
-
-                                            <span class="badge bg-primary">
-
-                                                Free
-
-                                            </span>
-
-                                        <% } %>
-
-                                    </td>
-
-                                    <td>
-
-                                        <%= new Date(prediction.kickoffTime).toLocaleString("en-NG") %>
-
-                                    </td>
-
-                                    <td>
-
-                                        <a
-                                            href="/predictions/<%= prediction._id %>/edit"
-                                            class="btn btn-warning btn-sm mb-1"
-                                        >
-
-                                            <i class="bi bi-pencil-square"></i>
-
-                                            Edit
-
-                                        </a>
-
-                                        <form
-                                            action="/admin/predictions/<%= prediction._id %>/delete"
-                                            method="POST"
-                                            class="d-inline delete-form"
-                                        >
-
-                                            <button
-                                                type="submit"
-                                                class="btn btn-danger btn-sm delete-btn"
-                                                data-name="<%= prediction.homeTeam %> vs <%= prediction.awayTeam %>"
-                                            >
-                                                <i class="bi bi-trash"></i>
-                                                Delete
-                                            </button>
-
-                                        </form>
-                                        
                                     </td>
 
                                 </tr>
 
-                            <% }) %>
+                            <% } else { %>
 
-                        <% } %>
+                                <% predictions.forEach(prediction => { %>
 
-                    </tbody>
-                </table>
+                                    <tr>
 
-            </div>
+                                        <td>
+
+                                            <input
+                                                type="checkbox"
+                                                name="predictionIds"
+                                                class="form-check-input bulk-checkbox"
+                                                data-bulk-checkbox
+                                                value="<%= prediction._id %>"
+                                            >
+
+
+                                        </td>
+
+                                        <td>
+
+                                            <strong>
+
+                                                <%= prediction.homeTeam %>
+
+                                            </strong>
+
+                                            <br>
+
+                                            <small class="text-muted">
+
+                                                vs
+
+                                                <%= prediction.awayTeam %>
+
+                                            </small>
+
+                                            <br>
+
+                                            <small class="text-secondary">
+
+                                                <%= prediction.league %>
+
+                                            </small>
+
+                                        </td>
+
+                                        <td>
+
+                                            <%= prediction.prediction %>
+
+                                        </td>
+
+                                        <td>
+
+                                            <%= prediction.odds %>
+
+                                        </td>
+
+                                        <td>
+
+                                            <%= prediction.result %>
+
+                                        </td>
+
+                                        <td>
+
+                                            <% if(prediction.status === "Won"){ %>
+
+                                                <span class="badge bg-success">
+
+                                                    Won
+
+                                                </span>
+
+                                            <% } else if(prediction.status === "Lost"){ %>
+
+                                                <span class="badge bg-danger">
+
+                                                    Lost
+
+                                                </span>
+
+                                            <% } else if(prediction.status === "Void"){ %>
+
+                                                <span class="badge bg-secondary">
+
+                                                    Void
+
+                                                </span>
+
+                                            <% } else if(prediction.status === "Expired"){ %>
+
+                                                <span class="badge bg-dark">
+
+                                                    Expired
+
+                                                </span>
+
+                                            <% } else { %>
+
+                                                <span class="badge bg-warning text-dark">
+
+                                                    Pending
+
+                                                </span>
+
+                                            <% } %>
+
+                                        </td>
+
+                                        <td>
+
+                                            <% if(prediction.isPremium){ %>
+
+                                                <span class="badge bg-success">
+
+                                                    Premium
+
+                                                </span>
+
+                                            <% } else { %>
+
+                                                <span class="badge bg-primary">
+
+                                                    Free
+
+                                                </span>
+
+                                            <% } %>
+
+                                        </td>
+
+                                        <td>
+
+                                            <%= new Date(prediction.kickoffTime).toLocaleString("en-NG") %>
+
+                                        </td>
+
+                                        <td>
+
+                                            <a
+                                                href="/predictions/<%= prediction._id %>/edit"
+                                                class="btn btn-warning btn-sm mb-1"
+                                            >
+
+                                                <i class="bi bi-pencil-square"></i>
+
+                                                Edit
+
+                                            </a>
+
+                                            <form
+                                                action="/admin/predictions/<%= prediction._id %>/delete"
+                                                method="POST"
+                                                class="d-inline delete-form"
+                                            >
+
+                                                <button
+                                                    type="submit"
+                                                    class="btn btn-danger btn-sm delete-btn"
+                                                    data-name="<%= prediction.homeTeam %> vs <%= prediction.awayTeam %>"
+                                                >
+                                                    <i class="bi bi-trash"></i>
+                                                    Delete
+                                                </button>
+
+                                            </form>
+                                            
+                                        </td>
+
+                                    </tr>
+
+                                <% }) %>
+
+                            <% } %>
+
+                        </tbody>
+                    </table>
+
+                </div>
 
             
             <% if (totalPages > 1) { %>
@@ -784,7 +807,7 @@
 
                             <a
                                 class="page-link"
-                                href="/admin/predictions?page=<%= currentPage + 1 %>&search=<%= search %>&status=<%= status %>&premium=<%= premium %>&country=<%= country %>&league=<%= league %>&minOdds=<%= minOdds %>&maxOdds=<%= maxOdds %>&dateFrom=<%= dateFrom %>&dateTo=<%= dateTo %>"
+                                href="/admin/predictions?page=<%= currentPage + 1 %>&search=<%= search %>&status=<%= status %>&premium=<%= premium %>&country=<%= country %>&league=<%= league %>&minOdds=<%= minOdds %>&maxOdds=<%= maxOdds %>&dateFrom=<%= dateFrom %>&dateTo=<%= dateTo %>&sort=<%= sort %>"
                             >
                                 Next
                             </a>
@@ -805,5 +828,5 @@
 </section>
 
 
-<%- include("../partials/deleteModal") %>
+<%- include("../partials/deleteModal") -%>
 <%- include("../partials/footer") -%>
