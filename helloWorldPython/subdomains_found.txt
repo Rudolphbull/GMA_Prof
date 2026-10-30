@@ -1,0 +1,5 @@
+www.google.com - 142.251.154.119
+mail.google.com - 142.250.151.83
+api.google.com - 142.250.129.106
+admin.google.com - 142.250.117.138
+blog.google.com - 142.251.30.191

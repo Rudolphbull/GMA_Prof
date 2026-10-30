@@ -1,0 +1,6 @@
+Port Scan Report - 2026-10-29 22:37:43.602074
+Target: 127.0.0.1
+Duration: 398.17s
+Open Ports:
+  135 - RPC - Windows Service
+  445 - SMB - Windows File Sharing (WannaCry!)
