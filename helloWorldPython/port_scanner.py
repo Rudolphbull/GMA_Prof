@@ -10,6 +10,13 @@ def scan_port(target, port):
 
     #Try to connect - if it works, port is OPEN
     result = s.connect_ex((target, port))
+    if result == 0:
+        try:
+            banner = s.recv(1024).decode().strip()
+            print(f"Port {port}: {banner}")
+        except:
+            print(f" Port {port}: Open - no banner")
+
     s.close()
     return result == 0
 

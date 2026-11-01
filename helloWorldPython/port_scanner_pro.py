@@ -2,12 +2,22 @@
 
 import socket 
 from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor 
 
 
 def scan_port(target, port):
   s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
   s.settimeout(0.8)
   result = s.connect_ex((target, port))
+  if result == 0:
+      
+      try:
+          
+          banner = s.recv(1024).decode().strip() # <- grab banner here
+          print(f" Port {port}: {banner}")
+      except:
+          print(f" Port {port}: Open - no banner")
+          
   s.close()
   return result == 0
 
@@ -55,17 +65,20 @@ print(f"Ports: {list(ports)[:10]}{'...' if len(list(ports)) > 10 else ''} ({len(
 print(f"Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 print(f"{'='*60}\n")
 
+
 open_ports = []
 start_time = datetime.now()
 
-for port in ports:
-    # Small dot to show progress
-    print(f"Scanning {port}...", end="\r")
-    if scan_port(target, port):
-        service = get_service(port)
-        print(f"Port {port}: 🟢 OPEN  -> {service}")
-        open_ports.append((port, service))
-        
+with ThreadPoolExecutor(max_workers=100) as executor:
+    #submit all at once
+    futures = {executor.submit(scan_port, target, port): port for port in ports}
+    for future in futures:
+        port = futures[future]
+        if future.result():
+            service = get_service(port)
+            print(f" Port {port}: OPEN -> {service}")
+            open_ports.append((port, service))
+
 end_time = datetime.now()
 duration = (end_time - start_time).total_seconds()
 

@@ -1,0 +1,5 @@
+oct 31 09:00:01 server sshd[1234]: Failed password for root from 192.168.1.10 port 22
+oct 31 09:00:03 server sshd[1234]: Failed password for root from 192.168.1.10 port 22
+oct 31 09:00:05 server sshd[1234]: Failed password for root from 10.0.0.5 port 22
+oct 31 09:00:07 server sshd[1234]: Failed password for root from 192.168.1.10 port 22
+oct 31 09:00:09 server sshd[1234]: Failed password for root from 192.168.1.10 port 22

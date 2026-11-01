@@ -1,0 +1,8 @@
+SOC ALERT REPORT - 2026-10-31 19:00:14.589928
+==================================================
+
+IPs Analyzed: {'192.168.1.10': 4, '10.0.0.5': 1}
+
+ALERT: 192.168.1.10 failed 4 times - Possible brute force
+
+Action: Block IP on firewall

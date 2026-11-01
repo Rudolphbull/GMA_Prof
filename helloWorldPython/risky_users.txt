@@ -1,0 +1,7 @@
+ENTRA ID IMPOSSIBLE TRAVEL REPORT - 2026-11-01 02:20:29.480135
+============================================================
+
+IMPOSSIBLE TRAVEL: admin@company.com | Lagos, NG (197.210.54.23 at 2026-10-31 09:00:00) -> Dallas, US (185.220.101.45 at 2026-10-31 09:20:00) in 20 mins
+IMPOSSIBLE TRAVEL: finance@company.com | London, UK (51.140.123.10 at 2026-10-31 10:00:00) -> Beijing, CN (36.110.45.22 at 2026-10-31 10:45:00) in 45 mins
+
+Action: Force password reset + MFA check + Block IPs

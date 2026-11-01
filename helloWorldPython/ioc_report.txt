@@ -1,0 +1,8 @@
+IOC REPORT: - 2026-10-31 20:25:12.257172
+==================================================
+
+IPs found: ['192.168.1.10', '10.0.0.5']
+URLs found: {result['urls']}
+Hashes found: ['5f4dcc3b5aa765d61d8327deb882cf99', '9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08']
+
+Action: Block IPs/URLs on firewall, hunt hashes in SIEN
