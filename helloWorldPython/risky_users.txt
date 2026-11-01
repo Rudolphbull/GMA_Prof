@@ -1,4 +1,4 @@
-ENTRA ID IMPOSSIBLE TRAVEL REPORT - 2026-11-01 02:34:40.853357
+ENTRA ID IMPOSSIBLE TRAVEL REPORT - 2026-11-01 02:58:45.324173
 ============================================================
 
 IMPOSSIBLE TRAVEL: admin@company.com | Lagos, NG (197.210.54.23 at 2026-10-31 09:00:00) -> Dallas, US (185.220.101.45 at 2026-10-31 09:20:00) in 20 mins

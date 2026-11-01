@@ -7,7 +7,7 @@ import os
 from datetime import datetime
 from collections import defaultdict
 from dotenv import load_dotenv
-load_dotenv
+load_dotenv()
 
 def parse_time(s):
   return datetime.strptime(s, "%Y-%m-%d %H:%M:%S")
