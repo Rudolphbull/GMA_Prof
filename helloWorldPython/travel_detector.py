@@ -53,7 +53,7 @@ print(f"\n[+] risky_users.txt saved! Found {len(risky)} alerts")
 import requests
 import json
 
-SLACK_WEBHOOK_URL = os.getenv("SLACK_WEBHOOK_URL", "https://hooks.slack.com/services/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")  # paste your URL here
+SLACK_WEBHOOK_URL = os.getenv("SLACK_WEBHOOK_URL")  # paste your URL here
 
 if risky:
     slack_message = {
